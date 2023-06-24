@@ -4,8 +4,6 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
-  const double poison = 0.0/0.0;
-
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
@@ -31,7 +29,7 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              poison, poison, poison, &prims);
+              ent[index], Ye[index], temp[index], &prims);
 
         prims.u0 = u0[index];
 

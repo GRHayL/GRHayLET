@@ -15,7 +15,7 @@ USES INCLUDE: GRHayLib.h
 # these velocities differ from HydroBase.
 cctk_real grmhd_primitives type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  rho_b, pressure, vx, vy, vz
+  rho_b, pressure, vx, vy, vz, Ye, temp, ent
 } "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 
 # Separating the computation of Tmunu from the con2prim routine requires providing u0.
@@ -27,7 +27,7 @@ cctk_real u0 type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoin
 # Evolved variables
 cctk_real grmhd_conservatives type = GF Timelevels=3
 {
-  rho_star, tau, Stildex, Stildey, Stildez # Note that Stildei = \tilde{S}_i.
+  rho_star, tau, Stildex, Stildey, Stildez, Ye_star, ent_star # Note that Stildei = \tilde{S}_i.
 } "Evolved mhd variables"
 
 #########################################################
@@ -35,7 +35,7 @@ cctk_real grmhd_conservatives type = GF Timelevels=3
 # RHS variables for MoL timestepping
 cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs
+  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
 } "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
 
 #########################################################
@@ -43,7 +43,7 @@ cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint
 #Temporary variables for flux computation
 cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux
+  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, Ye_star_flux, ent_star_flux
 } "Temporary variables for storing the flux terms of tilde{S}_i."
 
 #########################################################

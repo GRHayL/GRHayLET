@@ -47,8 +47,6 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
     if(ierr!=0) CCTK_VERROR("Error with setting equatorial symmetries in con2prim.");
   }
 
-  const double poison = 0.0/0.0;
-
   // Diagnostic variables.
   int failures=0;
   int vel_limited_ptcount=0;
@@ -63,7 +61,6 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
   double error_int_denom=0;
   int n_iter=0;
   double dummy1, dummy2, dummy3;
-  double dummy4, dummy5, dummy6;
 
 #pragma omp parallel for reduction(+:failures,vel_limited_ptcount,rho_star_fix_applied,pointcount,failures_inhoriz,pointcount_inhoriz,backup0,backup1,backup2,error_int_numer,error_int_denom,n_iter) schedule(static)
   for(int k=0; k<kmax; k++) {
@@ -95,14 +92,14 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              poison, poison, poison, &prims);
+              ent[index], Ye[index], temp[index], &prims);
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
         ghl_initialize_conservatives(
               rho_star[index], tau[index],
               Stildex[index], Stildey[index], Stildez[index],
-              poison, poison, &cons);
+              ent_star[index], Ye_star[index], &cons);
 
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;
@@ -200,15 +197,15 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
               &prims,
               &rho_b[index], &pressure[index], &eps[index],
               &vx[index], &vy[index], &vz[index],
-              &dummy4, &dummy5, &dummy6,
-              &dummy1, &dummy2, &dummy3);
+              &dummy1, &dummy2, &dummy3,
+              &ent[index], &Ye[index], &temp[index]);
         u0[index] = prims.u0;
 
         ghl_return_conservatives(
               &cons,
               &rho_star[index], &tau[index],
               &Stildex[index], &Stildey[index], &Stildez[index],
-              &dummy1, &dummy2);
+              &ent_star[index], &Ye_star[index]);
 
         //Now we compute the difference between original & new conservatives, for diagnostic purposes:
         error_int_numer += fabs(cons.tau - cons_orig.tau) + fabs(cons.rho - cons_orig.rho) + fabs(cons.SD[0] - cons_orig.SD[0])

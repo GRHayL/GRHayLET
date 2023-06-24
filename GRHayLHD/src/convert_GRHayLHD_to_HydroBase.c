@@ -89,6 +89,13 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         Bvec[index4D0] = 0.0;
         Bvec[index4D1] = 0.0;
         Bvec[index4D2] = 0.0;
+
+        if( ghl_eos->eos_type == ghl_eos_tabulated ) {
+          Y_e[index]         = Ye[index];
+          temperature[index] = temp[index];
+        }
+        if( ghl_params->evolve_entropy )
+          entropy[index] = ent[index];
       }
     }
   }

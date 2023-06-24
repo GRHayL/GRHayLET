@@ -14,9 +14,7 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
-  const double poison = 0.0/0.0;
   double dummy1, dummy2, dummy3;
-  double dummy4, dummy5, dummy6;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
@@ -45,7 +43,7 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              poison, poison, poison,
+              ent[index], Ye[index], temp[index],
               &prims);
 
         ghl_conservative_quantities cons;
@@ -61,13 +59,13 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
               &rho_b[index], &pressure[index], &eps[index],
               &vx[index], &vy[index], &vz[index],
               &dummy1, &dummy2, &dummy3,
-              &dummy4, &dummy5, &dummy6);
+              &ent[index], &Ye[index], &temp[index]);
 
         ghl_return_conservatives(
               &cons,
               &rho_star[index], &tau[index],
               &Stildex[index], &Stildey[index], &Stildez[index],
-              &dummy1, &dummy2);
+              &ent_star[index], &Ye_star[index]);
       }
     }
   }

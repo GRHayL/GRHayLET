@@ -56,6 +56,13 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
         vx[index] = alp[index]*ETvx - betax[index];
         vy[index] = alp[index]*ETvy - betay[index];
         vz[index] = alp[index]*ETvz - betaz[index];
+
+        if( ghl_eos->eos_type == ghl_eos_tabulated ) {
+          Ye[index]   = Y_e[index];
+          temp[index] = temperature[index];
+        }
+        if( ghl_params->evolve_entropy )
+          ent[index] = entropy[index];
       }
     }
   }
