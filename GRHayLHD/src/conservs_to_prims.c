@@ -105,11 +105,6 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
               Stildex[index], Stildey[index], Stildez[index],
               ent_star[index], Ye_star[index], &cons);
 
-        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
-          // diagnostics.check = true;
-          // debug_cons(cons);
-        // }
-
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;
 

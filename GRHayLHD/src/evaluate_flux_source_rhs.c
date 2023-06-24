@@ -131,15 +131,15 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
     }
 
     // Count number of additional reconstructed variables
-    const int num_others = 5;
+    const int num_others = 3 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
 
     // If using the entropy, it should be the first reconstructed variable
     // after the three velocities
-    const int ent_index = 3 + !ghl_params->evolve_entropy;
+    const int ent_index = 3 + ghl_params->evolve_entropy;
 
     // If not using the entropy, then Ye should be the first reconstructed
     // variable after the three velocities
-    const int Ye_index = 4 - !ghl_params->evolve_entropy;
+    const int Ye_index = 4 - ghl_params->evolve_entropy;
 
     double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
     if( ghl_eos->eos_type == ghl_eos_tabulated )
@@ -155,7 +155,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
 
           double rho_stencil[6], press_stencil[6], v_flux[6];
           double rhor, rhol, pressr, pressl;
-          double others_stencil[num_others][6], others_r[num_others], others_l[num_others];
+          double others_stencil[5][6], others_r[5], others_l[5];
 
           for(int ind=0; ind<6; ind++) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
