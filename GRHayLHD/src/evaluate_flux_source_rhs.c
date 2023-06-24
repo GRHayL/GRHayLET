@@ -37,19 +37,60 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                                          const ghl_metric_quantities *restrict ADM_metric_face,
                                          double *cmin, double *cmax);
 
-  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
-                                const ghl_primitive_quantities *restrict prims_l,
-                                const ghl_eos_parameters *restrict eos,
-                                const ghl_metric_quantities *restrict ADM_metric_face,
-                                const double cmin,
-                                const double cmax,
-                                ghl_conservative_quantities *restrict cons_fluxes);
-
   void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
                                  const ghl_eos_parameters *restrict eos,
                                  const ghl_metric_quantities *restrict ADM_metric,
                                  const ghl_metric_quantities *restrict metric_derivs,
                                  ghl_conservative_quantities *restrict cons_sources);
+
+  void (*calculate_HLLE_fluxes_dirn0)(const ghl_primitive_quantities *restrict prims_r,
+                                      const ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn1)(const ghl_primitive_quantities *restrict prims_r,
+                                      const ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn2)(const ghl_primitive_quantities *restrict prims_r,
+                                      const ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  if( ghl_eos->eos_type == ghl_eos_hybrid ) {
+    if( ghl_params->evolve_entropy ) {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy;
+    }
+    else {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid;
+    }
+  }
+  else {
+    if( ghl_params->evolve_entropy ) {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
+    }
+    else {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated;
+    }
+  }
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
     const int xdir = (flux_dir == 0);
@@ -62,19 +103,19 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
       case 0:
         v_flux_dir = vx;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
-        calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn0;
+        calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn0;
         calculate_source_terms = &ghl_calculate_source_terms_dirn0;
         break;
       case 1:
         v_flux_dir = vy;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
-        calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn1;
+        calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn1;
         calculate_source_terms = &ghl_calculate_source_terms_dirn1;
         break;
       case 2:
         v_flux_dir = vz;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
-        calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn2;
+        calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn2;
         calculate_source_terms = &ghl_calculate_source_terms_dirn2;
         break;
       default:
