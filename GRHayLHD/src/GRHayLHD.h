@@ -6,15 +6,16 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
-// Interpolates to the +1/2 face
-#define AM1 -0.0625
-#define A0   0.5625
-#define A1   0.5625
-#define A2  -0.0625
-#define COMPUTE_FCVAL(Varm1,Var,Varp1,Varp2) (AM1*(Varm1) + A0*(Var) + A1*(Varp1) + A2*(Varp2))
+// The inner two points of the interpolation function use
+// the value of A_in, and the outer two points use A_out.
+#define A_out -0.0625
+#define A_in  0.5625
+// Interpolates to the +1/2 face of point Var
+#define COMPUTE_FCVAL(Varm1,Var,Varp1,Varp2) (A_out*(Varm1) + A_in*(Var) + A_in*(Varp1) + A_out*(Varp2))
 
+// This comes from simplifying COMPUTE_FCVAL(i) - COMPUTE_FCVAL(i-1)
 // Computes derivative factor dx*deriv
-#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A0 - AM1)*(Varp1 - Varm1) + AM1*(Varp2 - Varm2))
+#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
 
 void GRHayLHD_interpolate_metric_to_face(
       const cGH *cctkGH,

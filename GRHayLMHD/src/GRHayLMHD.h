@@ -11,17 +11,18 @@ enum recon_indices{
       BX_STAGGER, BY_STAGGER, BZ_STAGGER,
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};
 
-//Interpolates to the +1/2 face
-#define interpolate_to_face(Vm1,V0,Vp1,Vp2) (0.5625*(V0 + Vp1) - 0.0625*(Vm1+Vp2))
-//Interpolates to the -1/2 face
-#define AM2 -0.0625
-#define AM1  0.5625
-#define A0   0.5625
-#define A1  -0.0625
-#define COMPUTE_FCVAL(METRICm2,METRICm1,METRIC,METRICp1) (AM2*(METRICm2) + AM1*(METRICm1) + A0*(METRIC) + A1*(METRICp1))
+// The inner two points of the interpolation function use
+// the value of A_in, and the outer two points use A_out.
+#define A_out -0.0625
+#define A_in  0.5625
+// Interpolates to the +1/2 face of point Var
+#define interpolate_to_face(Vm1,V0,Vp1,Vp2) (A_in*(V0 + Vp1) + A_out*(Vm1+Vp2))
+//Interpolates to the -1/2 face of point Var
+#define COMPUTE_FCVAL(Varm2,Varm1,Var,Varp1) (A_out*(Varm2) + A_in*(Varm1) + A_in*(Var) + A_out*(Varp1))
 
+// This comes from simplifying COMPUTE_FCVAL(i+1) - COMPUTE_FCVAL(i)
 // Computes derivative factor dx*deriv
-#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A0 - AM1)*(Varp1 - Varm1) + AM1*(Varp2 - Varm2))
+#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
 
 void GRHayLMHD_interpolate_metric_to_face(
       const cGH *cctkGH,
