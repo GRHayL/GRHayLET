@@ -158,11 +158,9 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         vel_l[1][index] = vars_l[1];
         vel_l[2][index] = vars_l[2];
 
-        B_r[B_recon[0]] = B_stagger[indm1];
         B_r[B_recon[1]] = vars_r[3];
         B_r[B_recon[2]] = vars_r[4];
 
-        B_l[B_recon[0]] = B_stagger[indm1];
         B_l[B_recon[1]] = vars_l[3];
         B_l[B_recon[2]] = vars_l[4];
 
@@ -174,6 +172,10 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               gxx, gxy, gxz,
               gyy, gyz, gzz,
               &ADM_metric_face);
+
+        // B_stagger is densitized, but B_center is not.
+        B_r[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        B_l[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
 
         primitive_quantities prims_r, prims_l;
         ghl_initialize_primitives(
