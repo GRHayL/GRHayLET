@@ -13,8 +13,13 @@
 // Interpolates to the +1/2 face of point Var
 #define COMPUTE_FCVAL(Varm1,Var,Varp1,Varp2) (A_out*(Varm1) + A_in*(Var) + A_in*(Varp1) + A_out*(Varp2))
 
-// This comes from simplifying COMPUTE_FCVAL(i) - COMPUTE_FCVAL(i-1)
-// Computes derivative factor dx*deriv
+/*
+   Computes derivative factor face(+1/2) - face(-1/2):
+   Let A = A_out, B = A_in. Let Var at index i be f[i]. Then,
+   dx*deriv = Af[-1] + Bf[0] + Bf[1] + Af[2] - (Af[-2] + Bf[-1] + Bf[0] + Af[1])
+            = Af[-1] - Bf[-1] + Bf[1] - Af[1] + Af[2] - Af[-2]
+            = (B-A)(f[1] - f[-1]) + A(f[2] - f[-2])
+*/ 
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
 
 void GRHayLHD_interpolate_metric_to_face(
