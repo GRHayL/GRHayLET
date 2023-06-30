@@ -1,29 +1,5 @@
 # IsotropicGasID param.ccl file
-shares: grid
-shares: ADMBase
-USES CCTK_INT lapse_timelevels
-USES CCTK_INT shift_timelevels
-USES CCTK_INT metric_timelevels
-
-USES KEYWORD metric_type
-
-EXTENDS KEYWORD initial_data
-{
-  "IsotropicGasID" :: "ADMBase initial data"
-}
-
-EXTENDS KEYWORD initial_lapse
-{
-  "IsotropicGasID" :: "Initial lapse"
-}
-
-EXTENDS KEYWORD initial_shift
-{
-  "IsotropicGasID" :: "Initial shift"
-}
-
 shares: HydroBase
-USES CCTK_INT timelevels
 
 EXTENDS KEYWORD initial_hydro
 {
@@ -36,6 +12,11 @@ EXTENDS KEYWORD initial_Y_e
 }
 
 EXTENDS KEYWORD initial_temperature
+{
+  "IsotropicGasID" :: "HydroBase initial data"
+}
+
+EXTENDS KEYWORD initial_entropy
 {
   "IsotropicGasID" :: "HydroBase initial data"
 }

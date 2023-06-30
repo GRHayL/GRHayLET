@@ -4,7 +4,6 @@
 
 #include "GRHayLib.h"
 
-
 #define velx (&vel[0*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define vely (&vel[1*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
 #define velz (&vel[2*cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]])
@@ -21,63 +20,47 @@
  * fraction in Minkowski space.
  */
 void IsotropicGasID(CCTK_ARGUMENTS) {
-
-
-  // Step 1: Get access to gridfunctions and parameters
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_IsotropicGasID;
   DECLARE_CCTK_PARAMETERS;
 
-  // Step 2: Check correct usage
+  if(!CCTK_EQUALS(initial_hydro, "IsotropicGasID"))
+    CCTK_VERROR("To use IsotropicGasID, please add initial_hydro=\"IsotropicGasID\" to the parfile.");
+  if(!CCTK_EQUALS(initial_Y_e, "IsotropicGasID"))
+    CCTK_VERROR("To use IsotropicGasID, please add initial_Y_e=\"IsotropicGasID\" to the parfile.");
+  if(!CCTK_EQUALS(initial_temperature, "IsotropicGasID"))
+    CCTK_VERROR("To use IsotropicGasID, please add initial_temperature=\"IsotropicGasID\" to the parfile.");
+
   CHECK_PARAMETER(IsotropicGasID_rho);
   CHECK_PARAMETER(IsotropicGasID_Y_e);
   CHECK_PARAMETER(IsotropicGasID_temperature);
 
-  CCTK_INFO("Beginning initial data");
+  CCTK_INFO("Beginning IsotropicGasID initial data");
 
-  // Step 3: Compute local pressure and epsilon
   CCTK_REAL IsotropicGasID_press, IsotropicGasID_eps, IsotropicGasID_entropy;
-  ghl_tabulated_compute_P_eps_S_from_T(ghl_eos,
-                                               IsotropicGasID_rho,
-                                               IsotropicGasID_Y_e,
-                                               IsotropicGasID_temperature,
-                                               &IsotropicGasID_press,
-                                               &IsotropicGasID_eps,
-                                               &IsotropicGasID_entropy);
+  ghl_tabulated_compute_P_eps_S_from_T(
+        ghl_eos,
+        IsotropicGasID_rho,
+        IsotropicGasID_Y_e,
+        IsotropicGasID_temperature,
+        &IsotropicGasID_press,
+        &IsotropicGasID_eps,
+        &IsotropicGasID_entropy);
 
-  // Step 4: Loop over the grid and set the ID
 #pragma omp parallel for
-  for(int k=0;k<cctk_lsh[2];k++) {
-    for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {
-
+  for(int k=0; k<cctk_lsh[2]; k++) {
+    for(int j=0; j<cctk_lsh[1]; j++) {
+      for(int i=0; i<cctk_lsh[0]; i++) {
         const int idx = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         Y_e[idx] = IsotropicGasID_Y_e;
-        alp[idx] = 1;
-        betax[idx] = 0;
-        betay[idx] = 0;
-        betaz[idx] = 0;
         eps[idx] = IsotropicGasID_eps;
-        gxx[idx] = 1;
-        gxy[idx] = 0;
-        gxz[idx] = 0;
-        gyy[idx] = 1;
-        gyz[idx] = 0;
-        gzz[idx] = 1;
-        kxx[idx] = 0;
-        kxy[idx] = 0;
-        kxz[idx] = 0;
-        kyy[idx] = 0;
-        kyz[idx] = 0;
-        kzz[idx] = 0;
         press[idx] = IsotropicGasID_press;
         rho[idx] = IsotropicGasID_rho;
         temperature[idx] = IsotropicGasID_temperature;
         velx[idx] = 0;
         vely[idx] = 0;
         velz[idx] = 0;
-        entropy[idx] = IsotropicGasID_entropy;
-
+        if(CCTK_EQUALS(initial_entropy, "IsotropicGasID")) entropy[idx] = IsotropicGasID_entropy;
       }
     }
   }

@@ -12,7 +12,7 @@ CCTK_STRING simulation_type "Set the type of initial data to use"
   "2D_test" :: "Set up a 2D_test; 2D_test_initial_data must also be set"
 } "1D_test"
 
-CCTK_BOOLEAN initialize_magnetic_quantities "Set whether A and B should be initialized"
+CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initialized"
 {
 } "yes"
 

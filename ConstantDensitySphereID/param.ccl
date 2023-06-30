@@ -1,29 +1,5 @@
 # ConstantDensitySphereID param.ccl file
-shares: grid
-shares: ADMBase
-USES CCTK_INT lapse_timelevels
-USES CCTK_INT shift_timelevels
-USES CCTK_INT metric_timelevels
-
-USES KEYWORD metric_type
-
-EXTENDS KEYWORD initial_data
-{
-  "ConstantDensitySphereID" :: "ADMBase initial data"
-}
-
-EXTENDS KEYWORD initial_lapse
-{
-  "ConstantDensitySphereID" :: "Initial lapse"
-}
-
-EXTENDS KEYWORD initial_shift
-{
-  "ConstantDensitySphereID" :: "Initial shift"
-}
-
 shares: HydroBase
-USES CCTK_INT timelevels
 
 EXTENDS KEYWORD initial_hydro
 {

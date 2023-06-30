@@ -1,5 +1,5 @@
 # ConstantDensitySphereID interface.ccl file
 implements: ConstantDensitySphereID
-inherits: ADMBase grid HydroBase GRHayLib
+inherits: HydroBase GRHayLib
 
 USES INCLUDE HEADER: GRHayLib.h
