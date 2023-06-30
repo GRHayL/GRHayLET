@@ -45,11 +45,11 @@ TmunuBase::prolongation_type     = none
 
 SpaceMask::use_mask      = "yes"
 
-Cactus::cctk_final_time            = 2.0
+Cactus::cctk_itlast                = 10
 Cactus::cctk_full_warnings         = "yes"
 Cactus::cctk_run_title             = "Balsara1"
 Cactus::highlight_warning_messages = "no"
-Cactus::terminate                  = "time"
+Cactus::terminate                  = "iteration"
 
 Carpet::domain_from_coordbase = "yes"
 Carpet::enable_all_storage       = no
@@ -146,17 +146,7 @@ TestDataID::discontinuity_position = 0.0
 IOUtil::out_dir                 = $parfile
 IOUtil::parfile_write           = "generate"
 
-IOBasic::outInfo_every = 2
-IOBasic::outInfo_vars  = "Carpet::physical_time_per_hour GRHayLMHD::rho_b GRHayLMHD::pressure"
-
-IOScalar::outScalar_every    = 2
-CarpetIOScalar::outScalar_reductions = "maximum"
-IOScalar::one_file_per_group = no
-IOScalar::outScalar_vars     = "
- GRHayLMHD::rho_b
-"
-
-CarpetIOASCII::one_file_per_group     = "yes"
+CarpetIOASCII::one_file_per_group     = "no"
 CarpetIOASCII::out1D_every          = 10
 CarpetIOASCII::out1D_x              = "no"
 CarpetIOASCII::out1D_y              = "no"
@@ -165,11 +155,12 @@ CarpetIOASCII::out1D_d              = "no"
 CarpetIOASCII::out1d_zline_x        = 0.01
 CarpetIOASCII::out1d_zline_y        = 0.01
 CarpetIOASCII::out1D_vars           = "
-  ADMBase::lapse
-  GRHayLMHD::grmhd_primitives_allbutBi
-  GRHayLMHD::grmhd_B_center
+  GRHayLMHD::rho_b
+  GRHayLMHD::pressure
+  GRHayLMHD::vx
+  GRHayLMHD::vy
+  GRHayLMHD::vz
+  GRHayLMHD::Bx_center
+  GRHayLMHD::By_center
+  GRHayLMHD::Bz_center
 "
-CarpetIOASCII::out2D_every            = 8
-CarpetIOASCII::out2D_vars             = ""
-CarpetIOASCII::out3D_ghosts           = "no"
-CarpetIOASCII::output_symmetry_points = "no"
