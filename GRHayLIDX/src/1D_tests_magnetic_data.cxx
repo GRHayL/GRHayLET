@@ -1,7 +1,7 @@
-#include "TestDataIDX.h"
+#include "GRHayLIDX.h"
 
-extern "C" void TestDataIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_TestDataIDX_1D_tests_magnetic_data;
+extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_1D_tests_magnetic_data;
   DECLARE_CCTK_PARAMETERS;
 
   double Bx_l, By_l, Bz_l;

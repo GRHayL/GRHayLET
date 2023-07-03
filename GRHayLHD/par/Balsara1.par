@@ -134,12 +134,12 @@ GRHayLib::k_ppoly0              = 1.0
 GRHayLib::rho_ppoly_in[0]       = 0.0
 GRHayLib::con2prim_backup_routines[0] = "Font1D"
 
-ActiveThorns = "TestDataID"
-TestDataID::simulation_type = "1D_test"
-TestDataID::initialize_magnetic_quantities = yes
-TestDataID::test_1D_initial_data = "Balsara1"
-TestDataID::test_shock_direction = "z"
-TestDataID::discontinuity_position = 0.0
+ActiveThorns = "GRHayLID"
+GRHayLID::simulation_type = "1D_test"
+GRHayLID::initialize_magnetic_quantities = yes
+GRHayLID::test_1D_initial_data = "Balsara1"
+GRHayLID::test_shock_direction = "z"
+GRHayLID::discontinuity_position = 0.0
 
 # I/O
 

@@ -1,7 +1,7 @@
-#include "TestDataID.h"
+#include "GRHayLID.h"
 
-void TestDataID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_TestDataID_1D_tests_magnetic_data;
+void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_magnetic_data;
   DECLARE_CCTK_PARAMETERS;
 
   double Bx_l, By_l, Bz_l;

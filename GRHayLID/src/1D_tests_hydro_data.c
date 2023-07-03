@@ -1,7 +1,7 @@
-#include "TestDataID.h"
+#include "GRHayLID.h"
 
-void TestDataID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_TestDataID_1D_tests_hydro_data;
+void GRHayLID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
   double rho_l, rho_r;

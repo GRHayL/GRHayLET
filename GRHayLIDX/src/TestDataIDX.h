@@ -1,9 +1,10 @@
-#ifndef TESTDATAID_H_
-#define TESTDATAID_H_
+#ifndef GRHAYLIDX_H_
+#define GRHAYLIDX_H_
 
+#include "loop_device.hxx"
 #include "cctk.h"
 #include "cctk_Parameters.h"
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
-#endif // TESTDATAID_H_
+#endif // GRHAYLIDX_H_

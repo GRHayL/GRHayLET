@@ -1,4 +1,4 @@
-# Parameter definitions for thorn TestDataIDX
+# Parameter definitions for thorn GRHayLIDX
 
 CCTK_STRING simulation_type "Set the type of initial data to use"
 {

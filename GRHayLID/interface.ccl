@@ -1,0 +1,7 @@
+# Interface definition for thorn GRHayLID
+
+implements: GRHayLID
+
+inherits: GRHayLib, HydroBase
+
+USES INCLUDE: GRHayLib.h

@@ -2,7 +2,7 @@
 # Original parameter file was 'repos/GRHayLET/GRHayLHD/test/Balsara1.par'
 # Run time/date was 17:49:14-0700 Jun 29 2023 on host 'ee' with 1 processor(s)
 
-ActiveThorns = "ADMBase ADMMacros AEILocalInterp Boundary Carpet CarpetInterp CarpetIOASCII CarpetIOBasic CarpetIOHDF5 CarpetIOScalar CarpetLib CarpetReduce CarpetRegrid2 CartGrid3D Constants CoordBase CoordGauge CycleClock GenericFD GRHayLHD GRHayLib HDF5 HydroBase InitBase IOUtil LocalReduce LoopControl MoL MPI NewRad SpaceMask SphericalSurface StaticConformal SymBase TestDataID Time Timers TmunuBase Vectors zlib"
+ActiveThorns = "ADMBase ADMMacros AEILocalInterp Boundary Carpet CarpetInterp CarpetIOASCII CarpetIOBasic CarpetIOHDF5 CarpetIOScalar CarpetLib CarpetReduce CarpetRegrid2 CartGrid3D Constants CoordBase CoordGauge CycleClock GenericFD GRHayLHD GRHayLib HDF5 HydroBase InitBase IOUtil LocalReduce LoopControl MoL MPI NewRad SpaceMask SphericalSurface StaticConformal SymBase GRHayLIDID Time Timers TmunuBase Vectors zlib"
 
 # Parameters of thorn ADMBase (implementing ADMBase)
 ADMBase::dtlapse_evolution_method = "static"
@@ -141,12 +141,12 @@ SphericalSurface::nsurfaces       = 2
 SphericalSurface::ntheta[0]       = 39
 SphericalSurface::ntheta[1]       = 39
 
-# Parameters of thorn TestDataID (implementing TestDataID)
-TestDataID::discontinuity_position         = 0
-TestDataID::initialize_magnetic_quantities = "yes"
-TestDataID::simulation_type                = "1D_test"
-TestDataID::test_1D_initial_data           = "Balsara1"
-TestDataID::test_shock_direction           = "z"
+# Parameters of thorn GRHayLID (implementing GRHayLID)
+GRHayLID::discontinuity_position         = 0
+GRHayLID::initialize_magnetic_quantities = "yes"
+GRHayLID::simulation_type                = "1D_test"
+GRHayLID::test_1D_initial_data           = "Balsara1"
+GRHayLID::test_shock_direction           = "z"
 
 # Parameters of thorn Time (implementing time)
 Time::dtfac = 0.5

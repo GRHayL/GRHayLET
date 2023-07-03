@@ -1,7 +1,7 @@
-#include "TestDataIDX.h"
+#include "GRHayLIDX.h"
 
-extern "C" void TestDataIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_TestDataIDX_1D_tests_hydro_data;
+extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
   const std::array<int, Loop::dim> indextype = {1, 1, 1};
