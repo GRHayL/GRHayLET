@@ -1,4 +1,4 @@
-#include "GRHayLID.h"
+#include "GRHayLIDX.h"
 
 extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_ConstantDensitySphere;
@@ -38,18 +38,21 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
         &eps_exterior,
         &S_exterior );
 
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
+
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
+    const double r = sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
     velx(index) = 0;
     vely(index) = 0;
-    vezl(index) = 0;
-    if( r(index) > ConstantDensitySphere_sphere_radius ) {
+    velz(index) = 0;
+    if( r > ConstantDensitySphere_sphere_radius ) {
       // Outside the sphere
       rho(index)         = ConstantDensitySphere_rho_exterior;
-      Y_e(index)         = ConstantDensitySphere_Y_e_exterior;
+      Ye(index)          = ConstantDensitySphere_Y_e_exterior;
       temperature(index) = ConstantDensitySphere_T_exterior;
       press(index)       = P_exterior;
       eps(index)         = eps_exterior;
@@ -58,7 +61,7 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
     else {
       // Inside the sphere
       rho(index)         = ConstantDensitySphere_rho_interior;
-      Y_e(index)         = ConstantDensitySphere_Y_e_interior;
+      Ye(index)          = ConstantDensitySphere_Y_e_interior;
       temperature(index) = ConstantDensitySphere_T_interior;
       press(index)       = P_interior;
       eps(index)         = eps_interior;

@@ -1,4 +1,4 @@
-# Schedule definitions for thorn GRHayLID
+# Schedule definitions for thorn GRHayLIDX
 
 if (CCTK_Equals(initial_hydro, "HydroTest1D"))
 {
@@ -25,7 +25,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
     LANG: C
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::Ye(everywhere), HydroBase::temperature(everywhere),
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
@@ -36,7 +36,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
     LANG: C
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::Ye(everywhere), HydroBase::temperature(everywhere),
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }

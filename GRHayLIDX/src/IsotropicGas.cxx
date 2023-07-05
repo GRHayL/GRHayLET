@@ -1,4 +1,4 @@
-#include "GRHayLID.h"
+#include "GRHayLIDX.h"
 
 void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_IsotropicGas;
@@ -23,6 +23,8 @@ void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
         &IsotropicGas_eps,
         &IsotropicGas_entropy);
 
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
+
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
@@ -30,10 +32,10 @@ void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
 
     velx(index) = 0;
     vely(index) = 0;
-    vezl(index) = 0;
+    velz(index) = 0;
 
     rho(index)         = IsotropicGas_rho;
-    Y_e(index)         = IsotropicGas_Y_e;
+    Ye(index)          = IsotropicGas_Y_e;
     temperature(index) = IsotropicGas_temperature;
     press(index)       = IsotropicGas_press;
     eps(index)         = IsotropicGas_eps;

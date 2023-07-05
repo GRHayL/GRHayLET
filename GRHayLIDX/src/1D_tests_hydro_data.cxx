@@ -4,8 +4,7 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
-  const std::array<int, Loop::dim> indextype = {1, 1, 1};
-  const Loop::GF3D2layout layout(cctkGH, indextype);
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   double rho_l, rho_r;
   double press_l, press_r;
