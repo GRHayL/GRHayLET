@@ -12,7 +12,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
 
   if (initialize_magnetic_quantities)
   {
-    schedule GRHayLID_1D_tests_magnetic_data in HydroBase_Initial after GRHayLIDID_1D_tests_hydro_data
+    schedule GRHayLID_1D_tests_magnetic_data in HydroBase_Initial after GRHayLID_1D_tests_hydro_data
     {
       LANG: C
       READS:  Grid::coordinates

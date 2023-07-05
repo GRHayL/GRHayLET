@@ -64,14 +64,14 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 //
 //    if(CCTK_EQUALS(test_shock_direction, "x")) {
 //      if(p.x <= discontinuity_position) { 
-//        Avec_x(p.I) = By_l * (p.z) - Bz_l * (p.y);  
+//        Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);  
 //      } else { 
-//        Avec_x(p.I) = By_r * (p.z) - Bz_r * (p.y);
+//        Avecx(p.I) = By_r * (p.z) - Bz_r * (p.y);
 //      }
 //    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
-//      //Avec_x(p.I) = By_r * (p.z);
+//      //Avecx(p.I) = By_r * (p.z);
 //    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-//      //Avec_x(p.I) = 0.0;
+//      //Avecx(p.I) = 0.0;
 //    }
 //  });
 
@@ -80,15 +80,15 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 //      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 //
 //    if(CCTK_EQUALS(test_shock_direction, "x")) {
-//      //Avec_y(p.I) = 0.0;
+//      //Avecy(p.I) = 0.0;
 //    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
 //      //if(p.y <= discontinuity_position) {
-//      //  Avec_y(p.I) = Bz_l * (p.x) - Bx_l * (p.z);
+//      //  Avecy(p.I) = Bz_l * (p.x) - Bx_l * (p.z);
 //      //} else {
-//      //  Avec_y(p.I) = Bz_r * (p.x) - Bx_r * (p.z);
+//      //  Avecy(p.I) = Bz_r * (p.x) - Bx_r * (p.z);
 //      //}
 //    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-//      //Avec_y(p.I) = Bz_r * (p.x);
+//      //Avecy(p.I) = Bz_r * (p.x);
 //    }
 //  });
 //
@@ -97,14 +97,14 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 //      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 //
 //    if(CCTK_EQUALS(test_shock_direction, "x")) {
-//      //Avec_z(p.I) = Bx_r * (p.y);
+//      //Avecz(p.I) = Bx_r * (p.y);
 //    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
-//      //Avec_z(p.I) = 0.0;
+//      //Avecz(p.I) = 0.0;
 //    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
 //      //if(p.z <= discontinuity_position) {
-//      //  Avec_z(p.I) = Bx_l * (p.y) - By_l * (p.x);
+//      //  Avecz(p.I) = Bx_l * (p.y) - By_l * (p.x);
 //      //} else {
-//      //  Avec_z(p.I) = Bx_r * (p.y) - By_r * (p.x);
+//      //  Avecz(p.I) = Bx_r * (p.y) - By_r * (p.x);
 //      //}
 //    }
 //  });

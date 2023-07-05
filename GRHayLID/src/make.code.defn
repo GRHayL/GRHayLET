@@ -5,7 +5,3 @@ SRCS = 1D_tests_hydro_data.c    \
        1D_tests_magnetic_data.c \
        ConstantDensitySphere.c  \
        IsotropicGas.c
-
-# Subdirectories containing source files
-SUBDIRS =
-

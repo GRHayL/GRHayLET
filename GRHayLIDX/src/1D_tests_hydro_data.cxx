@@ -86,37 +86,37 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-        const Loop::GF3D2index index(layout, p.I);
+    const Loop::GF3D2index index(layout, p.I);
 
-        double step = p.x;
-        if(CCTK_EQUALS(test_shock_direction, "y")) {
-          step = p.y;
-        } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-          step = p.z;
-        }
+    double step = p.x;
+    if(CCTK_EQUALS(test_shock_direction, "y")) {
+      step = p.y;
+    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+      step = p.z;
+    }
 
-        if(CCTK_EQUALS(test_1D_initial_data,"sound wave")) {
-          rho(index)   = 1.0;
-          press(index) = 1.0; // should add kinetic energy here
-          velx(index)  = test_wave_amplitude * sin(M_PI * step);
-          vely(index)  = velz(index)  = 0.0;
-        } else if(step <= discontinuity_position) {
-          rho(index)   = rho_l;
-          press(index) = press_l;
-          velx(index)  = vx_l;
-          vely(index)  = vy_l;
-          velz(index)  = vz_l;
-        } else {
-          rho(index)   = rho_r;
-          press(index) = press_r;
-          velx(index)  = vx_l;
-          vely(index)  = vy_l;
-          velz(index)  = vz_l;
-        }
-        double Gamma = ghl_eos->Gamma_ppoly[
-                                 ghl_hybrid_find_polytropic_index(
-                                             ghl_eos, rho(index))];
-        eps(index) = press(index)/( rho(index)*(Gamma-1) );
+    if(CCTK_EQUALS(test_1D_initial_data,"sound wave")) {
+      rho(index)   = 1.0;
+      press(index) = 1.0; // should add kinetic energy here
+      velx(index)  = test_wave_amplitude * sin(M_PI * step);
+      vely(index)  = velz(index)  = 0.0;
+    } else if(step <= discontinuity_position) {
+      rho(index)   = rho_l;
+      press(index) = press_l;
+      velx(index)  = vx_l;
+      vely(index)  = vy_l;
+      velz(index)  = vz_l;
+    } else {
+      rho(index)   = rho_r;
+      press(index) = press_r;
+      velx(index)  = vx_r;
+      vely(index)  = vy_r;
+      velz(index)  = vz_r;
+    }
+    const double Gamma = ghl_eos->Gamma_ppoly[
+                                  ghl_hybrid_find_polytropic_index(
+                                              ghl_eos, rho(index))];
+    eps(index) = press(index)/( rho(index)*(Gamma-1) );
   });
   CCTK_VINFO("Finished writing hydrodynamic ID for %s test", test_1D_initial_data);
 }

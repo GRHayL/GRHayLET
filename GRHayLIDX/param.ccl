@@ -1,20 +1,21 @@
 # Parameter definitions for thorn GRHayLIDX
 
-CCTK_STRING simulation_type "Set the type of initial data to use"
-{
-  "1D_test" :: "Set up a 1D_test; 1D_test_initial_data must also be set"
-  "2D_test" :: "Set up a 2D_test; 2D_test_initial_data must also be set"
-} "1D_test"
+shares: GRHayLib
+USES KEYWORD EOS_type
 
-CCTK_BOOLEAN initialize_magnetic_quantities "Set whether A and B should be initialized"
+shares: HydroBase
+EXTENDS KEYWORD initial_hydro
 {
-} "yes"
+  "HydroTest1D" :: "Initial data set by 1D test; see test_1D_initial_data parameter for options"
+  "IsotropicGas" :: "Initial data set to isotropic gas"
+  "ConstantDensitySphere" :: "Initial data set to constant density sphere"
+}
 
+restricted:
 #########################################################
 
 # 1D test parameters
-
-CCTK_STRING test_1D_initial_data "Set initial data type for 1D tests"
+KEYWORD test_1D_initial_data "Set initial data type for 1D tests"
 {
   "equilibrium" :: "initial data for the equilibrium test"
   "sound wave" :: "initial data for the sound wave test"
@@ -26,7 +27,7 @@ CCTK_STRING test_1D_initial_data "Set initial data type for 1D tests"
   "Balsara5" :: "initial data for the Balsara5 test"
 } "Balsara1"
 
-CCTK_STRING test_shock_direction "Set direction for shock in test data"
+KEYWORD test_shock_direction "Set direction for shock in test data"
 {
   "x" :: "Test data will have discontinuities along x direction"
   "y" :: "Test data will have discontinuities along y direction"
@@ -43,27 +44,72 @@ CCTK_REAL test_wave_amplitude "Wave amplitude for sound wave initial data"
   0.0:* :: ""
 } 1.0e-3
 
+CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initialized"
+{
+} "yes"
+
 #########################################################
 
-# A_i parameters
-
-CCTK_STRING AxString "A_x variable name"
+# IsotropicGas parameters
+CCTK_REAL IsotropicGas_rho "Gas density in geometrized units"
 {
-  "GRHayLMHDX::Ax" :: "GRHayLMHDX thorn A_x gridfunction name"
-  "AsterX::Avec_x" :: "AsterX thorn A_x gridfunction name"
-  ".+"             :: "Or use you can use your own thorn's A_x gridfunction name"
-} "GRHayLMHDX::Ax"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
 
-CCTK_STRING AyString "A_y variable name"
+CCTK_REAL IsotropicGas_Y_e "Gas electron fraction (dimensionless)"
 {
-  "GRHayLMHDX::Ay" :: "GRHayLMHDX thorn A_y gridfunction name"
-  "AsterX::Avec_y" :: "AsterX thorn A_y gridfunction name"
-  ".+"             :: "Or use you can use your own thorn's A_y gridfunction name"
-} "GRHayLMHDX::Ay"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
 
-CCTK_STRING AzString "A_z variable name"
+CCTK_REAL IsotropicGas_temperature "Gas temperature in MeV"
 {
-  "GRHayLMHDX::Az" :: "GRHayLMHDX thorn A_z gridfunction name"
-  "AsterX::Avec_z" :: "AsterX thorn A_z gridfunction name"
-  ".+"             :: "Or use you can use your own thorn's A_z gridfunction name"
-} "GRHayLMHDX::Az"
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+#########################################################
+
+# ConstantDensitySphere parameters
+CCTK_REAL ConstantDensitySphere_sphere_radius "Sphere radius in geometrized units"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_rho_interior "Interior density in geometrized units"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_Y_e_interior "Interior electron fraction (dimensionless)"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_T_interior "Interior temperature in MeV"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_rho_exterior "Exterior density in geometrized units"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_Y_e_exterior "Exterior electron fraction (dimensionless)"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+CCTK_REAL ConstantDensitySphere_T_exterior "Exterior temperature in MeV"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1

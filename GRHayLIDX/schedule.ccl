@@ -1,19 +1,42 @@
 # Schedule definitions for thorn GRHayLID
 
-if (CCTK_Equals(simulation_type, "1D_test"))
+if (CCTK_Equals(initial_hydro, "HydroTest1D"))
 {
-  schedule GRHayLIDX_1D_tests_hydro_data in HydroBase_InitialData after HydroBase_initial_data
+  schedule GRHayLIDX_1D_tests_hydro_data in HydroBase_InitialData
   {
     LANG: C
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
-            HydroBase::velx(everywhere), HydroBase::vely(everywhere), HydroBase::velz(everywhere)
-  } ""
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::eps(everywhere), HydroBase::vel(everywhere)
+  } "Set initial hydrodynamic data for 1D test"
 
   if (initialize_magnetic_quantities)
   {
-    schedule GRHayLIDX_1D_tests_magnetic_data in HydroBase_InitialData after GRHayLIDIDX_1D_tests_hydro_data
+    schedule GRHayLIDX_1D_tests_magnetic_data in HydroBase_InitialData after GRHayLIDX_1D_tests_hydro_data
     {
       LANG: C
-    } ""
+      WRITES: HydroBase::Avecx(everywhere), HydroBase::Avecy(everywhere),
+              HydroBase::Avecz(everywhere)
+    } "Set initial magnetic data for 1D test"
   }
+} else if (CCTK_Equals(initial_hydro, "IsotropicGas"))
+{
+  schedule GRHayLIDX_IsotropicGas in HydroBase_InitialData
+  {
+    LANG: C
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::eps(everywhere), HydroBase::vel(everywhere),
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::entropy(everywhere)
+  } "Set initial hydrodynamic data for 1D test"
+
+} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere"))
+{
+  schedule GRHayLIDX_ConstantDensitySphere in HydroBase_InitialData
+  {
+    LANG: C
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::eps(everywhere), HydroBase::vel(everywhere),
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::entropy(everywhere)
+  } "Set initial hydrodynamic data for 1D test"
 }
