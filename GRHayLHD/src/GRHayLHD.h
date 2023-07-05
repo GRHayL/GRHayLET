@@ -6,6 +6,9 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+// This is used to perturb data for testing
+#define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
+
 // The inner two points of the interpolation function use
 // the value of A_in, and the outer two points use A_out.
 #define A_out -0.0625
