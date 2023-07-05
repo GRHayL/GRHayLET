@@ -1,15 +1,10 @@
 # Schedule for thorn GRHayLMHD
 
-#TODO: This should be done by ADMBase; no need to do it here, best I can tell
-STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
+# This should be done by ADMBase by setting initial_shift
+STORAGE: ADMBase::shift[shift_timelevels]
 
-# Zach says: these explicit STORAGE statements ARE necessary. Otherwise, segfault.
-# SC says: probably just need to properly set up hydrobase parameters
-STORAGE: HydroBase::rho[1],HydroBase::press[1],HydroBase::eps[1],HydroBase::vel[1],HydroBase::Bvec[1],HydroBase::Avec[1],HydroBase::Aphi[1]
-
-#TODO: is this needed?
-# This will only allocate a single timelevel of storage if it's not already been allocated.
-STORAGE: HydroBase::Avec[1], HydroBase::Aphi[1]
+# This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
+STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 
 STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3] 
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
