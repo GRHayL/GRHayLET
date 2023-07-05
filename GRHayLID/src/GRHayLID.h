@@ -6,4 +6,6 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+#define CHECK_PARAMETER(par) if(par==-1) CCTK_VERROR("Please set %s::%s in your parfile",CCTK_THORNSTRING,#par);
+
 #endif // GRHAYLID_H_

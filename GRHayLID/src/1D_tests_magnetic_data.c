@@ -4,6 +4,9 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_magnetic_data;
   DECLARE_CCTK_PARAMETERS;
 
+  if(!CCTK_EQUALS(initial_Avec, "GRHayLID"))
+    CCTK_VERROR("To use GRHayLID 1D initial test data, please add HydroBase::initial_Avec=\"GRHayLID\" to the parfile.");
+
   double Bx_l, By_l, Bz_l;
   double Bx_r, By_r, Bz_r;
   if(CCTK_EQUALS(test_1D_initial_data,"Balsara1")) {

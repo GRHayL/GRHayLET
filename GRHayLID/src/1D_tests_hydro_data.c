@@ -4,6 +4,9 @@ void GRHayLID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
+  if(!CCTK_EQUALS(EOS_type, "hybrid"))
+    CCTK_VERROR("1D test initial data is only defined for hybrid EOS. Please change GRHayLib::EOS_type to \"hybrid\" in the parfile.");
+
   double rho_l, rho_r;
   double press_l, press_r;
   double vx_l, vy_l, vz_l;
@@ -84,10 +87,10 @@ void GRHayLID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
-        int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-        int ind4x = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
-        int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
-        int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
+        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int ind4x = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
+        const int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
+        const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
         double step = x[index];
         if(CCTK_EQUALS(test_shock_direction, "y")) {
@@ -95,7 +98,7 @@ void GRHayLID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
         } else if(CCTK_EQUALS(test_shock_direction, "z")) {
           step = z[index];
         }
-    
+
         if(CCTK_EQUALS(test_1D_initial_data,"sound wave")) {
           rho[index]   = 1.0;
           press[index] = 1.0; // should add kinetic energy here
@@ -115,9 +118,9 @@ void GRHayLID_1D_tests_hydro_data(CCTK_ARGUMENTS) {
           vel[ind4y]   = vy_r;
           vel[ind4z]   = vz_r;
         }
-        double Gamma = ghl_eos->Gamma_ppoly[
-                                 ghl_hybrid_find_polytropic_index(
-                                             ghl_eos, rho[index])];
+        const double Gamma = ghl_eos->Gamma_ppoly[
+                                      ghl_hybrid_find_polytropic_index(
+                                                  ghl_eos, rho[index])];
         eps[index] = press[index]/( rho[index]*(Gamma-1) );
       }
     }
