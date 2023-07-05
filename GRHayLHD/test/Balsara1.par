@@ -116,7 +116,7 @@ ADMBase::shift_timelevels         = 3
 ADMMacros::spatial_order = 4
 
 #---------HydroBase---------
-HydroBase::initial_hydro       = "hydro_test"
+HydroBase::initial_hydro       = "HydroTest1D"
 HydroBase::initial_Y_e         = "none"
 HydroBase::initial_temperature = "none"
 HydroBase::initial_entropy     = "none"
@@ -134,9 +134,8 @@ GRHayLib::rho_ppoly_in[0]       = 0.0
 GRHayLib::con2prim_backup_routines[0] = "Font1D"
 
 ActiveThorns = "GRHayLID"
-GRHayLID::simulation_type = "1D_test"
-GRHayLID::initialize_magnetic_quantities = yes
 GRHayLID::test_1D_initial_data = "Balsara1"
+GRHayLID::initialize_magnetic_quantities = no
 GRHayLID::test_shock_direction = "z"
 GRHayLID::discontinuity_position = 0.0
 

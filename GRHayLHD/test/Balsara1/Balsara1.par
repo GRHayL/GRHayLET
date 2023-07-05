@@ -108,7 +108,7 @@ HydroBase::initial_Aphi        = "zero"
 HydroBase::initial_Avec        = "zero"
 HydroBase::initial_Bvec        = "zero"
 HydroBase::initial_entropy     = "none"
-HydroBase::initial_hydro       = "hydro_test"
+HydroBase::initial_hydro       = "HydroTest1D"
 HydroBase::initial_temperature = "none"
 HydroBase::initial_Y_e         = "none"
 HydroBase::timelevels          = 1
@@ -143,8 +143,7 @@ SphericalSurface::ntheta[1]       = 39
 
 # Parameters of thorn GRHayLID (implementing GRHayLID)
 GRHayLID::discontinuity_position         = 0
-GRHayLID::initialize_magnetic_quantities = "yes"
-GRHayLID::simulation_type                = "1D_test"
+GRHayLID::initialize_magnetic_quantities = "no"
 GRHayLID::test_1D_initial_data           = "Balsara1"
 GRHayLID::test_shock_direction           = "z"
 
