@@ -31,6 +31,27 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_conserv_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
+  const int imax = cctk_lsh[0];
+  const int jmax = cctk_lsh[1];
+  const int kmax = cctk_lsh[2];
+
+  if(perturb_every_con2prim > 1e-30) {
+    srand(random_seed); // Use srand() as rand() is thread-safe.
+#pragma omp parallel for
+    for(int k=0; k<kmax; k++) {
+      for(int j=0; j<jmax; j++) {
+        for(int i=0; i<imax; i++) {
+          const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
+          rho_star[index] *= one_plus_pert(perturb_every_con2prim);
+          tau[index]      *= one_plus_pert(perturb_every_con2prim);
+          Stildex[index]  *= one_plus_pert(perturb_every_con2prim);
+          Stildey[index]  *= one_plus_pert(perturb_every_con2prim);
+          Stildez[index]  *= one_plus_pert(perturb_every_con2prim);
+        }
+      }
+    }
+  }
+
   if(CCTK_EQUALS(Symmetry,"equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr=0;
@@ -73,9 +94,9 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
   double dummy4, dummy5, dummy6;
 
 #pragma omp parallel for reduction(+:failures,vel_limited_ptcount,atm_resets,rho_star_fix_applied,pointcount,failures_inhoriz,pointcount_inhoriz,backup0,backup1,backup2,nan_found,error_int_numer,error_int_denom,n_iter) schedule(static)
-  for(int k=0; k<cctk_lsh[2]; k++) {
-    for(int j=0; j<cctk_lsh[1]; j++) {
-      for(int i=0; i<cctk_lsh[0]; i++) {
+  for(int k=0; k<kmax; k++) {
+    for(int j=0; j<jmax; j++) {
+      for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         con2prim_diagnostics diagnostics;

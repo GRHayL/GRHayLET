@@ -68,18 +68,17 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
   //    to the initial data.
   // Set random_pert variable to ~1e-14 for a random 15th digit
   //    perturbation.
-  if(random_pert > 1e-30) {
+  if(perturb_initial_data > 1e-30) {
     srand(random_seed); // Use srand() as rand() is thread-safe.
+#pragma omp parallel for
     for(int k=0; k<kmax; k++) {
       for(int j=0; j<jmax; j++) {
         for(int i=0; i<imax; i++) {
           const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-          const double pert = (random_pert*(double)rand() / RAND_MAX);
-          const double one_plus_pert=(1.0+pert);
-          rho_b[index]*=one_plus_pert;
-          vx[index]*=one_plus_pert;
-          vy[index]*=one_plus_pert;
-          vz[index]*=one_plus_pert;
+          rho_b[index] *= one_plus_pert(perturb_initial_data);
+          vx[index]    *= one_plus_pert(perturb_initial_data);
+          vy[index]    *= one_plus_pert(perturb_initial_data);
+          vz[index]    *= one_plus_pert(perturb_initial_data);
         }
       }
     }
