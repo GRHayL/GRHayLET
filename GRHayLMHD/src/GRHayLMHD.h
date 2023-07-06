@@ -6,7 +6,6 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
-// The order here MATTERS, and must be consistent with the order in the in_prims[] array in evaluate_MHD_rhs.C.
 enum recon_indices{
       BX_STAGGER, BY_STAGGER, BZ_STAGGER,
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};

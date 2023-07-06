@@ -79,15 +79,15 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
         }
       }
     }
-    eTtt(index) = Ttt_avg/8.0;
-    eTtx(index) = Ttx_avg/8.0;
-    eTty(index) = Tty_avg/8.0;
-    eTtz(index) = Ttz_avg/8.0;
-    eTxx(index) = Txx_avg/8.0;
-    eTxy(index) = Txy_avg/8.0;
-    eTxz(index) = Txz_avg/8.0;
-    eTyy(index) = Tyy_avg/8.0;
-    eTyz(index) = Tyz_avg/8.0;
-    eTzz(index) = Tzz_avg/8.0;
+    eTtt(index) += Ttt_avg/8.0;
+    eTtx(index) += Ttx_avg/8.0;
+    eTty(index) += Tty_avg/8.0;
+    eTtz(index) += Ttz_avg/8.0;
+    eTxx(index) += Txx_avg/8.0;
+    eTxy(index) += Txy_avg/8.0;
+    eTxz(index) += Txz_avg/8.0;
+    eTyy(index) += Tyy_avg/8.0;
+    eTyz(index) += Tyz_avg/8.0;
+    eTzz(index) += Tzz_avg/8.0;
   }); // vvv loop interior
 }
