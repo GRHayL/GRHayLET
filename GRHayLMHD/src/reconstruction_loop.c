@@ -11,19 +11,16 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
                          double **out_prims_r,
                          double **out_prims_l) {
 
-  // Bounds are determined by the stencil, which requires a ghostzone of at least
-  // 3, but upper index includes first ghostzone point (stencil is only 2 on upper end)
-  // This limit only applies to the direction of the stencil, hence the == logic below.
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
   const int zdir = (flux_dir == 2);
 
-  const int imin = cctkGH->cctk_nghostzones[0]*xdir;
-  const int imax = cctkGH->cctk_lsh[0] - (cctkGH->cctk_nghostzones[0]-1)*xdir;
-  const int jmin = cctkGH->cctk_nghostzones[1]*ydir;
-  const int jmax = cctkGH->cctk_lsh[1] - (cctkGH->cctk_nghostzones[1]-1)*ydir;
-  const int kmin = cctkGH->cctk_nghostzones[2]*zdir;
-  const int kmax = cctkGH->cctk_lsh[2] - (cctkGH->cctk_nghostzones[2]-1)*zdir;
+  const int imin = cctkGH->cctk_nghostzones[0];
+  const int imax = (cctkGH->cctk_lsh[0] - cctkGH->cctk_nghostzones[0]) + 1;
+  const int jmin = cctkGH->cctk_nghostzones[1];
+  const int jmax = (cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1]) + 1;
+  const int kmin = cctkGH->cctk_nghostzones[2];
+  const int kmax = (cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2]) + 1;
 
 #pragma omp parallel for
   for(int k=kmin; k<kmax; k++) {
