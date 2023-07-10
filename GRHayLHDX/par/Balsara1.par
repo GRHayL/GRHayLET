@@ -75,9 +75,9 @@ GRHayLib::k_ppoly0              = 1.0
 GRHayLib::rho_ppoly_in[0]       = 0.0
 GRHayLib::con2prim_backup_routines[0] = "Font1D"
 
-GRHayLIDX::simulation_type = "1D_test"
-GRHayLIDX::initialize_magnetic_quantities = no
+HydroBase::initial_hydro       = "HydroTest1D"
 GRHayLIDX::test_1D_initial_data = "Balsara1"
+GRHayLIDX::initialize_magnetic_quantities = no
 GRHayLIDX::test_shock_direction = "z"
 GRHayLIDX::discontinuity_position = 0.0
 

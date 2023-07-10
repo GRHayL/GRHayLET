@@ -23,7 +23,7 @@ schedule convert_HydroBase_to_GRHayLHDX in GRHayLHDX_Prim2Con2Prim after GRHayLH
 {
   LANG: C
   READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::vel, HydroBase::Ye #, HydroBase::entropy,
+          HydroBase::vel #, HydroBase::Ye, HydroBase::entropy,
  #         HydroBase::temperature
   READS:  ccc_spacetime
   WRITES: HydroBase::eps(everywhere)
@@ -109,13 +109,25 @@ schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_c
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_curvature_rhs
+# We have to split computation of the flux from the 
+# computation of the RHS because the OMP is outside the
+# actual scheduled f'n call, and it wouldn't be thread-safe.
+schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_curvature_rhs
+{
+  LANG: C
+  READS:  HydroBase::eps
+  READS:  ccc_spacetime, grmhd_primitives
+  WRITES: flux_x, flux_y, flux_z
+} "Compute GRHD fluxes"
+
+schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_flux
 {
   LANG: C
   READS:  HydroBase::eps
   READS:  ccc_spacetime, grmhd_primitives,
+          flux_x, flux_y, flux_z,
           grmhd_conservatives_rhs(interior)
-  WRITES: flux_x, flux_y, flux_z, grmhd_conservatives_rhs
+  WRITES: grmhd_conservatives_rhs
 } "Evaluate RHSs of GRHD equations"
 
 #########################################################

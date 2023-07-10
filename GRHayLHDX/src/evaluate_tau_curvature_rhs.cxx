@@ -6,8 +6,7 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
   const CCTK_REAL poison = 0.0/0.0;
 
-  constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
-  const Loop::GF3D2layout layout(cctkGH, indextype);
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   grid.loop_int_device<1, 1, 1>(
       grid.nghostzones,

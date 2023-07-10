@@ -131,7 +131,7 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
     
         double betax_stencil[5], betay_stencil[5], betaz_stencil[5];
         double phitilde_stencil[3][5], sqrtg_Ai_stencil[3][2];
-    
+
         sqrtg_Ai_stencil[0][0] = sqrtg_Ax_interp[index];
         sqrtg_Ai_stencil[1][0] = sqrtg_Ay_interp[index];
         sqrtg_Ai_stencil[2][0] = sqrtg_Az_interp[index];
@@ -139,7 +139,7 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
         sqrtg_Ai_stencil[0][1] = sqrtg_Ax_interp[CCTK_GFINDEX3D(cctkGH,i+1,j,k)];
         sqrtg_Ai_stencil[1][1] = sqrtg_Ay_interp[CCTK_GFINDEX3D(cctkGH,i,j+1,k)];
         sqrtg_Ai_stencil[2][1] = sqrtg_Az_interp[CCTK_GFINDEX3D(cctkGH,i,j,k+1)];
-    
+
         for(int iter=-2; iter<3; iter++) {
           const int indexx = CCTK_GFINDEX3D(cctkGH,i+iter,j,     k     );
           const int indexy = CCTK_GFINDEX3D(cctkGH,i,     j+iter,k     );

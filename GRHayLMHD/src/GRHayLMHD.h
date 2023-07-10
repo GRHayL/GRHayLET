@@ -14,8 +14,6 @@ enum recon_indices{
 // the value of A_in, and the outer two points use A_out.
 #define A_out -0.0625
 #define A_in  0.5625
-// Interpolates to the +1/2 face of point Var
-#define interpolate_to_face(Vm1,V0,Vp1,Vp2) (A_in*(V0 + Vp1) + A_out*(Vm1+Vp2))
 //Interpolates to the -1/2 face of point Var
 #define COMPUTE_FCVAL(Varm2,Varm1,Var,Varp1) (A_out*(Varm2) + A_in*(Varm1) + A_in*(Var) + A_out*(Varp1))
 

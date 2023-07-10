@@ -44,13 +44,6 @@ void GRHayLMHD_A_flux_rhs(
 
         HLL_2D_vars vars;
 
-        // This computes psi6 at the point staggered with respect to the two perpendicular
-        // directions using the variable phi, which naturally lives at (i, j, k).
-        // E.g. A_x needs phi at (i, j+1/2, k+1/2), so it must be interpolated to that point.
-        // With the interpolate_to_face macro, we first interpolate to the points
-        // (i, j+1/2, k-1), (i, j+1/2, k), (i, j+1/2, k+1), (i, j+1/2, k+2) and use
-        // those to compute phi at (i, j+1/2, k+1/2).
-
         vars.v1rr = in_prims_r[VXR+dir1_offset][index_v];
         vars.v1rl = in_prims_l[VXR+dir1_offset][index_v];
         vars.v1lr = in_prims_r[VXL+dir1_offset][index_v];

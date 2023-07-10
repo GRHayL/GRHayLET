@@ -113,9 +113,12 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         //FIXME: might slow down the code. Was formerly a CCTK_WARN
         if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*prims.BU[0]*prims.BU[1]*prims.BU[2])) {
-          CCTK_VERROR("NaN found at start of C2P kernel: index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e\n",
-                     i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
-                     ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2], ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+            CCTK_VERROR("NaN found at start of C2P kernel:\n"
+                        "  index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e\n"
+                        "  gij = %e %e %e %e %e %e, psi6 = %e\n",
+                       i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
+                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
+                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
           diagnostics.nan_found++;
         }
 
@@ -143,8 +146,10 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             //Check for NAN!
             if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
               CCTK_VERROR("***********************************************************\n"
-                          "NAN found in function %s (file: %s)\n"
-                          "Input conserved variables:\n"
+                          "NAN found after Con2Prim with routine index %d!\n"
+                          "Input variables:\n"
+                          "lapse, shift = %e %e %e %e\n"
+                          "gij = %e %e %e %e %e %e\n"
                           "rho_*, ~tau, ~S_{i}: %e %e %e %e %e\n"
                           "Undensitized conserved variables:\n"
                           "D, tau, S_{i}: %e %e %e %e %e\n"
@@ -152,7 +157,9 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           "rho, P: %e %e\n"
                           "v: %e %e %e\n"
                           "***********************************************************",
-                          __func__,__FILE__,
+                          diagnostics.which_routine, ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                          ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
+                          ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
                           cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
                           cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
                           prims.rho, prims.press,
