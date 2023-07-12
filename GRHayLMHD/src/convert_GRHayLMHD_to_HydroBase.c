@@ -5,7 +5,7 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-  if(Convert_to_HydroBase_every==0 || cctk_iteration%Convert_to_HydroBase_every!=0) return;
+  if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {

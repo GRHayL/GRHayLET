@@ -87,14 +87,16 @@ schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_p
   WRITES: HydroBase::eps(everywhere)
 } "Compute primitive variables from conservatives"
 
-SCHEDULE convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_conserv_to_prims
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-          HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
-} "Convert GRHayLMHD-native variables to HydroBase"
+if(Convert_to_HydroBase_every) {
+  SCHEDULE convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_conserv_to_prims
+  {
+    LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+  } "Convert GRHayLMHD-native variables to HydroBase"
+}
 
 #########################################################
 # Symmetry setup (inherited from IllinoisGRMHD, where
@@ -240,12 +242,14 @@ schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHa
 # Conversion from GRHayLMHD variables to Hydrobase
 #########################################################
 
-SCHEDULE convert_GRHayLMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
-{
-  LANG: C
-  OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-          HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
-} "Convert GRHayLMHD-native variables to HydroBase"
+if(Convert_to_HydroBase_every) {
+  SCHEDULE convert_GRHayLMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
+  {
+    LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+  } "Convert GRHayLMHD-native variables to HydroBase"
+}

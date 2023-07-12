@@ -1,6 +1,6 @@
 # Schedule for thorn GRHayLHD
 
-#TODO: This should be done by ADMBase by setting initial_shift
+# This should be done by ADMBase by setting initial_shift
 STORAGE: ADMBase::shift[shift_timelevels]
 
 STORAGE: grmhd_conservatives[3]
@@ -41,14 +41,14 @@ schedule GRHayLHD_enforce_detgtij_eq_1 in GRHayLHD_Prim2Con2Prim as first_initia
 
 schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim as second_initialdata after first_initialdata
 {
-   LANG: C
-   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-   READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-           HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
-           HydroBase::temperature
-   WRITES: HydroBase::eps(everywhere)
-   WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere)
-   SYNC: grmhd_primitives, grmhd_conservatives
+  LANG: C
+  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
+          HydroBase::temperature
+  WRITES: HydroBase::eps(everywhere)
+  WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere)
+  SYNC: grmhd_primitives, grmhd_conservatives
 } "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
 
 schedule GRHayLHD_conserv_to_prims in GRHayLHD_Prim2Con2Prim as third_initialdata after second_initialdata
@@ -62,15 +62,16 @@ schedule GRHayLHD_conserv_to_prims in GRHayLHD_Prim2Con2Prim as third_initialdat
   WRITES: HydroBase::eps(everywhere)
 } "Compute primitive variables from conservatives"
 
-schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim as fourth_initialdata after third_initialdata
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  grmhd_primitives
-  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-          HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
-} "Convert GRHayLHD-native variables to HydroBase"
-
+if(Convert_to_HydroBase_every) {
+  schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim as fourth_initialdata after third_initialdata
+  {
+    LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_primitives
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+  } "Convert GRHayLHD-native variables to HydroBase"
+}
 #########################################################
 # Con2Prim
 #########################################################
@@ -171,12 +172,14 @@ schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evalua
 # Set HydroBase variables for analysis
 #########################################################
 
-SCHEDULE convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
-{
-  LANG: C
-  OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  grmhd_primitives
-  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-          HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
-} "Convert GRHayLHD-native variables to HydroBase"
+if(Convert_to_HydroBase_every) {
+  SCHEDULE convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
+  {
+    LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_primitives
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+  } "Convert GRHayLHD-native variables to HydroBase"
+}
