@@ -38,16 +38,16 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
         stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);
 
-        eTtt[index] += Tmunu.Ttt;
-        eTtx[index] += Tmunu.Ttx;
-        eTty[index] += Tmunu.Tty;
-        eTtz[index] += Tmunu.Ttz;
-        eTxx[index] += Tmunu.Txx;
-        eTxy[index] += Tmunu.Txy;
-        eTxz[index] += Tmunu.Txz;
-        eTyy[index] += Tmunu.Tyy;
-        eTyz[index] += Tmunu.Tyz;
-        eTzz[index] += Tmunu.Tzz;
+        eTtt[index] += Tmunu.T4[0][0];
+        eTtx[index] += Tmunu.T4[0][1];
+        eTty[index] += Tmunu.T4[0][2];
+        eTtz[index] += Tmunu.T4[0][3];
+        eTxx[index] += Tmunu.T4[1][1];
+        eTxy[index] += Tmunu.T4[1][2];
+        eTxz[index] += Tmunu.T4[1][3];
+        eTyy[index] += Tmunu.T4[2][2];
+        eTyz[index] += Tmunu.T4[2][3];
+        eTzz[index] += Tmunu.T4[3][3];
       }
     }
   }
