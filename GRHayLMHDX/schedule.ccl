@@ -1,0 +1,243 @@
+# Schedule for thorn GRHayLMHDX
+
+STORAGE: grmhd_primitives_allbutBi, u0, grmhd_conservatives
+STORAGE: grmhd_conservatives_rhs
+
+STORAGE: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+STORAGE: Ax, Ay, Az, phitilde
+STORAGE: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+
+STORAGE: ccc_spacetime, ccc_curv, ccc_Tmunu
+STORAGE: flux_x, flux_y, flux_z, cspeed_x, cspeed_y, cspeed_z, recon_vel_x, recon_vel_y
+STORAGE: sqrtg_Ax, sqrtg_Ay, sqrtg_Az
+
+#########################################################
+# INITIAL DATA CONVERSION
+#########################################################
+# Fill GRHayLMHDX grid functions using initial data from ADMBaseX and HydroBaseX
+schedule group GRHayLMHDX_Prim2Con2Prim in HydroBaseX_PostInitial
+{
+} "Translate ET-generated, HydroBaseX-compatible initial data and convert into variables used by GRHayLMHDX"
+
+schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities in GRHayLMHDX_Prim2Con2Prim
+{
+  LANG: C
+  READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
+  WRITES: ccc_spacetime(everywhere)
+} "Interpolate spacetime quantities to cell centers"
+
+schedule convert_HydroBase_to_GRHayLMHDX in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+{
+  LANG: C
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::vel, #HydroBaseX::Aphi,
+          HydroBaseX::Avecx, HydroBaseX::Avecy, HydroBaseX::Avecz #,
+          #HydroBaseX::Ye, HydroBaseX::entropy, HydroBaseX::temperature
+  READS:  ccc_spacetime
+  WRITES: HydroBaseX::eps(everywhere)
+  WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+          Ax(everywhere), Ay(everywhere), Az(everywhere)
+  SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
+} "Convert HydroBaseX initial data (ID) to GRHayLMHDX variables and enforce simulation limits on primitives."
+
+schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHDX
+{
+  LANG: C
+  READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
+  WRITES: grmhd_B_center(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
+  SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+} "Compute B and B_stagger from A"
+
+schedule GRHayLMHDX_prims_to_conservs in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_compute_B_and_Bstagger_from_A
+{
+  LANG: C
+  READS:  HydroBaseX::eps(everywhere)
+  READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
+  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
+          grmhd_B_center(everywhere)
+  WRITES: HydroBaseX::eps(everywhere)
+} "Compute conservative variables from primitives"
+
+schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_prims_to_conservs
+{
+  LANG: C
+  READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
+  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+          u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
+  WRITES: HydroBaseX::eps(everywhere)
+} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+
+# Convert data back to ensure both codes have the same data
+if(Convert_to_HydroBase_every)
+{
+  SCHEDULE convert_GRHayLMHDX_to_HydroBase in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_conservs_to_prims
+  {
+    LANG: C
+    READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+            HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+  } "Convert GRHayLMHDX-native variables to HydroBaseX"
+}
+
+#########################################################
+# Con2Prim
+#########################################################
+
+schedule GROUP GRHayLMHDX_Con2Prim in ODESolvers_PostStep
+{
+} "Compute the cell-centered spacetime quantities and solve for primitives"
+
+schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities in GRHayLMHDX_Con2Prim
+{
+  LANG: C
+  READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
+  WRITES: ccc_spacetime(everywhere)
+  SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
+} "Interpolate spacetime quantities to cell centers"
+
+#schedule GRHayLMHDX_outer_boundaries_on_A_mu in GRHayLMHDX_Con2Prim after GRHayLMHDX_convert_ADM_to_BSSN
+#{
+#  LANG: C
+#  READS:  phitilde, Ax, Ay, Az
+#  WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
+#} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
+ 
+schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+{
+  LANG: C
+  READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
+  WRITES: grmhd_B_center(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
+  SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+} "Compute B and B_stagger from A"
+
+schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+{
+  LANG: C
+  READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
+  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+          u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
+  WRITES: HydroBaseX::eps(everywhere)
+} "Compute primitive variables from conservatives"
+
+# For now, let's just rely on CarpetX's BCs
+#schedule GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLMHDX_Con2Prim after GRHayLMHDX_conservs_to_prims
+#{
+#  LANG: C
+#  READS:  ccc_spacetime
+#  WRITES: grmhd_primitives_allbutBi(boundary), grmhd_conservatives(boundary),
+#          failure_checker(boundary)
+#          #ccc_Tmunu(boundary), failure_checker(boundary)
+#  WRITES: HydroBaseX::eps(boundary)
+## We must sync {P,rho_b,vx,vy,vz} here.
+#  SYNC: grmhd_primitives_allbutBi
+#} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+
+#########################################################
+# RHS EVALUATION
+#########################################################
+
+schedule group GRHayLMHDX_RHS in ODESolvers_RHS
+{
+} "Evaluate RHSs GRHD equations"
+
+schedule GRHayLMHDX_compute_ccc_centered_extrinsic_curvature in GRHayLMHDX_RHS #after GRHayLMHDX_enforce_detgtij_eq_1
+{
+   LANG: C
+   READS:  ADMBaseX::curv
+   WRITES: ccc_curv(everywhere)
+} "Interpolate extrinsic curvature to cell centers"
+
+schedule GRHayLMHDX_evaluate_tau_curvature_rhs in GRHayLMHDX_RHS after GRHayLMHDX_compute_ccc_centered_extrinsic_curvature
+{
+  LANG: C
+  READS:  HydroBaseX::eps
+  READS:  ccc_spacetime, ccc_curv,
+          grmhd_primitives_allbutBi, grmhd_B_center
+  WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+} "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
+
+schedule GRHayLMHDX_evaluate_fluxes in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
+{
+  LANG: C
+  READS:  HydroBaseX::eps
+  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
+          grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+  # These really shouldn't be everywhere, but some interior+?
+  WRITES: flux_x(everywhere), flux_y(everywhere), flux_z(everywhere), recon_vel_x(everywhere), recon_vel_y(everywhere),
+          cspeed_x(everywhere), cspeed_y(everywhere), cspeed_z(everywhere)
+} "Compute GRHD fluxes"
+
+schedule GRHayLMHDX_evaluate_flux_source_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_fluxes
+{
+  LANG: C
+  READS:  HydroBaseX::eps
+  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
+          grmhd_B_center, flux_x, flux_y, flux_z,
+          grmhd_conservatives_rhs(interior)
+  WRITES: grmhd_conservatives_rhs
+} "Evaluate RHSs of GRHD equations"
+
+schedule GRHayLMHDX_evaluate_A_flux_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
+{
+  LANG: C
+  READS:  HydroBaseX::eps
+  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
+          grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger,
+          recon_vel_x, recon_vel_y,
+          cspeed_x, cspeed_y, cspeed_z
+  WRITES: Ax_rhs, Ay_rhs, Az_rhs
+} "Evaluate RHSs of GRMHD equations"
+
+schedule GRHayLMHDX_interpolate_A_for_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_A_flux_rhs
+{
+  LANG: C
+  READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
+  READS:  phitilde, Ax, Ay, Az
+  WRITES: A_rhs_stencil(everywhere), sqrtg_Ax(everywhere), sqrtg_Ay(everywhere), sqrtg_Az(everywhere)
+} "Interpolate quantities for phitilde RHS and A_i RHS"
+
+schedule GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHDX_RHS after GRHayLMHDX_interpolate_A_for_rhs
+{
+  LANG: C
+  READS:  ADMBaseX::lapse, ADMBaseX::shift
+  READS:  phitilde, A_rhs_stencil, sqrtg_Ax, sqrtg_Ay, sqrtg_Az
+  READS:  Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+  WRITES: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+} "Evaluate phitilde RHS and gauge contributions to A_i RHS"
+
+#########################################################
+# Compute stress-energy tensor T_munu
+#########################################################
+
+schedule GRHayLMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
+{
+  LANG: C
+  READS:  HydroBaseX::eps
+  READS:  TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
+  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
+          u0, grmhd_B_center
+  WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
+} "Interpolate stress-energy tensor to vertices"
+
+#########################################################
+# Conversion from GRHayLMHDX variables to Hydrobase
+#########################################################
+
+if(Convert_to_HydroBase_every)
+{
+  schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities at CCTK_ANALYSIS
+  {
+     LANG: C
+     READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
+     WRITES: ccc_spacetime(everywhere)
+  } "Interpolate spacetime quantities to cell centers"
+  
+  SCHEDULE convert_GRHayLMHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after (GRHayLMHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
+  {
+    LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+            HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+  } "Convert GRHayLMHDX-native variables to HydroBaseX"
+}
