@@ -11,7 +11,7 @@
 
 #include "GRHayLHD.h"
 
-void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities prims);
+void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities *restrict prims);
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho_b,vx,vy,vz}
@@ -57,7 +57,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -85,7 +85,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -115,7 +115,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -143,7 +143,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -173,7 +173,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -201,7 +201,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 0.0, 0.0, 0.0,
                 poison, poison, poison, &prims);
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, prims);
+          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
           ghl_return_primitives(
                 &prims,
@@ -215,7 +215,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   }
 }
 
-void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities prims) {
+void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
   // instead of explicitly passing all these variables.
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz;
@@ -237,10 +237,10 @@ void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, c
   conservative_quantities cons;
   ghl_enforce_primitive_limits_and_compute_u0(
         ghl_params, ghl_eos, &ADM_metric,
-        &prims, &speed_limited);
+        prims, &speed_limited);
 
   ghl_compute_conservs(
-        &ADM_metric, &metric_aux, &prims, &cons);
+        &ADM_metric, &metric_aux, prims, &cons);
 
   ghl_return_conservatives(
         &cons,
