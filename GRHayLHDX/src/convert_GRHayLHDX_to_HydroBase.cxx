@@ -5,7 +5,7 @@ extern "C" void convert_GRHayLHDX_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-//  if(Convert_to_HydroBase_every==0 || cctk_iteration%Convert_to_HydroBase_every!=0) return;
+  if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
   const Loop::GF3D2layout layout(cctkGH, indextype);

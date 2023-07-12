@@ -2,7 +2,7 @@
 
 implements: GRHayLHDX
 
-inherits: ADMBase, Tmunubase, HydroBase, GRHayLib
+inherits: ADMBaseX, TmunubaseX, HydroBaseX, GRHayLib
 
 USES INCLUDE: GRHayLib.h
 

@@ -2,41 +2,41 @@
 
 if (CCTK_Equals(initial_hydro, "HydroTest1D"))
 {
-  schedule GRHayLIDX_1D_tests_hydro_data in HydroBase_InitialData
+  schedule GRHayLIDX_1D_tests_hydro_data in HydroBaseX_InitialData
   {
     LANG: C
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::eps(everywhere), HydroBase::vel(everywhere)
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+            HydroBaseX::eps(everywhere), HydroBaseX::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
   if (initialize_magnetic_quantities)
   {
-    schedule GRHayLIDX_1D_tests_magnetic_data in HydroBase_InitialData after GRHayLIDX_1D_tests_hydro_data
+    schedule GRHayLIDX_1D_tests_magnetic_data in HydroBaseX_InitialData after GRHayLIDX_1D_tests_hydro_data
     {
       LANG: C
-      WRITES: HydroBase::Avecx(everywhere), HydroBase::Avecy(everywhere),
-              HydroBase::Avecz(everywhere)
+      WRITES: HydroBaseX::Avecx(everywhere), HydroBaseX::Avecy(everywhere),
+              HydroBaseX::Avecz(everywhere)
     } "Set initial magnetic data for 1D test"
   }
 } else if (CCTK_Equals(initial_hydro, "IsotropicGas"))
 {
-  schedule GRHayLIDX_IsotropicGas in HydroBase_InitialData
+  schedule GRHayLIDX_IsotropicGas in HydroBaseX_InitialData
   {
     LANG: C
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Ye(everywhere), HydroBase::temperature(everywhere),
-            HydroBase::entropy(everywhere)
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+            HydroBaseX::eps(everywhere), HydroBaseX::vel(everywhere),
+            HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+            HydroBaseX::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
 } else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere"))
 {
-  schedule GRHayLIDX_ConstantDensitySphere in HydroBase_InitialData
+  schedule GRHayLIDX_ConstantDensitySphere in HydroBaseX_InitialData
   {
     LANG: C
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Ye(everywhere), HydroBase::temperature(everywhere),
-            HydroBase::entropy(everywhere)
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+            HydroBaseX::eps(everywhere), HydroBaseX::vel(everywhere),
+            HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+            HydroBaseX::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }

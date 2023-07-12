@@ -3,7 +3,7 @@
 shares: GRHayLib
 USES KEYWORD EOS_type
 
-shares: HydroBase
+shares: HydroBaseX
 EXTENDS KEYWORD initial_hydro
 {
   "HydroTest1D" :: "Initial data set by 1D test; see test_1D_initial_data parameter for options"

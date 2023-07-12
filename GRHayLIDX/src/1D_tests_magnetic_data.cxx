@@ -58,55 +58,54 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     Bz_r = Bxtmp; Bx_r = Bytmp; By_r = Bztmp;
   }
 
-//  grid.loop_all_device<1, 0, 0>(
-//      grid.nghostzones,
-//      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-//
-//    if(CCTK_EQUALS(test_shock_direction, "x")) {
-//      if(p.x <= discontinuity_position) { 
-//        Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);  
-//      } else { 
-//        Avecx(p.I) = By_r * (p.z) - Bz_r * (p.y);
-//      }
-//    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
-//      //Avecx(p.I) = By_r * (p.z);
-//    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-//      //Avecx(p.I) = 0.0;
-//    }
-//  });
+  grid.loop_all_device<1, 0, 0>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 
-//  grid.loop_all_device<0, 1, 0>(
-//      grid.nghostzones,
-//      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-//
-//    if(CCTK_EQUALS(test_shock_direction, "x")) {
-//      //Avecy(p.I) = 0.0;
-//    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
-//      //if(p.y <= discontinuity_position) {
-//      //  Avecy(p.I) = Bz_l * (p.x) - Bx_l * (p.z);
-//      //} else {
-//      //  Avecy(p.I) = Bz_r * (p.x) - Bx_r * (p.z);
-//      //}
-//    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-//      //Avecy(p.I) = Bz_r * (p.x);
-//    }
-//  });
-//
-//  grid.loop_all_device<0, 0, 1>(
-//      grid.nghostzones,
-//      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-//
-//    if(CCTK_EQUALS(test_shock_direction, "x")) {
-//      //Avecz(p.I) = Bx_r * (p.y);
-//    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
-//      //Avecz(p.I) = 0.0;
-//    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
-//      //if(p.z <= discontinuity_position) {
-//      //  Avecz(p.I) = Bx_l * (p.y) - By_l * (p.x);
-//      //} else {
-//      //  Avecz(p.I) = Bx_r * (p.y) - By_r * (p.x);
-//      //}
-//    }
-//  });
-  CCTK_VINFO("Finished writing magnetic ID for %s test", test_1D_initial_data);
+    if(CCTK_EQUALS(test_shock_direction, "x")) {
+      if(p.x <= discontinuity_position) { 
+        Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);  
+      } else { 
+        Avecx(p.I) = By_r * (p.z) - Bz_r * (p.y);
+      }
+    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
+      Avecx(p.I) = By_r * (p.z);
+    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+      Avecx(p.I) = 0.0;
+    }
+  });
+
+  grid.loop_all_device<0, 1, 0>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+
+    if(CCTK_EQUALS(test_shock_direction, "x")) {
+      Avecy(p.I) = 0.0;
+    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
+      if(p.y <= discontinuity_position) {
+        Avecy(p.I) = Bz_l * (p.x) - Bx_l * (p.z);
+      } else {
+        Avecy(p.I) = Bz_r * (p.x) - Bx_r * (p.z);
+      }
+    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+      Avecy(p.I) = Bz_r * (p.x);
+    }
+  });
+
+  grid.loop_all_device<0, 0, 1>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+
+    if(CCTK_EQUALS(test_shock_direction, "x")) {
+      Avecz(p.I) = Bx_r * (p.y);
+    } else if(CCTK_EQUALS(test_shock_direction, "y")) {
+      Avecz(p.I) = 0.0;
+    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+      if(p.z <= discontinuity_position) {
+        Avecz(p.I) = Bx_l * (p.y) - By_l * (p.x);
+      } else {
+        Avecz(p.I) = Bx_r * (p.y) - By_r * (p.x);
+      }
+    }
+  });
 }

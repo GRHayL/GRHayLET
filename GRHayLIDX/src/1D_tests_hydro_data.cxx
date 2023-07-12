@@ -117,5 +117,4 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
                                               ghl_eos, rho(index))];
     eps(index) = press(index)/( rho(index)*(Gamma-1) );
   });
-  CCTK_VINFO("Finished writing hydrodynamic ID for %s test", test_1D_initial_data);
 }
