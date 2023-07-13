@@ -102,7 +102,7 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
             CCTK_REAL vzL                = alpL*velz[index] - betazL;
             const CCTK_REAL Y_eL         = Y_e[index];
             const CCTK_REAL temperatureL = temperature[index];
-            neutrino_optical_depths tauL;
+            ghl_neutrino_optical_depths tauL;
             tauL.nue [0] = tau_0_nue_p [index];
             tauL.nue [1] = tau_1_nue_p [index];
             tauL.anue[0] = tau_0_anue_p[index];
@@ -218,7 +218,7 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
             }
 
             // Step 3.h: Compute R, Q, and the neutrino opacities
-            neutrino_opacities kappaL;
+            ghl_neutrino_opacities kappaL;
             CCTK_REAL R_sourceL, Q_sourceL;
             NRPyLeakage_compute_neutrino_opacities_and_GRMHD_source_terms(ghl_eos,
                                                                           rhoL, Y_eL, temperatureL,
@@ -287,14 +287,14 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
             //   printf("RHSs   : %22.15e %22.15e %22.15e %22.15e %22.15e\n",
             //          Y_e_star_rhsL, tau_rhsL, Stildex_rhsL, Stildey_rhsL, Stildez_rhsL);
 
-              // neutrino_optical_depths tau;
+              // ghl_neutrino_optical_depths tau;
               // tau.nue [0] = 0.01;
               // tau.nue [1] = 0.02;
               // tau.anue[0] = 0.03;
               // tau.anue[1] = 0.04;
               // tau.nux [0] = 0.05;
               // tau.nux [1] = 0.06;
-              // neutrino_opacities kappa;
+              // ghl_neutrino_opacities kappa;
               // CCTK_REAL R, Q;
               // NRPyLeakage_compute_neutrino_opacities_and_GRMHD_source_terms(ghl_eos,
               //                                                               1e-12, 0.5, 0.01,

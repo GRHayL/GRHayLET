@@ -51,7 +51,7 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
             const CCTK_REAL Y_eL         = Y_e[index];
             const CCTK_REAL temperatureL = temperature[index];
             const CCTK_REAL wL           = w_lorentz[index];
-            neutrino_optical_depths tauL;
+            ghl_neutrino_optical_depths tauL;
             tauL.nue [0] = tau_0_nue [index];
             tauL.nue [1] = tau_1_nue [index];
             tauL.anue[0] = tau_0_anue[index];
@@ -60,7 +60,7 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
             tauL.nux [1] = tau_1_nux [index];
 
             // Step 3: Compute neutrino luminosities
-            neutrino_luminosities lumL;
+            ghl_neutrino_luminosities lumL;
             NRPyLeakage_compute_neutrino_luminosities(ghl_eos,
                                                       alpL, gxxL, gxyL, gxzL, gyyL, gyzL, gzzL,
                                                       rhoL, Y_eL, temperatureL, wL,

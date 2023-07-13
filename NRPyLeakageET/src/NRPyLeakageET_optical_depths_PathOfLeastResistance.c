@@ -8,7 +8,7 @@ static void set_opacity_struct_from_gfs(
       const CCTK_REAL *restrict kappa_1_anue,
       const CCTK_REAL *restrict kappa_0_nux,
       const CCTK_REAL *restrict kappa_1_nux,
-      neutrino_opacities *restrict kappa) {
+      ghl_neutrino_opacities *restrict kappa) {
   kappa->nue [0] = kappa_0_nue [index];
   kappa->nue [1] = kappa_1_nue [index];
   kappa->anue[0] = kappa_0_anue[index];
@@ -25,7 +25,7 @@ static void set_optical_depths_struct_from_gfs(
       const CCTK_REAL *restrict tau_1_anue,
       const CCTK_REAL *restrict tau_0_nux,
       const CCTK_REAL *restrict tau_1_nux,
-      neutrino_optical_depths *restrict tau) {
+      ghl_neutrino_optical_depths *restrict tau) {
   tau->nue [0] = tau_0_nue [index];
   tau->nue [1] = tau_1_nue [index];
   tau->anue[0] = tau_0_anue[index];
@@ -96,10 +96,10 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
             const CCTK_REAL stencil_gzz[3] = {gzz[im1_j_k], gzz[i_j_k], gzz[ip1_j_k]};
 
             // Step 3: Read in opacity gfs from main memory
-            neutrino_opacities kappa_i_j_k;
-            neutrino_opacities kappa_ip1_j_k, kappa_im1_j_k;
-            neutrino_opacities kappa_i_jp1_k, kappa_i_jm1_k;
-            neutrino_opacities kappa_i_j_kp1, kappa_i_j_km1;
+            ghl_neutrino_opacities kappa_i_j_k;
+            ghl_neutrino_opacities kappa_ip1_j_k, kappa_im1_j_k;
+            ghl_neutrino_opacities kappa_i_jp1_k, kappa_i_jm1_k;
+            ghl_neutrino_opacities kappa_i_j_kp1, kappa_i_j_km1;
             set_opacity_struct_from_gfs(i_j_k  , kappa_0_nue, kappa_1_nue, kappa_0_anue, kappa_1_anue, kappa_0_nux, kappa_1_nux, &kappa_i_j_k  );
             set_opacity_struct_from_gfs(ip1_j_k, kappa_0_nue, kappa_1_nue, kappa_0_anue, kappa_1_anue, kappa_0_nux, kappa_1_nux, &kappa_ip1_j_k);
             set_opacity_struct_from_gfs(im1_j_k, kappa_0_nue, kappa_1_nue, kappa_0_anue, kappa_1_anue, kappa_0_nux, kappa_1_nux, &kappa_im1_j_k);
@@ -109,9 +109,9 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
             set_opacity_struct_from_gfs(i_j_km1, kappa_0_nue, kappa_1_nue, kappa_0_anue, kappa_1_anue, kappa_0_nux, kappa_1_nux, &kappa_i_j_km1);
 
             // Step 4: Read in optical depth gfs from main memory
-            neutrino_optical_depths tau_ip1_j_k, tau_im1_j_k;
-            neutrino_optical_depths tau_i_jp1_k, tau_i_jm1_k;
-            neutrino_optical_depths tau_i_j_kp1, tau_i_j_km1;
+            ghl_neutrino_optical_depths tau_ip1_j_k, tau_im1_j_k;
+            ghl_neutrino_optical_depths tau_i_jp1_k, tau_i_jm1_k;
+            ghl_neutrino_optical_depths tau_i_j_kp1, tau_i_j_km1;
             set_optical_depths_struct_from_gfs(ip1_j_k, tau_0_nue_p, tau_1_nue_p, tau_0_anue_p, tau_1_anue_p, tau_0_nux_p, tau_1_nux_p, &tau_ip1_j_k);
             set_optical_depths_struct_from_gfs(im1_j_k, tau_0_nue_p, tau_1_nue_p, tau_0_anue_p, tau_1_anue_p, tau_0_nux_p, tau_1_nux_p, &tau_im1_j_k);
             set_optical_depths_struct_from_gfs(i_jp1_k, tau_0_nue_p, tau_1_nue_p, tau_0_anue_p, tau_1_anue_p, tau_0_nux_p, tau_1_nux_p, &tau_i_jp1_k);
@@ -120,7 +120,7 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
             set_optical_depths_struct_from_gfs(i_j_km1, tau_0_nue_p, tau_1_nue_p, tau_0_anue_p, tau_1_anue_p, tau_0_nux_p, tau_1_nux_p, &tau_i_j_km1);
 
             // Step 5: Compute the new optical depths
-            neutrino_optical_depths tau_i_j_k;
+            ghl_neutrino_optical_depths tau_i_j_k;
             NRPyLeakage_optical_depths_PathOfLeastResistance(dxx, stencil_gxx, stencil_gyy, stencil_gzz,
                                                              &kappa_ip1_j_k, &kappa_im1_j_k,
                                                              &kappa_i_jp1_k, &kappa_i_jm1_k,

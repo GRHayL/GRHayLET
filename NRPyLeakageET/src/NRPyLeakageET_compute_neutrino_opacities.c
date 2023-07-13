@@ -26,8 +26,8 @@ void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS) {
 
         // Step 2: Declare variables
         const CCTK_REAL rhoL = rho[index];
-        neutrino_opacities kappa;
-        neutrino_optical_depths tau;
+        ghl_neutrino_opacities kappa;
+        ghl_neutrino_optical_depths tau;
 
         // Step 3: Check density threshold, compute opacities
         if( rhoL < rho_min_threshold || rhoL > rho_max_threshold ) {
