@@ -23,8 +23,8 @@ extern "C" void GRHayLMHDX_compute_ccc_centered_spacetime_quantities(CCTK_ARGUME
     CCTK_REAL gyz_avg   = 0.0;
     CCTK_REAL gzz_avg   = 0.0;
 
-    for (int k=0; k<2; k++) { 
-      for (int j=0; j<2; j++) { 
+    for (int k=0; k<2; k++) {
+      for (int j=0; j<2; j++) {
         for (int i=0; i<2; i++) {
           lapse_avg += alp(p.I + i*p.DI[0] + j*p.DI[1] + k*p.DI[2]);
           betax_avg += betax(p.I + i*p.DI[0] + j*p.DI[1] + k*p.DI[2]);

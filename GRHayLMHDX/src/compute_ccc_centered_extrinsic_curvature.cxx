@@ -19,8 +19,8 @@ extern "C" void GRHayLMHDX_compute_ccc_centered_extrinsic_curvature(CCTK_ARGUMEN
     CCTK_REAL kyz_avg   = 0.0;
     CCTK_REAL kzz_avg   = 0.0;
 
-    for (int k=0; k<2; k++) { 
-      for (int j=0; j<2; j++) { 
+    for (int k=0; k<2; k++) {
+      for (int j=0; j<2; j++) {
         for (int i=0; i<2; i++) {
           kxx_avg += kxx(p.I + i*p.DI[0] + j*p.DI[1] + k*p.DI[2]);
           kxy_avg += kxy(p.I + i*p.DI[0] + j*p.DI[1] + k*p.DI[2]);

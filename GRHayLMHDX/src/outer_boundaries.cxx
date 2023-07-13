@@ -170,7 +170,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indm1];
           vx(index)       = vx[indm1];
           vy(index)       = vy[indm1];
-          vz(index)       = vz[indm1]; 
+          vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -189,7 +189,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indp1];
           vx(index)       = vx[indp1];
           vy(index)       = vy[indp1];
-          vz(index)       = vz[indp1]; 
+          vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -210,7 +210,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indm1];
           vx(index)       = vx[indm1];
           vy(index)       = vy[indm1];
-          vz(index)       = vz[indm1]; 
+          vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -229,7 +229,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indp1];
           vx(index)       = vx[indp1];
           vy(index)       = vy[indp1];
-          vz(index)       = vz[indp1]; 
+          vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -250,7 +250,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indm1];
           vx(index)       = vx[indm1];
           vy(index)       = vy[indm1];
-          vz(index)       = vz[indm1]; 
+          vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -269,7 +269,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           rho_b(index)    = rho_b[indp1];
           vx(index)       = vx[indp1];
           vy(index)       = vy[indp1];
-          vz(index)       = vz[indp1]; 
+          vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
           GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
@@ -289,7 +289,7 @@ void GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH,
   double dummy1, dummy2, dummy3;
   int speed_limited = 0;
 
-  metric_quantities ADM_metric;
+  ghl_metric_quantities ADM_metric;
   ghl_enforce_detgtij_and_initialize_ADM_metric(
         alp(index),
         betax(index), betay(index), betaz(index),
@@ -297,17 +297,17 @@ void GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH,
         gyy(index), gyz(index), gzz(index),
         &ADM_metric);
 
-  ADM_aux_quantities metric_aux;
+  ghl_ADM_aux_quantities metric_aux;
   ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-  primitive_quantities prims;
+  ghl_primitive_quantities prims;
   ghl_initialize_primitives(
         rho_b(index), pressure(index), eps(index),
         vx(index), vy(index), vz(index),
         Bx_center(index), By_center(index), Bz_center(index),
         poison, poison, poison, &prims);
 
-  conservative_quantities cons;
+  ghl_conservative_quantities cons;
   ghl_enforce_primitive_limits_and_compute_u0(
         ghl_params, ghl_eos, &ADM_metric,
         &prims, &speed_limited);

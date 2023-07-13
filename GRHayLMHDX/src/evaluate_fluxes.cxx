@@ -14,22 +14,22 @@ void GRHayLMHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   // These nested condtional ternary operators let us tell the compiler that
   // these pointers can be set at compiler time while making the templated functions
   // instead of using a switch statement at runtime.
-  constexpr void (*calculate_characteristic_speed)(const primitive_quantities *restrict prims_r,
-                                         const primitive_quantities *restrict prims_l,
-                                         struct eos_parameters const *restrict eos,
-                                         const metric_quantities *restrict ADM_metric_face,
+  constexpr void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
+                                         const ghl_primitive_quantities *restrict prims_l,
+                                         const ghl_eos_parameters *restrict eos,
+                                         const ghl_metric_quantities *restrict ADM_metric_face,
                                          CCTK_REAL *cmin, CCTK_REAL *cmax)
     = flux_dir==0 ? &ghl_calculate_characteristic_speed_dirn0 :
       flux_dir==1 ? &ghl_calculate_characteristic_speed_dirn1 :
                     &ghl_calculate_characteristic_speed_dirn2 ;
 
-  constexpr void (*calculate_HLLE_fluxes)(const primitive_quantities *restrict prims_r,
-                                const primitive_quantities *restrict prims_l,
-                                const eos_parameters *restrict eos,
-                                const metric_quantities *restrict ADM_metric_face,
+  constexpr void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
+                                const ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
                                 const CCTK_REAL cmin,
                                 const CCTK_REAL cmax,
-                                conservative_quantities *restrict cons_fluxes)
+                                ghl_conservative_quantities *restrict cons_fluxes)
     = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0 :
       flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1 :
                     &ghl_calculate_HLLE_fluxes_dirn2 ;
@@ -155,8 +155,8 @@ void GRHayLMHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
             rho_stencil, press_stencil, vars_stencil,
             5, v_flux, Gamma_eff,
             &rhor, &rhol, &pressr, &pressl, vars_r, vars_l);
-  
-      metric_quantities ADM_metric_face;
+
+      ghl_metric_quantities ADM_metric_face;
       GRHayLMHDX_interpolate_metric_to_face(
             indm2, indm1, index, indp1,
             ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
@@ -179,7 +179,7 @@ void GRHayLMHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
         vy_yl(ind_flux) = vars_l[1];
         vz_yl(ind_flux) = vars_l[2];
       }
-  
+
       B_r[B1] = vars_r[3];
       B_r[B2] = vars_r[4];
 
@@ -189,28 +189,28 @@ void GRHayLMHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
       // B_stagger is densitized, but B_center is not.
       B_r[B0] = B_l[B0] = B_stagger(p.I)/ADM_metric_face.sqrt_detgamma;
 
-      primitive_quantities prims_r, prims_l;
+      ghl_primitive_quantities prims_r, prims_l;
       ghl_initialize_primitives(
             rhor, pressr, poison,
             vars_r[0], vars_r[1], vars_r[2],
             B_r[0], B_r[1], B_r[2],
             poison, poison, poison, // entropy, Y_e, temp
             &prims_r);
-  
+
       ghl_initialize_primitives(
             rhol, pressl, poison,
             vars_l[0], vars_l[1], vars_l[2],
             B_l[0], B_l[1], B_l[2],
             poison, poison, poison, // entropy, Y_e, temp
             &prims_l);
-  
+
       int speed_limited = 0;
       ghl_limit_v_and_compute_u0(
             ghl_eos, &ADM_metric_face, &prims_r, &speed_limited);
       ghl_limit_v_and_compute_u0(
             ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
-  
-      conservative_quantities cons_fluxes;
+
+      ghl_conservative_quantities cons_fluxes;
       calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin(ind_flux), &cmax(ind_flux));
 //if(isnan(cmin(ind_flux)*cmax(ind_flux)))
 //CCTK_VINFO("c %e %e\n"

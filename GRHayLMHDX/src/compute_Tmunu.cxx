@@ -17,7 +17,7 @@ extern "C" void GRHayLMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(ccc_layout, p.I);
 
-    metric_quantities ADM_metric;
+    ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(
           ccc_lapse(index),
           ccc_betax(index), ccc_betay(index), ccc_betaz(index),
@@ -25,10 +25,10 @@ extern "C" void GRHayLMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
           ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
           &ADM_metric);
 
-    ADM_aux_quantities metric_aux;
+    ghl_ADM_aux_quantities metric_aux;
     ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-    primitive_quantities prims;
+    ghl_primitive_quantities prims;
     ghl_initialize_primitives(
           rho_b(index), pressure(index), eps(index),
           vx(index), vy(index), vz(index),
@@ -36,7 +36,7 @@ extern "C" void GRHayLMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
           poison, poison, poison, &prims);
     prims.u0 = u0(index);
 
-    stress_energy Tmunu;
+    ghl_stress_energy Tmunu;
     ghl_compute_TDNmunu(
           &ADM_metric, &metric_aux, &prims, &Tmunu);
 
@@ -63,8 +63,8 @@ extern "C" void GRHayLMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
     CCTK_REAL Tyz_avg   = 0.0;
     CCTK_REAL Tzz_avg   = 0.0;
 
-    for (int k=0; k<2; k++) { 
-      for (int j=0; j<2; j++) { 
+    for (int k=0; k<2; k++) {
+      for (int j=0; j<2; j++) {
         for (int i=0; i<2; i++) {
           Ttt_avg += ccc_Ttt(p.I - i*p.DI[0] - j*p.DI[1] - k*p.DI[2]);
           Ttx_avg += ccc_Ttx(p.I - i*p.DI[0] - j*p.DI[1] - k*p.DI[2]);

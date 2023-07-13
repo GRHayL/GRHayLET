@@ -19,11 +19,11 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
   // These nested condtional ternary operators let us tell the compiler that
   // these pointers can be set at compiler time while making the templated functions
   // instead of using a switch statement at runtime.
-  constexpr void (*calculate_source_terms)(const primitive_quantities *restrict prims,
-                                 const eos_parameters *restrict eos,
-                                 const metric_quantities *restrict ADM_metric,
-                                 const metric_quantities *restrict metric_derivs,
-                                 conservative_quantities *restrict cons_sources)
+  constexpr void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
+                                 const ghl_eos_parameters *restrict eos,
+                                 const ghl_metric_quantities *restrict ADM_metric,
+                                 const ghl_metric_quantities *restrict metric_derivs,
+                                 ghl_conservative_quantities *restrict cons_sources)
     = flux_dir==0 ? &ghl_calculate_source_terms_dirn0 :
       flux_dir==1 ? &ghl_calculate_source_terms_dirn1 :
                     &ghl_calculate_source_terms_dirn2 ;
@@ -63,14 +63,14 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
     Stildey_rhs(index)  += dxi*(Sy_flux(ind_flux)  - Sy_flux(ind_flp1));
     Stildez_rhs(index)  += dxi*(Sz_flux(ind_flux)  - Sz_flux(ind_flp1));
 
-    metric_quantities ADM_metric;
+    ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(ccc_lapse(index),
           ccc_betax(index), ccc_betay(index), ccc_betaz(index),
           ccc_gxx(index), ccc_gxy(index), ccc_gxz(index),
           ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
           &ADM_metric);
 
-    primitive_quantities prims;
+    ghl_primitive_quantities prims;
     ghl_initialize_primitives(
           rho_b(index), pressure(index), eps(index),
           vx(index), vy(index), vz(index),
@@ -82,7 +82,7 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
     ghl_limit_v_and_compute_u0(
           ghl_eos, &ADM_metric, &prims, &speed_limited);
 
-    metric_quantities ADM_metric_derivs;
+    ghl_metric_quantities ADM_metric_derivs;
 
     GRHayLMHDX_compute_metric_derivs(
           dxi, indm2, indm1, indp1, indp2,
@@ -91,7 +91,7 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
           ccc_gyy, ccc_gyz, ccc_gzz,
           &ADM_metric_derivs);
 
-    conservative_quantities cons_source;
+    ghl_conservative_quantities cons_source;
     cons_source.tau = 0.0;
     cons_source.SD[0] = 0.0;
     cons_source.SD[1] = 0.0;

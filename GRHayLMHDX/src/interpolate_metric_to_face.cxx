@@ -15,7 +15,7 @@ extern "C" void GRHayLMHDX_interpolate_metric_to_face(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric) {
+      ghl_metric_quantities *restrict metric) {
 
   const CCTK_REAL face_lapse = COMPUTE_FCVAL(lapse(indm1), lapse(index), lapse(indp1), lapse(indp2));
   const CCTK_REAL face_betax = COMPUTE_FCVAL(betax(indm1), betax(index), betax(indp1), betax(indp2));

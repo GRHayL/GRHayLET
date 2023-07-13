@@ -58,7 +58,7 @@ extern "C" void GRHayLMHDX_interpolate_A_for_rhs(CCTK_ARGUMENTS) {
       //    (i,j+1/2,k+1/2)and (i+1,j+1/2,k+1/2), then taking \partial_x (RHS1x) =
       //    [ RHS1x(i+1,j+1/2,k+1/2) - RHS1x(i,j+1/2,k+1/2) ]/dX.
       // First bring gtup's, psi, and alpha to (i,j+1/2,k+1/2):
-      metric_quantities metric_stencil[2][2][2];
+      ghl_metric_quantities metric_stencil[2][2][2];
       double Ax_stencil[3][3][3];
       double Ay_stencil[3][3][3];
       double Az_stencil[3][3][3];
@@ -70,7 +70,7 @@ extern "C" void GRHayLMHDX_interpolate_A_for_rhs(CCTK_ARGUMENTS) {
           for(int iterx=0; iterx<2; iterx++) {
             const Loop::GF3D2index ind(layout, p.I + iterx*p.DI[0] + itery*p.DI[1] + iterz*p.DI[2]);
             ghl_initialize_metric(
-                  alp(ind), betax(ind), betay(ind), betaz(ind), 
+                  alp(ind), betax(ind), betay(ind), betaz(ind),
                   gxx(ind), gxy(ind), gxz(ind),
                   gyy(ind), gyz(ind), gzz(ind),
                   &metric_stencil[iterz][itery][iterx]);
