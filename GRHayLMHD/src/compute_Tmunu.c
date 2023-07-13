@@ -14,7 +14,7 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
-        metric_quantities ADM_metric;
+        ghl_metric_quantities ADM_metric;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
               alp[index],
               betax[index], betay[index], betaz[index],
@@ -22,11 +22,11 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
               gyy[index], gyz[index], gzz[index],
               &ADM_metric);
 
-        ADM_aux_quantities metric_aux;
+        ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
-        primitive_quantities prims;
+        ghl_primitive_quantities prims;
         ghl_initialize_primitives(
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
@@ -35,7 +35,7 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         prims.u0 = u0[index];
 
-        stress_energy Tmunu;
+        ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);
 
         eTtt[index] += Tmunu.T4[0][0];

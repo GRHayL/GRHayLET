@@ -15,7 +15,7 @@ void GRHayLMHD_compute_metric_derivs(
       const CCTK_REAL *restrict gyy,
       const CCTK_REAL *restrict gyz,
       const CCTK_REAL *restrict gzz,
-      metric_quantities *restrict metric_derivs) {
+      ghl_metric_quantities *restrict metric_derivs) {
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);

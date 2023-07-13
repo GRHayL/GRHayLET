@@ -20,7 +20,7 @@
    dx*deriv = Af[-1] + Bf[0] + Bf[1] + Af[2] - (Af[-2] + Bf[-1] + Bf[0] + Af[1])
             = Af[-1] - Bf[-1] + Bf[1] - Af[1] + Af[2] - Af[-2]
             = (B-A)(f[1] - f[-1]) + A(f[2] - f[-2])
-*/ 
+*/
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
 
 extern "C" void GRHayLHDX_interpolate_metric_to_face(
@@ -38,7 +38,7 @@ extern "C" void GRHayLHDX_interpolate_metric_to_face(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric);
+      ghl_metric_quantities *restrict metric);
 
 extern "C" void GRHayLHDX_compute_metric_derivs(
       const CCTK_REAL dxi,
@@ -56,6 +56,6 @@ extern "C" void GRHayLHDX_compute_metric_derivs(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric_derivs);
+      ghl_metric_quantities *restrict metric_derivs);
 
 #endif // GRHAYLHDX_H_

@@ -27,7 +27,7 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        metric_quantities ADM_metric;
+        ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
               alp[index],
               betax[index], betay[index], betaz[index],
@@ -35,10 +35,10 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
               gyy[index], gyz[index], gzz[index],
               &ADM_metric);
 
-        ADM_aux_quantities metric_aux;
+        ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        primitive_quantities prims;
+        ghl_primitive_quantities prims;
         ghl_initialize_primitives(
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
@@ -46,7 +46,7 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
               poison, poison, poison,
               &prims);
 
-        conservative_quantities cons;
+        ghl_conservative_quantities cons;
         int speed_limited = 0;
         //This applies inequality fixes on the primitives
         ghl_enforce_primitive_limits_and_compute_u0(

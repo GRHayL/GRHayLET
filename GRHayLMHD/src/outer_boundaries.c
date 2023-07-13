@@ -11,7 +11,7 @@
 
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities *restrict prims);
+void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
 /*********************************************
  * Apply outer boundary conditions on A_{\mu}
@@ -172,7 +172,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
           const double vtmp = vx[indm1] < 0.0 ? 0 : vx[indm1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vtmp, vy[indm1], vz[indm1],
@@ -200,7 +200,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
           const double vtmp = vx[indp1] > 0.0 ? 0 : vx[indp1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vtmp, vy[indp1], vz[indp1],
@@ -230,7 +230,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
           const double vtmp = vy[indm1] < 0.0 ? 0 : vy[indm1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vx[indm1], vtmp, vz[indm1],
@@ -258,7 +258,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
           const double vtmp = vy[indp1] > 0.0 ? 0 : vy[indp1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vtmp, vz[indp1],
@@ -288,7 +288,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
           const double vtmp = vz[indm1] < 0.0 ? 0 : vz[indm1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vx[indm1], vy[indm1], vtmp,
@@ -316,7 +316,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
           const double vtmp = vz[indp1] > 0.0 ? 0 : vz[indp1];
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vy[indp1], vtmp,
@@ -337,7 +337,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   }
 }
 
-void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, primitive_quantities *restrict prims) {
+void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
   // instead of explicitly passing all these variables.
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz;
@@ -345,7 +345,7 @@ void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, 
   double dummy1, dummy2;
   int speed_limited = 0;
 
-  metric_quantities ADM_metric;
+  ghl_metric_quantities ADM_metric;
   ghl_enforce_detgtij_and_initialize_ADM_metric(
         alp[index],
         betax[index], betay[index], betaz[index],
@@ -353,10 +353,10 @@ void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, 
         gyy[index], gyz[index], gzz[index],
         &ADM_metric);
 
-  ADM_aux_quantities metric_aux;
+  ghl_ADM_aux_quantities metric_aux;
   ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-  conservative_quantities cons;
+  ghl_conservative_quantities cons;
   ghl_enforce_primitive_limits_and_compute_u0(
         ghl_params, ghl_eos, &ADM_metric,
         prims, &speed_limited);

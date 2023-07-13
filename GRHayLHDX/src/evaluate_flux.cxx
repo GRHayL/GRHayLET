@@ -16,7 +16,7 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   // instead of using a switch statement at runtime.
   constexpr void (*calculate_characteristic_speed)(const primitive_quantities *restrict prims_r,
                                          const primitive_quantities *restrict prims_l,
-                                         struct eos_parameters const *restrict eos,
+                                         const eos_parameters *restrict eos,
                                          const metric_quantities *restrict ADM_metric_face,
                                          CCTK_REAL *cmin, CCTK_REAL *cmax)
     = flux_dir==0 ? &ghl_calculate_characteristic_speed_dirn0 :

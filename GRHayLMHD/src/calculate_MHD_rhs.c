@@ -67,25 +67,25 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
   const CCTK_REAL poison = 0.0/0.0;
 
   // Function pointer to allow for loop over fluxes and sources
-  void (*calculate_characteristic_speed)(const primitive_quantities *restrict prims_r,
-                                         const primitive_quantities *restrict prims_l,
-                                         struct eos_parameters const *restrict eos,
-                                         const metric_quantities *restrict ADM_metric_face,
+  void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
+                                         const ghl_primitive_quantities *restrict prims_l,
+                                         const ghl_eos_parameters *restrict eos,
+                                         const ghl_metric_quantities *restrict ADM_metric_face,
                                          CCTK_REAL *cmin, CCTK_REAL *cmax);
 
-  void (*calculate_HLLE_fluxes)(const primitive_quantities *restrict prims_r,
-                                const primitive_quantities *restrict prims_l,
-                                const eos_parameters *restrict eos,
-                                const metric_quantities *restrict ADM_metric_face,
+  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
+                                const ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
                                 const CCTK_REAL cmin,
                                 const CCTK_REAL cmax,
-                                conservative_quantities *restrict cons_fluxes);
+                                ghl_conservative_quantities *restrict cons_fluxes);
 
-  void (*calculate_source_terms)(const primitive_quantities *restrict prims,
-                                 const eos_parameters *restrict eos,
-                                 const metric_quantities *restrict ADM_metric,
-                                 const metric_quantities *restrict metric_derivs,
-                                 conservative_quantities *restrict cons_sources);
+  void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
+                                 const ghl_eos_parameters *restrict eos,
+                                 const ghl_metric_quantities *restrict ADM_metric,
+                                 const ghl_metric_quantities *restrict metric_derivs,
+                                 ghl_conservative_quantities *restrict cons_sources);
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
@@ -197,7 +197,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         B_l[B_recon[1]] = vars_l[3];
         B_l[B_recon[2]] = vars_l[4];
 
-        metric_quantities ADM_metric_face;
+        ghl_metric_quantities ADM_metric_face;
         GRHayLMHD_interpolate_metric_to_face(
               cctkGH, i, j, k,
               flux_dir, lapse,
@@ -210,7 +210,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         B_r[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
         B_l[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
 
-        primitive_quantities prims_r, prims_l;
+        ghl_primitive_quantities prims_r, prims_l;
         ghl_initialize_primitives(
               rhor, pressr, poison,
               vel_r[0][index], vel_r[1][index], vel_r[2][index],
@@ -231,7 +231,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         ghl_limit_v_and_compute_u0(
               ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
 
-        conservative_quantities cons_fluxes;
+        ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
         calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin[index], cmax[index], &cons_fluxes);
 
@@ -273,7 +273,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
            k  ------------
            j-->
 
-     where the 'x' positions have already been filled. 
+     where the 'x' positions have already been filled.
      We can do several loops to fill the remainder:
      1) loop k @ (0, kmin), j @ (0,lsh[1]), i @ (imin,imax+1)
         loop shown with w
@@ -299,19 +299,19 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
           0, cctkGH->cctk_lsh[1],
           0, kmin,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // y zone
           imin, imax+1,
           0, cctkGH->cctk_lsh[1],
           kmax+1, cctkGH->cctk_lsh[2],
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // z zone
           imin, imax+1,
           0, jmin,
           kmin, kmax+1,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir,  // q zone
           imin, imax+1,
           jmax+1, cctkGH->cctk_lsh[1],
@@ -323,19 +323,19 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
           jmin, jmax+1,
           0, kmin,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // y zone
           0, cctkGH->cctk_lsh[0],
           jmin, jmax+1,
           kmax+1, cctkGH->cctk_lsh[2],
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // z zone
           0, imin,
           jmin, jmax+1,
           kmin, kmax+1,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir,  // q zone
           imax+1, cctkGH->cctk_lsh[0],
           jmin, jmax+1,
@@ -347,19 +347,19 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
           0, jmin,
           kmin, kmax+1,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // y zone
           0, cctkGH->cctk_lsh[0],
           jmax+1, cctkGH->cctk_lsh[1],
           kmin, kmax+1,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir, // z zone
           0, imin,
           jmin, jmax+1,
           kmin, kmax+1,
           rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  
+
     reconstruct_v_edges(cctkGH, flux_dir,  // q zone
           imax+1, cctkGH->cctk_lsh[0],
           jmin, jmax+1,
@@ -380,7 +380,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         Stildey_rhs[index]  += dxi*(Stildey_flux[index]  - Stildey_flux[indp1]);
         Stildez_rhs[index]  += dxi*(Stildez_flux[index]  - Stildez_flux[indp1]);
 
-        metric_quantities ADM_metric;
+        ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
               lapse[index],
               betax[index], betay[index], betaz[index],
@@ -388,7 +388,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               gyy[index], gyz[index], gzz[index],
               &ADM_metric);
 
-        primitive_quantities prims;
+        ghl_primitive_quantities prims;
         ghl_initialize_primitives(
               rho_b[index], pressure[index], poison,
               vx[index], vy[index], vz[index],
@@ -400,7 +400,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         ghl_limit_v_and_compute_u0(
               ghl_eos, &ADM_metric, &prims, &speed_limited);
 
-        metric_quantities ADM_metric_derivs;
+        ghl_metric_quantities ADM_metric_derivs;
         GRHayLMHD_compute_metric_derivs(
               cctkGH, i, j, k,
               flux_dir, dxi, lapse,
@@ -409,7 +409,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               gyy, gyz, gzz,
               &ADM_metric_derivs);
 
-        conservative_quantities cons_source;
+        ghl_conservative_quantities cons_source;
         cons_source.tau = 0.0;
         cons_source.SD[0] = 0.0;
         cons_source.SD[1] = 0.0;

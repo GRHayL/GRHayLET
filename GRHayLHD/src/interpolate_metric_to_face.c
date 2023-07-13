@@ -14,7 +14,7 @@ void GRHayLHD_interpolate_metric_to_face(
       const CCTK_REAL *restrict gyy,
       const CCTK_REAL *restrict gyz,
       const CCTK_REAL *restrict gzz,
-      metric_quantities *restrict metric) {
+      ghl_metric_quantities *restrict metric) {
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);

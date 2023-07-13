@@ -57,7 +57,7 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
         //    (i,j+1/2,k+1/2)and (i+1,j+1/2,k+1/2), then taking \partial_x (RHS1x) =
         //    [ RHS1x(i+1,j+1/2,k+1/2) - RHS1x(i,j+1/2,k+1/2) ]/dX.
         // First bring gtup's, psi, and alpha to (i,j+1/2,k+1/2):
-        metric_quantities metric_stencil[2][2][2];
+        ghl_metric_quantities metric_stencil[2][2][2];
         double Ax_stencil[3][3][3];
         double Ay_stencil[3][3][3];
         double Az_stencil[3][3][3];
@@ -68,9 +68,9 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
           for(int itery=0; itery<2; itery++)
             for(int iterx=0; iterx<2; iterx++) {
               const int ind = CCTK_GFINDEX3D(cctkGH,i+iterx,j+itery,k+iterz);
-            
+
               ghl_initialize_metric(
-                    alp[ind], betax[ind], betay[ind], betaz[ind], 
+                    alp[ind], betax[ind], betay[ind], betaz[ind],
                     gxx[ind], gxy[ind], gxz[ind],
                     gyy[ind], gyz[ind], gzz[ind],
                     &metric_stencil[iterz][itery][iterx]);
@@ -128,7 +128,7 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
         Ax_rhs[index] += dxi[0]*(alpha_Phi_minus_betaj_A_j_interp[CCTK_GFINDEX3D(cctkGH,i-1,j,k)] - alpha_Phi_minus_betaj_A_j_interp[index]);
         Ay_rhs[index] += dxi[1]*(alpha_Phi_minus_betaj_A_j_interp[CCTK_GFINDEX3D(cctkGH,i,j-1,k)] - alpha_Phi_minus_betaj_A_j_interp[index]);
         Az_rhs[index] += dxi[2]*(alpha_Phi_minus_betaj_A_j_interp[CCTK_GFINDEX3D(cctkGH,i,j,k-1)] - alpha_Phi_minus_betaj_A_j_interp[index]);
-    
+
         double betax_stencil[5], betay_stencil[5], betaz_stencil[5];
         double phitilde_stencil[3][5], sqrtg_Ai_stencil[3][2];
 

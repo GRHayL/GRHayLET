@@ -77,12 +77,12 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<cctk_lsh[0]; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        con2prim_diagnostics diagnostics;
+        ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
-        metric_quantities ADM_metric;
+        ghl_metric_quantities ADM_metric;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
               alp[index],
               betax[index], betay[index], betaz[index],
@@ -90,11 +90,11 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               gyy[index], gyz[index], gzz[index],
               &ADM_metric);
 
-        ADM_aux_quantities metric_aux;
+        ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
-        primitive_quantities prims;
+        ghl_primitive_quantities prims;
         ghl_initialize_primitives(
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
@@ -102,7 +102,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               poison, poison, poison, &prims);
 
         // Read in conservative variables from gridfunctions
-        conservative_quantities cons, cons_orig;
+        ghl_conservative_quantities cons, cons_orig;
         ghl_initialize_conservatives(
               rho_star[index], tau[index],
               Stildex[index], Stildey[index], Stildez[index],
@@ -132,7 +132,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                   &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
-          conservative_quantities cons_undens;
+          ghl_conservative_quantities cons_undens;
 
           // Set the conserved variables required by the con2prim routine
           ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);

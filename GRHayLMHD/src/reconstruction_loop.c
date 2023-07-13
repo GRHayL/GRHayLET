@@ -2,7 +2,7 @@
 
 static double eos_Gamma_eff(const double rho_in, const double press_in);
 
-void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars, 
+void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
                          const int *restrict var_indices,
                          const double *rho_b,
                          const double *pressure,

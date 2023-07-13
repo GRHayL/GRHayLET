@@ -1,6 +1,6 @@
 #include "GRHayLHD.h"
 
-double GRHayLHD_eos_Gamma_eff(const eos_parameters *restrict eos, const double rho_in, const double press_in) {
+double GRHayLHD_eos_Gamma_eff(const ghl_eos_parameters *restrict eos, const double rho_in, const double press_in) {
   double K, Gamma;
   ghl_hybrid_get_K_and_Gamma(eos, rho_in, &K, &Gamma);
   const double P_cold = K*pow(rho_in, Gamma);
@@ -25,25 +25,25 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
   const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
-  void (*calculate_characteristic_speed)(const primitive_quantities *restrict prims_r,
-                                         const primitive_quantities *restrict prims_l,
-                                         struct eos_parameters const *restrict eos,
-                                         const metric_quantities *restrict ADM_metric_face,
+  void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
+                                         const ghl_primitive_quantities *restrict prims_l,
+                                         const ghl_eos_parameters *restrict eos,
+                                         const ghl_metric_quantities *restrict ADM_metric_face,
                                          double *cmin, double *cmax);
 
-  void (*calculate_HLLE_fluxes)(const primitive_quantities *restrict prims_r,
-                                const primitive_quantities *restrict prims_l,
-                                const eos_parameters *restrict eos,
-                                const metric_quantities *restrict ADM_metric_face,
+  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
+                                const ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
                                 const double cmin,
                                 const double cmax,
-                                conservative_quantities *restrict cons_fluxes);
+                                ghl_conservative_quantities *restrict cons_fluxes);
 
-  void (*calculate_source_terms)(const primitive_quantities *restrict prims,
-                                 const eos_parameters *restrict eos,
-                                 const metric_quantities *restrict ADM_metric,
-                                 const metric_quantities *restrict metric_derivs,
-                                 conservative_quantities *restrict cons_sources);
+  void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
+                                 const ghl_eos_parameters *restrict eos,
+                                 const ghl_metric_quantities *restrict ADM_metric,
+                                 const ghl_metric_quantities *restrict metric_derivs,
+                                 ghl_conservative_quantities *restrict cons_sources);
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
     const int xdir = (flux_dir == 0);
@@ -106,7 +106,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                 3, v_flux, Gamma,
                 &rhor, &rhol, &pressr, &pressl, vel_r, vel_l);
 
-          metric_quantities ADM_metric_face;
+          ghl_metric_quantities ADM_metric_face;
           GRHayLHD_interpolate_metric_to_face(
                 cctkGH, i, j, k,
                 flux_dir, alp,
@@ -115,7 +115,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_face);
 
-          primitive_quantities prims_r, prims_l;
+          ghl_primitive_quantities prims_r, prims_l;
           ghl_initialize_primitives(
                 rhor, pressr, poison,
                 vel_r[0], vel_r[1], vel_r[2],
@@ -137,7 +137,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                 ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
 
           double cmin, cmax;
-          conservative_quantities cons_fluxes;
+          ghl_conservative_quantities cons_fluxes;
           calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
@@ -165,14 +165,14 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
           Stildey_rhs[index]  += dxi*(Stildey_flux[indm1]  - Stildey_flux[index]);
           Stildez_rhs[index]  += dxi*(Stildez_flux[indm1]  - Stildez_flux[index]);
 
-          metric_quantities ADM_metric;
+          ghl_metric_quantities ADM_metric;
           ghl_initialize_metric(alp[index],
                 betax[index], betay[index], betaz[index],
                 gxx[index], gxy[index], gxz[index],
                 gyy[index], gyz[index], gzz[index],
                 &ADM_metric);
 
-          primitive_quantities prims;
+          ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[index], pressure[index], eps[index],
                 vx[index], vy[index], vz[index],
@@ -184,7 +184,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
           ghl_limit_v_and_compute_u0(
                 ghl_eos, &ADM_metric, &prims, &speed_limited);
 
-          metric_quantities ADM_metric_derivs;
+          ghl_metric_quantities ADM_metric_derivs;
           GRHayLHD_compute_metric_derivs(
                 cctkGH, i, j, k,
                 flux_dir, dxi, alp,
@@ -193,7 +193,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_derivs);
 
-          conservative_quantities cons_source;
+          ghl_conservative_quantities cons_source;
           cons_source.tau = 0.0;
           cons_source.SD[0] = 0.0;
           cons_source.SD[1] = 0.0;
