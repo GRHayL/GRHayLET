@@ -14,8 +14,8 @@ enum recon_indices{
 //template <int flux_dir>
 //void GRHayLMHDX_reconstruction_loop(
 //      const cGH *restrict cctkGH,
-//      const int num_B, 
-//      const int num_vel, 
+//      const int num_B,
+//      const int num_vel,
 //      const int B_indices[3],
 //      const int vel_indices[3],
 //      Loop::GF3D2<const CCTK_REAL> v_flux_dir,
@@ -44,7 +44,7 @@ void GRHayLMHDX_A_flux_rhs(
    dx*deriv = Af[-1] + Bf[0] + Bf[1] + Af[2] - (Af[-2] + Bf[-1] + Bf[0] + Af[1])
             = Af[-1] - Bf[-1] + Bf[1] - Af[1] + Af[2] - Af[-2]
             = (B-A)(f[1] - f[-1]) + A(f[2] - f[-2])
-*/ 
+*/
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
 
 extern "C" void GRHayLMHDX_interpolate_metric_to_face(
@@ -62,7 +62,7 @@ extern "C" void GRHayLMHDX_interpolate_metric_to_face(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric);
+      ghl_metric_quantities *restrict metric);
 
 extern "C" void GRHayLMHDX_compute_metric_derivs(
       const CCTK_REAL dxi,
@@ -80,6 +80,6 @@ extern "C" void GRHayLMHDX_compute_metric_derivs(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric_derivs);
+      ghl_metric_quantities *restrict metric_derivs);
 
 #endif // GRHAYLMHDX_H_

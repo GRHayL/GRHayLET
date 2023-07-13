@@ -32,7 +32,7 @@ void GRHayLMHDX_A_flux_rhs_dir(CCTK_ARGUMENTS) {
   // Selecting index "2" variables
   Loop::GF3D2<const CCTK_REAL> v2r = flux_dir==0 ? vz_yr :
                                      flux_dir==1 ? vx_xr : vy_xr;
-                                                       
+
   Loop::GF3D2<const CCTK_REAL> v2l = flux_dir==0 ? vz_yl :
                                      flux_dir==1 ? vx_xl : vy_xl;
 
@@ -59,7 +59,7 @@ void GRHayLMHDX_A_flux_rhs_dir(CCTK_ARGUMENTS) {
                          flux_dir==1 ? 0 : 0;
 
   const Loop::GF3D2layout ccc_layout(cctkGH, {1, 1, 1});
-  
+
   constexpr std::array<int, Loop::dim> edgetype = {flux_dir==0, flux_dir==1, flux_dir==2};
   const Loop::GF3D2layout edge_layout(cctkGH, edgetype);
 

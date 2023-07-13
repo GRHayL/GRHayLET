@@ -16,7 +16,7 @@ extern "C" void GRHayLMHDX_compute_metric_derivs(
       const Loop::GF3D2<const CCTK_REAL> gyy,
       const Loop::GF3D2<const CCTK_REAL> gyz,
       const Loop::GF3D2<const CCTK_REAL> gzz,
-      metric_quantities *restrict metric_derivs) {
+      ghl_metric_quantities *restrict metric_derivs) {
 
   const CCTK_REAL d_lapse = dxi*COMPUTE_DERIV(lapse(indm2), lapse(indm1), lapse(indp1), lapse(indp2));
   const CCTK_REAL d_betax = dxi*COMPUTE_DERIV(betax(indm2), betax(indm1), betax(indp1), betax(indp2));
