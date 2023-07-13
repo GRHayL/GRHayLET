@@ -14,22 +14,22 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   // These nested condtional ternary operators let us tell the compiler that
   // these pointers can be set at compiler time while making the templated functions
   // instead of using a switch statement at runtime.
-  constexpr void (*calculate_characteristic_speed)(const primitive_quantities *restrict prims_r,
-                                         const primitive_quantities *restrict prims_l,
-                                         const eos_parameters *restrict eos,
-                                         const metric_quantities *restrict ADM_metric_face,
+  constexpr void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
+                                         const ghl_primitive_quantities *restrict prims_l,
+                                         const ghl_eos_parameters *restrict eos,
+                                         const ghl_metric_quantities *restrict ADM_metric_face,
                                          CCTK_REAL *cmin, CCTK_REAL *cmax)
     = flux_dir==0 ? &ghl_calculate_characteristic_speed_dirn0 :
       flux_dir==1 ? &ghl_calculate_characteristic_speed_dirn1 :
                     &ghl_calculate_characteristic_speed_dirn2 ;
 
-  constexpr void (*calculate_HLLE_fluxes)(const primitive_quantities *restrict prims_r,
-                                const primitive_quantities *restrict prims_l,
-                                const eos_parameters *restrict eos,
-                                const metric_quantities *restrict ADM_metric_face,
+  constexpr void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
+                                const ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
                                 const CCTK_REAL cmin,
                                 const CCTK_REAL cmax,
-                                conservative_quantities *restrict cons_fluxes)
+                                ghl_conservative_quantities *restrict cons_fluxes)
     = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0 :
       flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1 :
                     &ghl_calculate_HLLE_fluxes_dirn2 ;
@@ -87,41 +87,41 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
           rho_stencil, press_stencil, vel_stencil,
           3, v_flux, Gamma_eff,
           &rhor, &rhol, &pressr, &pressl, vel_r, vel_l);
-  
-    metric_quantities ADM_metric_face;
+
+    ghl_metric_quantities ADM_metric_face;
     GRHayLHDX_interpolate_metric_to_face(
           indm2, indm1, index, indp1,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,
           ccc_gyy, ccc_gyz, ccc_gzz,
           &ADM_metric_face);
-  
-    primitive_quantities prims_r, prims_l;
+
+    ghl_primitive_quantities prims_r, prims_l;
     ghl_initialize_primitives(
           rhor, pressr, poison,
           vel_r[0], vel_r[1], vel_r[2],
           0.0, 0.0, 0.0,
           poison, poison, poison, // entropy, Y_e, temp
           &prims_r);
-  
+
     ghl_initialize_primitives(
           rhol, pressl, poison,
           vel_l[0], vel_l[1], vel_l[2],
           0.0, 0.0, 0.0,
           poison, poison, poison, // entropy, Y_e, temp
           &prims_l);
-  
+
     int speed_limited = 0;
     ghl_limit_v_and_compute_u0(
           ghl_eos, &ADM_metric_face, &prims_r, &speed_limited);
     ghl_limit_v_and_compute_u0(
           ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
-  
+
     CCTK_REAL cmin, cmax;
-    conservative_quantities cons_fluxes;
+    ghl_conservative_quantities cons_fluxes;
     calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
     calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
-  
+
     rho_star_flux(ind_flux) = cons_fluxes.rho;
     tau_flux(ind_flux) = cons_fluxes.tau;
     Sx_flux(ind_flux)  = cons_fluxes.SD[0];

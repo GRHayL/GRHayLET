@@ -58,12 +58,12 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
-    con2prim_diagnostics diagnostics;
+    ghl_con2prim_diagnostics diagnostics;
     ghl_initialize_diagnostics(&diagnostics);
 
     // Read in ADM metric quantities from gridfunctions and
     // set auxiliary and ADM metric quantities
-    metric_quantities ADM_metric;
+    ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(
           ccc_lapse(index),
           ccc_betax(index), ccc_betay(index), ccc_betaz(index),
@@ -71,11 +71,11 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
           &ADM_metric);
 
-    ADM_aux_quantities metric_aux;
+    ghl_ADM_aux_quantities metric_aux;
     ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
     // Read in primitive variables from gridfunctions
-    primitive_quantities prims;
+    ghl_primitive_quantities prims;
     ghl_initialize_primitives(
           rho_b(index), pressure(index), eps(index),
           vx(index), vy(index), vz(index),
@@ -83,7 +83,7 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           poison, poison, poison, &prims);
 
     // Read in conservative variables from gridfunctions
-    conservative_quantities cons, cons_orig;
+    ghl_conservative_quantities cons, cons_orig;
     ghl_initialize_conservatives(
           rho_star(index), tau(index),
           Stildex(index), Stildey(index), Stildez(index),
@@ -109,7 +109,7 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
               &prims, &cons, &diagnostics);
 
       // declare some variables for the C2P routine.
-      conservative_quantities cons_undens;
+      ghl_conservative_quantities cons_undens;
 
       // Set the conserved variables required by the con2prim routine
       ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);

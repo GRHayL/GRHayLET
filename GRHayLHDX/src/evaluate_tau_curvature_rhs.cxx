@@ -19,20 +19,20 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     Stildey_rhs(index)  = 0.0;
     Stildez_rhs(index)  = 0.0;
 
-    metric_quantities ADM_metric;
+    ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(ccc_lapse(index),
                       ccc_betax(index), ccc_betay(index), ccc_betaz(index),
                       ccc_gxx(index), ccc_gxy(index), ccc_gxz(index),
                       ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
                       &ADM_metric);
 
-    extrinsic_curvature curv;
+    ghl_extrinsic_curvature curv;
     ghl_initialize_extrinsic_curvature(
           ccc_kxx(index), ccc_kxy(index), ccc_kxz(index),
           ccc_kyy(index), ccc_kyz(index), ccc_kzz(index),
           &curv);
 
-    primitive_quantities prims;
+    ghl_primitive_quantities prims;
     ghl_initialize_primitives(
           rho_b(index), pressure(index), eps(index),
           vx(index), vy(index), vz(index),
@@ -44,7 +44,7 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     ghl_limit_v_and_compute_u0(
           ghl_eos, &ADM_metric, &prims, &speed_limited);
 
-    conservative_quantities cons_source;
+    ghl_conservative_quantities cons_source;
     cons_source.tau = 0;
     ghl_calculate_tau_tilde_source_term_extrinsic_curv(&prims, ghl_eos, &ADM_metric, &curv, &cons_source);
     tau_rhs(index) += cons_source.tau;

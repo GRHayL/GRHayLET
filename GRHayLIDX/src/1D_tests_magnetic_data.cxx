@@ -10,7 +10,7 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     Bx_l = Bx_r = 0.5;
     By_l = 1.0;
     By_r = -1.0;
-    Bz_l = Bz_r = 0.0;   
+    Bz_l = Bz_r = 0.0;
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara2")) {
     Bx_l = Bx_r = 5.0;
     By_l = Bz_l = 6.0;
@@ -22,17 +22,17 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara4")) {
     Bx_l = Bx_r = 10.0;
     By_l = Bz_l = 7.0;
-    By_r = Bz_r = -7.0; 
+    By_r = Bz_r = -7.0;
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara5")) {
     Bx_l = Bx_r = 2.0;
     By_l = Bz_l = 0.3;
     By_r = -0.7;
-    Bz_r = 0.5; 
+    Bz_r = 0.5;
   } else if(CCTK_EQUALS(test_1D_initial_data,"equilibrium")
          || CCTK_EQUALS(test_1D_initial_data,"sound wave")
          || CCTK_EQUALS(test_1D_initial_data,"shock tube")) {
     Bx_l = By_l = Bz_l = 0.0;
-    Bx_r = By_r = Bz_r = 0.0;   
+    Bx_r = By_r = Bz_r = 0.0;
   } else {
     CCTK_VERROR("Parameter test_1D_initial_data is not set "
                 "to a valid test name. Something has gone wrong.");
@@ -63,9 +63,9 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 
     if(CCTK_EQUALS(test_shock_direction, "x")) {
-      if(p.x <= discontinuity_position) { 
-        Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);  
-      } else { 
+      if(p.x <= discontinuity_position) {
+        Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);
+      } else {
         Avecx(p.I) = By_r * (p.z) - Bz_r * (p.y);
       }
     } else if(CCTK_EQUALS(test_shock_direction, "y")) {
