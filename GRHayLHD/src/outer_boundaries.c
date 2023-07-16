@@ -33,7 +33,6 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
 
   const double poison = 0.0/0.0;
   double dummy1, dummy2, dummy3;
-  double dummy4, dummy5, dummy6;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
     CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal number of ghostzones in different directions!");
@@ -64,7 +63,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }
@@ -83,7 +82,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vtmp, vy[indp1], vz[indp1],
                 0.0, 0.0, 0.0,
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                ent[indp1], Ye[indp1], temp[indp1], &prims);
 
           GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -92,7 +91,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }
@@ -122,7 +121,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }
@@ -141,7 +140,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vtmp, vz[indp1],
                 0.0, 0.0, 0.0,
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                ent[indp1], Ye[indp1], temp[indp1], &prims);
 
           GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -150,7 +149,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }
@@ -180,7 +179,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }
@@ -199,7 +198,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vy[indp1], vtmp,
                 0.0, 0.0, 0.0,
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                ent[indp1], Ye[indp1], temp[indp1], &prims);
 
           GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -208,7 +207,7 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &dummy1, &dummy2, &dummy3,
-                &ent[index], Ye[index], temp[index]);
+                &ent[index], &Ye[index], &temp[index]);
         }
       }
     }

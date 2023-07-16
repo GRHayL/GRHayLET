@@ -101,7 +101,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 1;
       B_recon[2] = 2;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn0;
+      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn0_hybrid;
       calculate_source_terms = &ghl_calculate_source_terms_dirn0;
       break;
     case 1:
@@ -110,7 +110,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 2;
       B_recon[2] = 0;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn1;
+      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn1_hybrid;
       calculate_source_terms = &ghl_calculate_source_terms_dirn1;
       break;
     case 2:
@@ -119,7 +119,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 0;
       B_recon[2] = 1;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn2;
+      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn2_hybrid;
       calculate_source_terms = &ghl_calculate_source_terms_dirn2;
       break;
     default:
