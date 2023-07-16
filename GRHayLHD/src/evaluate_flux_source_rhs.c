@@ -43,6 +43,14 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                                  const ghl_metric_quantities *restrict metric_derivs,
                                  ghl_conservative_quantities *restrict cons_sources);
 
+  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
+                                      const ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
   void (*calculate_HLLE_fluxes_dirn0)(const ghl_primitive_quantities *restrict prims_r,
                                       const ghl_primitive_quantities *restrict prims_l,
                                       const ghl_eos_parameters *restrict eos,
