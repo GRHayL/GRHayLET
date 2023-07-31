@@ -8,8 +8,6 @@ STORAGE: Ax, Ay, Az, phitilde
 STORAGE: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
 
 STORAGE: ccc_spacetime, ccc_curv, ccc_Tmunu
-STORAGE: flux_x, flux_y, flux_z, cspeed_x, cspeed_y, cspeed_z, recon_vel_x, recon_vel_y
-STORAGE: sqrtg_Ax, sqrtg_Ay, sqrtg_Az
 
 #########################################################
 # INITIAL DATA CONVERSION
@@ -153,55 +151,25 @@ schedule GRHayLMHDX_evaluate_tau_curvature_rhs in GRHayLMHDX_RHS after GRHayLMHD
   READS:  HydroBaseX::eps
   READS:  ccc_spacetime, ccc_curv,
           grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+  WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLMHDX_evaluate_fluxes in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
-{
-  LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
-          grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
-  # These really shouldn't be everywhere, but some interior+?
-  WRITES: flux_x(everywhere), flux_y(everywhere), flux_z(everywhere), recon_vel_x(everywhere), recon_vel_y(everywhere),
-          cspeed_x(everywhere), cspeed_y(everywhere), cspeed_z(everywhere)
-} "Compute GRHD fluxes"
-
-schedule GRHayLMHDX_evaluate_flux_source_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_fluxes
-{
-  LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
-          grmhd_B_center, flux_x, flux_y, flux_z,
-          grmhd_conservatives_rhs(interior)
-  WRITES: grmhd_conservatives_rhs
-} "Evaluate RHSs of GRHD equations"
-
-schedule GRHayLMHDX_evaluate_A_flux_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
+schedule GRHayLMHDX_evaluate_MHD_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
 {
   LANG: C
   READS:  HydroBaseX::eps
   READS:  ccc_spacetime, grmhd_primitives_allbutBi,
           grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger,
-          recon_vel_x, recon_vel_y,
-          cspeed_x, cspeed_y, cspeed_z
-  WRITES: Ax_rhs, Ay_rhs, Az_rhs
-} "Evaluate RHSs of GRMHD equations"
+          grmhd_conservatives_rhs(interior)
+  WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs
+} "Compute GRHD fluxes"
 
-schedule GRHayLMHDX_interpolate_A_for_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_A_flux_rhs
+schedule GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_MHD_rhs
 {
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
-  READS:  phitilde, Ax, Ay, Az
-  WRITES: A_rhs_stencil(everywhere), sqrtg_Ax(everywhere), sqrtg_Ay(everywhere), sqrtg_Az(everywhere)
-} "Interpolate quantities for phitilde RHS and A_i RHS"
-
-schedule GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHDX_RHS after GRHayLMHDX_interpolate_A_for_rhs
-{
-  LANG: C
-  READS:  ADMBaseX::lapse, ADMBaseX::shift
-  READS:  phitilde, A_rhs_stencil, sqrtg_Ax, sqrtg_Ay, sqrtg_Az
-  READS:  Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+  READS:  phitilde, Ax, Ay, Az,
+          Ax_rhs(interior), Ay_rhs(interior), Az_rhs(interior)
   WRITES: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
 } "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 

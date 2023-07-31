@@ -14,8 +14,8 @@ extern "C" void GRHayLMHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
+    // Initialize other RHS to 0
     rho_star_rhs(index) = 0.0;
-    tau_rhs(index)      = 0.0;
     Stildex_rhs(index)  = 0.0;
     Stildey_rhs(index)  = 0.0;
     Stildez_rhs(index)  = 0.0;
@@ -48,30 +48,6 @@ extern "C" void GRHayLMHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     ghl_conservative_quantities cons_source;
     cons_source.tau = 0;
     ghl_calculate_tau_tilde_source_term_extrinsic_curv(&prims, ghl_eos, &ADM_metric, &curv, &cons_source);
-    tau_rhs(index) += cons_source.tau;
+    tau_rhs(index) = cons_source.tau;
   }); // ccc loop interior
-
-  grid.loop_int_device<1, 0, 0>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ax_rhs(p.I) = 0.0;
-  });
-
-  grid.loop_int_device<0, 1, 0>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ay_rhs(p.I) = 0.0;
-  });
-
-  grid.loop_int_device<0, 0, 1>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Az_rhs(p.I) = 0.0;
-  });
-
-  grid.loop_int_device<0, 0, 0>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    phitilde_rhs(p.I) = 0.0;
-  });
 }
