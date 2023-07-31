@@ -55,19 +55,19 @@ extern "C" void convert_HydroBase_to_GRHayLMHDX(CCTK_ARGUMENTS) {
   grid.loop_all_device<1, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ax(p.I) = Avecx(p.I);
+    Ax(p.I) = 0; //Avecx(p.I);
   });
 
   grid.loop_all_device<0, 1, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ay(p.I) = Avecy(p.I);
+    Ay(p.I) = 0; //Avecy(p.I);
   });
 
   grid.loop_all_device<0, 0, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Az(p.I) = Avecz(p.I);
+    Az(p.I) = 0; //Avecz(p.I);
   });
 
   grid.loop_all_device<0, 0, 0>(

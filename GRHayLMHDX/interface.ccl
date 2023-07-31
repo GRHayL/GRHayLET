@@ -53,7 +53,7 @@ CCTK_REAL u0 type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation=
 #########################################################
 
 # Evolved variables
-CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="GRHayLMHDX::grmhd_conservatives_rhs GRHayLMHDX::flux_x GRHayLMHDX::flux_y GRHayLMHDX::flux_z"'
+CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="GRHayLMHDX::grmhd_conservatives_rhs"'
 {
   rho_star, tau, Stildex, Stildey, Stildez # Note that Stildei = \tilde{S}_i.
 } "Evolved mhd variables"
@@ -102,59 +102,6 @@ CCTK_REAL Ay_rhs type = GF CENTERING={vcv} Timelevels=1 tags='Prolongation="none
 CCTK_REAL Az_rhs type = GF CENTERING={vvc} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "z-component of the vector potential, evolved when constrained_transport_scheme==3"
 
 CCTK_REAL phitilde_rhs type = GF CENTERING={vvv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "sqrt{gamma} Phi, where Phi is the em scalar potential"
-
-#########################################################
-
-# Temporary variables for A-field evolution
-CCTK_REAL cspeed_x type = GF CENTERING={vcc} TAGS='prolongation="none" Checkpoint="no"'
-{
-  cmin_x, cmax_x
-} "min and max characteristic speeds in x direction"
-
-CCTK_REAL cspeed_y type = GF CENTERING={cvc} TAGS='prolongation="none" Checkpoint="no"'
-{
-  cmin_y, cmax_y
-} "min and max characteristic speeds in y direction"
-
-CCTK_REAL cspeed_z type = GF CENTERING={ccv} TAGS='prolongation="none" Checkpoint="no"'
-{
-  cmin_z, cmax_z
-} "min and max characteristic speeds in z direction"
-
-#Temporary variables for flux computation
-CCTK_REAL flux_x TYPE=gf CENTERING={vcc} TAGS='prolongation="none" checkpoint="no"'
-{
-  rho_star_flux_x, tau_flux_x, Sx_flux_x, Sy_flux_x, Sz_flux_x
-} "Fluxes in x direction"
-
-CCTK_REAL flux_y TYPE=gf CENTERING={cvc} TAGS='prolongation="none" checkpoint="no"'
-{
-  rho_star_flux_y, tau_flux_y, Sx_flux_y, Sy_flux_y, Sz_flux_y
-} "Fluxes in y direction"
-
-CCTK_REAL flux_z TYPE=gf CENTERING={ccv} TAGS='prolongation="none" checkpoint="no"'
-{
-  rho_star_flux_z, tau_flux_z, Sx_flux_z, Sy_flux_z, Sz_flux_z
-} "Fluxes in z direction"
-
-# Temporary variables for double reconstruction of velocities
-CCTK_REAL recon_vel_x type = GF CENTERING={vcc} TAGS='prolongation="none" Checkpoint="no"'
-{
-  vx_xr, vy_xr, vz_xr
-  vx_xl, vy_xl, vz_xl
-} "velocities reconstructed in the x direction"
-
-CCTK_REAL recon_vel_y type = GF CENTERING={cvc} TAGS='prolongation="none" Checkpoint="no"'
-{
-  vy_yr, vz_yr
-  vy_yl, vz_yl
-} "velocities reconstructed in the y direction"
-
-# Temporary variables for sqrtg_A^i (needed for phitilde_RHS)
-CCTK_REAL A_rhs_stencil type = GF CENTERING={vvv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity alpha Phi - beta^j A_j"
-CCTK_REAL sqrtg_Ax type = GF CENTERING={cvv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^x"
-CCTK_REAL sqrtg_Ay type = GF CENTERING={vcv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^y"
-CCTK_REAL sqrtg_Az type = GF CENTERING={vvc} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^z"
 
 #########################################################
 

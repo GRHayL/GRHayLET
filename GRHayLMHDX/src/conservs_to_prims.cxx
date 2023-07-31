@@ -183,7 +183,6 @@ extern "C" void GRHayLMHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           &ADM_metric, &metric_aux, &prims, &cons);
 
     CCTK_REAL dummy1, dummy2, dummy3;
-    CCTK_REAL dummy4, dummy5, dummy6;
     ghl_return_primitives(
           &prims,
           &rho_b(index), &pressure(index), &eps(index),
