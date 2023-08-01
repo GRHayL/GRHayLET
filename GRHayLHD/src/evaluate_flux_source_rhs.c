@@ -78,9 +78,9 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
     // This loop includes 1 ghostzone because the RHS calculation for e.g. the x direction
     // requires (i,j,k) and (i+1,j,k)
 #pragma omp parallel for
-    for(int k=kmin-1; k<kmax; k++) {
-      for(int j=jmin-1; j<jmax; j++) {
-        for(int i=imin-1; i<imax; i++) {
+    for(int k=kmin; k<kmax+1; k++) {
+      for(int j=jmin; j<jmax+1; j++) {
+        for(int i=imin; i<imax+1; i++) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
           double rho_stencil[6], press_stencil[6], v_flux[6];
@@ -88,8 +88,8 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
           double vel_stencil[3][6], vel_r[3], vel_l[3];
 
           for(int ind=0; ind<6; ind++) {
-            // Stencil from -2 to +3 reconstructs to e.g. i+1/2
-            const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-2), j+ydir*(ind-2), k+zdir*(ind-2));
+            // Stencil from -3 to +2 reconstructs to e.g. i-1/2
+            const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
             v_flux[ind] = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
             rho_stencil[ind] = rho_b[stencil];
             press_stencil[ind] = pressure[stencil];
@@ -157,13 +157,13 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
       for(int j=jmin; j<jmax; j++) {
         for(int i=imin; i<imax; i++) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
-          const int indm1 = CCTK_GFINDEX3D(cctkGH, i-xdir, j-ydir, k-zdir);
+          const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
-          rho_star_rhs[index] += dxi*(rho_star_flux[indm1] - rho_star_flux[index]);
-          tau_rhs[index]      += dxi*(tau_flux[indm1]      - tau_flux[index]);
-          Stildex_rhs[index]  += dxi*(Stildex_flux[indm1]  - Stildex_flux[index]);
-          Stildey_rhs[index]  += dxi*(Stildey_flux[indm1]  - Stildey_flux[index]);
-          Stildez_rhs[index]  += dxi*(Stildez_flux[indm1]  - Stildez_flux[index]);
+          rho_star_rhs[index] += dxi*FLUX_DERIV2(rho_star_flux[index], rho_star_flux[indp1]);
+          tau_rhs[index]      += dxi*FLUX_DERIV2(tau_flux[index],      tau_flux[indp1]);
+          Stildex_rhs[index]  += dxi*FLUX_DERIV2(Stildex_flux[index],  Stildex_flux[indp1]);
+          Stildey_rhs[index]  += dxi*FLUX_DERIV2(Stildey_flux[index],  Stildey_flux[indp1]);
+          Stildez_rhs[index]  += dxi*FLUX_DERIV2(Stildez_flux[index],  Stildez_flux[indp1]);
 
           ghl_metric_quantities ADM_metric;
           ghl_initialize_metric(alp[index],
