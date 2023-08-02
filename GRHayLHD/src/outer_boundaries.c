@@ -221,7 +221,6 @@ void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, c
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz;
 
   double dummy1, dummy2;
-  int speed_limited = 0;
 
   ghl_metric_quantities ADM_metric;
   ghl_enforce_detgtij_and_initialize_ADM_metric(
@@ -235,9 +234,8 @@ void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, c
   ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
   ghl_conservative_quantities cons;
-  ghl_enforce_primitive_limits_and_compute_u0(
-        ghl_params, ghl_eos, &ADM_metric,
-        prims, &speed_limited);
+  const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
+        ghl_params, ghl_eos, &ADM_metric, prims);
 
   ghl_compute_conservs(
         &ADM_metric, &metric_aux, prims, &cons);

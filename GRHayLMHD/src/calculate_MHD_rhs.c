@@ -225,11 +225,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               poison, poison, poison, // entropy, Y_e, temp
               &prims_l);
 
-        int speed_limited = 0;
-        ghl_limit_v_and_compute_u0(
-              ghl_eos, &ADM_metric_face, &prims_r, &speed_limited);
-        ghl_limit_v_and_compute_u0(
-              ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
+        int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
+        speed_limited = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_l);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
@@ -396,9 +393,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               poison, poison, poison, // entropy, Y_e, temp
               &prims);
 
-        int speed_limited = 0;
-        ghl_limit_v_and_compute_u0(
-              ghl_eos, &ADM_metric, &prims, &speed_limited);
+        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(
+              ghl_eos, &ADM_metric, &prims);
 
         ghl_metric_quantities ADM_metric_derivs;
         GRHayLMHD_compute_metric_derivs(

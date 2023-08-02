@@ -111,11 +111,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
           poison, poison, poison, // entropy, Y_e, temp
           &prims_l);
 
-    int speed_limited = 0;
-    ghl_limit_v_and_compute_u0(
-          ghl_eos, &ADM_metric_face, &prims_r, &speed_limited);
-    ghl_limit_v_and_compute_u0(
-          ghl_eos, &ADM_metric_face, &prims_l, &speed_limited);
+    int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
+    speed_limited = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_l);
 
     CCTK_REAL cmin, cmax;
     ghl_conservative_quantities cons_fluxes;

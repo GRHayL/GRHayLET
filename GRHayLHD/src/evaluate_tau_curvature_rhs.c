@@ -67,10 +67,10 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(alp[index],
-                          betax[index], betay[index], betaz[index],
-                          gxx[index], gxy[index], gxz[index],
-                          gyy[index], gyz[index], gzz[index],
-                          &ADM_metric);
+              betax[index], betay[index], betaz[index],
+              gxx[index], gxy[index], gxz[index],
+              gyy[index], gyz[index], gzz[index],
+              &ADM_metric);
 
         ghl_extrinsic_curvature curv;
         ghl_initialize_extrinsic_curvature(
@@ -86,9 +86,7 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
               poison, poison, poison, // entropy, Y_e, temp
               &prims);
 
-        int speed_limited = 0;
-        ghl_limit_v_and_compute_u0(
-              ghl_eos, &ADM_metric, &prims, &speed_limited);
+        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);
 
         ghl_conservative_quantities cons_source;
         cons_source.tau = 0;
