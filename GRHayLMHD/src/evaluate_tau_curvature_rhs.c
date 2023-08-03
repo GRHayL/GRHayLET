@@ -25,7 +25,6 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
         // Initialize RHS variables to zero
-        tau_rhs[index]      = 0.0;
         rho_star_rhs[index] = 0.0;
         Stildex_rhs[index]  = 0.0;
         Stildey_rhs[index]  = 0.0;
@@ -65,7 +64,7 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
         cons_source.tau = 0;
         ghl_calculate_tau_tilde_source_term_extrinsic_curv(
                  &prims, ghl_eos, &ADM_metric, &curv, &cons_source);
-        tau_rhs[index] += cons_source.tau;
+        tau_rhs[index] = cons_source.tau;
       }
     }
   }

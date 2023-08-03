@@ -113,12 +113,13 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         //FIXME: might slow down the code. Was formerly a CCTK_WARN
         if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*prims.BU[0]*prims.BU[1]*prims.BU[2])) {
-            CCTK_VERROR("NaN found at start of C2P kernel:\n"
-                        "  index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e\n"
-                        "  gij = %e %e %e %e %e %e, psi6 = %e\n",
-                       i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
-                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+          CCTK_VERROR("NaN found at start of C2P kernel:\n"
+                      "  index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e\n"
+                      "  lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e\n",
+                      i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
+                      ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                      ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
+                      ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
           diagnostics.nan_found++;
         }
 
@@ -166,10 +167,13 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
           } else {
-            CCTK_VINFO("Con2Prim and Font fix failed!");
-            CCTK_VINFO("diagnostics->failure_checker = %d rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                    diagnostics.failure_checker, cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
-                    ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2], ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+            CCTK_VINFO("Con2Prim failed!");
+            CCTK_VINFO("diagnostics->failure_checker = %d rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e,\n"
+                       "lapse = %e shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
+                       diagnostics.failure_checker, cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
+                       ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
+                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
           }
         } else {
           diagnostics.failure_checker+=1;
@@ -188,9 +192,13 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
           atm_resets++;
           // Then flag this point as a "success"
           check = 0;
-          CCTK_VINFO("Couldn't find root from: %e %e %e %e %e, rhob approx=%e, rho_b_atm=%e, Bx=%e, By=%e, Bz=%e, gij=%e %e %e %e %e %e, alpha=%e\n",
+          CCTK_VINFO("Couldn't find root from: %e %e %e %e %e, rhob approx = %e, rho_b_atm = %e, B = %e %e %e\n"
+                     " lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e\n",
                      cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2], cons_orig.rho/ADM_metric.sqrt_detgamma, ghl_eos->rho_atm,
-                     prims.BU[0], prims.BU[1], prims.BU[2], ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2], ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.lapse);
+                     prims.BU[0], prims.BU[1], prims.BU[2],
+                     ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                     ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
+                     ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2]);
         }
 
         //--------------------------------------------------
