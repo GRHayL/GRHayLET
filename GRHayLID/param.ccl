@@ -11,24 +11,24 @@ EXTENDS KEYWORD initial_hydro
   "ConstantDensitySphere" :: "Initial data set to constant density sphere"
 }
 
+EXTENDS KEYWORD initial_Avec
+{
+  "GRHayLID" :: "Initial vector potential set by GRHayLID"
+}
+
 EXTENDS KEYWORD initial_Y_e
 {
-  "GRHayLID" :: "Initial Y_e set by GRHayLID"
+  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium Y_e set by GRHayLID"
 }
 
 EXTENDS KEYWORD initial_temperature
 {
-  "GRHayLID" :: "Initial temperature set by GRHayLID"
+  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium temperature set by GRHayLID"
 }
 
 EXTENDS KEYWORD initial_entropy
 {
-  "GRHayLID" :: "Initial entropy set by GRHayLID"
-}
-
-EXTENDS KEYWORD initial_Avec
-{
-  "GRHayLID" :: "Initial vector potential set by GRHayLID"
+  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium entropy set by GRHayLID"
 }
 
 restricted:
@@ -133,3 +133,16 @@ CCTK_REAL ConstantDensitySphere_T_exterior "Exterior temperature in MeV"
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
+
+#########################################################
+
+# BetaEquilibrium parameters
+CCTK_REAL beq_temperature "Temperature used to impose beta-equilibrium"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+BOOLEAN beq_set_entropy "Whether or not to set the entropy"
+{
+} no

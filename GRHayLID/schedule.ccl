@@ -43,3 +43,20 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }
+
+if( CCTK_Equals(initial_Y_e        , "GRHayLID_BetaEquilibrium") ||
+    CCTK_Equals(initial_temperature, "GRHayLID_BetaEquilibrium") ||
+    CCTK_Equals(initial_entropy    , "GRHayLID_BetaEquilibrium") )
+{
+  STORAGE: HydroBase::Y_e[1], HydroBase::temperature[1], HydroBase::entropy[1]
+  schedule GRHayLID_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial
+  {
+    LANG: C
+    READS:  HydroBase::rho
+    WRITES: HydroBase::press(everywhere),
+            HydroBase::eps(everywhere),
+            HydroBase::Y_e(everywhere),
+            HydroBase::temperature(everywhere),
+            HydroBase::entropy(everywhere)
+  } "Set Y_e, temperature, entropy, press, eps in neutrino free beta-equilibrium"
+}
