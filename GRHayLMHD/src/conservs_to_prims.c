@@ -205,9 +205,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         //---------- Primitive recovery succeeded ----------
         //--------------------------------------------------
         // Enforce limits on primitive variables and recompute conservatives.
-        ghl_enforce_primitive_limits_and_compute_u0(
-              ghl_params, ghl_eos, &ADM_metric,
-              &prims, &diagnostics.failure_checker);
+        diagnostics.speed_limited = ghl_enforce_primitive_limits_and_compute_u0(
+              ghl_params, ghl_eos, &ADM_metric, &prims);
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
