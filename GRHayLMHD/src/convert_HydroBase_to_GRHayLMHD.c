@@ -18,11 +18,10 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
-// We use rho and press from HydroBase directly with no need to convert
 #pragma omp parallel for
-  for(int k=0; k<cctk_lsh[2]; k++) {
-    for(int j=0; j<cctk_lsh[1]; j++) {
-      for(int i=0; i<cctk_lsh[0]; i++) {
+  for(int k=0; k<kmax; k++) {
+    for(int j=0; j<jmax; j++) {
+      for(int i=0; i<imax; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
         const int ind0=CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
         const int ind1=CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
@@ -71,25 +70,24 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
 
   // Neat feature for debugging: Add a roundoff-error perturbation
   //    to the initial data.
-  // Set random_pert variable to ~1e-14 for a random 15th digit
+  // Set perturb_initial_data variable to ~1e-14 for a random 15th digit
   //    perturbation.
-  if(random_pert > 1e-30) {
+  if(perturb_initial_data > 1e-30) {
     srand(random_seed); // Use srand() as rand() is thread-safe.
+#pragma omp parallel for
     for(int k=0; k<kmax; k++) {
       for(int j=0; j<jmax; j++) {
         for(int i=0; i<imax; i++) {
           const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-          const double pert = (random_pert*(double)rand() / RAND_MAX);
-          const double one_plus_pert=(1.0+pert);
-          rho_b[index]*=one_plus_pert;
-          vx[index]*=one_plus_pert;
-          vy[index]*=one_plus_pert;
-          vz[index]*=one_plus_pert;
+          rho_b[index] *= one_plus_pert(perturb_initial_data);
+          vx[index]    *= one_plus_pert(perturb_initial_data);
+          vy[index]    *= one_plus_pert(perturb_initial_data);
+          vz[index]    *= one_plus_pert(perturb_initial_data);
 
-          phitilde[index]*=one_plus_pert;
-          Ax[index]*=one_plus_pert;
-          Ay[index]*=one_plus_pert;
-          Az[index]*=one_plus_pert;
+          phitilde[index] *= one_plus_pert(perturb_initial_data);
+          Ax[index]       *= one_plus_pert(perturb_initial_data);
+          Ay[index]       *= one_plus_pert(perturb_initial_data);
+          Az[index]       *= one_plus_pert(perturb_initial_data);
         }
       }
     }

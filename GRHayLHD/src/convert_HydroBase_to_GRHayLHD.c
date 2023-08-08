@@ -66,7 +66,7 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
 
   // Neat feature for debugging: Add a roundoff-error perturbation
   //    to the initial data.
-  // Set random_pert variable to ~1e-14 for a random 15th digit
+  // Set perturb_initial_data variable to ~1e-14 for a random 15th digit
   //    perturbation.
   if(perturb_initial_data > 1e-30) {
     srand(random_seed); // Use srand() as rand() is thread-safe.

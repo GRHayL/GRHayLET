@@ -63,7 +63,12 @@ INT random_seed "Random seed for random, generally roundoff-level perturbation o
  0:99999999 :: "Anything unsigned goes."
 } 0
 
-REAL random_pert "Random perturbation atop data"
+REAL perturb_initial_data "Random perturbation to initial data"
+{
+ *:* :: "Anything goes."
+} 0
+
+REAL perturb_every_con2prim "Random perturbation applied every time con2prim runs"
 {
  *:* :: "Anything goes."
 } 0
