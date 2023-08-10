@@ -200,6 +200,7 @@ schedule GRHayLMHD_evaluate_tau_curvature_rhs in GRHayLMHD_RHS
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
+  READS:  HydroBase::eps
   READS:  grmhd_primitives_allbutBi, grmhd_B_center
   WRITES: grmhd_conservatives_rhs, EM_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
