@@ -24,7 +24,6 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
       for(int i=imin; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
-        // Initialize RHS variables to zero
         rho_star_rhs[index] = 0.0;
         Stildex_rhs[index]  = 0.0;
         Stildey_rhs[index]  = 0.0;
@@ -50,7 +49,7 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], poison,
+              rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               Bx_center[index], By_center[index], Bz_center[index],
               poison, poison, poison, // entropy, Y_e, temp
@@ -61,7 +60,7 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
         ghl_conservative_quantities cons_source;
         cons_source.tau = 0;
         ghl_calculate_tau_tilde_source_term_extrinsic_curv(
-                 &prims, ghl_eos, &ADM_metric, &curv, &cons_source);
+              &prims, ghl_eos, &ADM_metric, &curv, &cons_source);
         tau_rhs[index] = cons_source.tau;
       }
     }

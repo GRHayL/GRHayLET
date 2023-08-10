@@ -30,14 +30,14 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         rho_b[index] = rho[index];
         pressure[index] = press[index];
 
+        const double ETvx = vel[ind0];
+        const double ETvy = vel[ind1];
+        const double ETvz = vel[ind2];
+
         Ax[index] = Avec[ind0];
         Ay[index] = Avec[ind1];
         Az[index] = Avec[ind2];
         phitilde[index] = Aphi[index];
-
-        const double ETvx = vel[ind0];
-        const double ETvy = vel[ind1];
-        const double ETvz = vel[ind2];
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
 

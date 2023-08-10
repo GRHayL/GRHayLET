@@ -64,15 +64,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     if(ierr!=0) CCTK_VERROR("Error with setting equatorial symmetries in con2prim.");
   }
 
-  //Start the timer, so we can benchmark the primitives solver during evolution.
-  //  Slower solver -> harder to find roots -> things may be going crazy!
-  //FIXME: Replace this timing benchmark with something more meaningful, like the avg # of Newton-Raphson iterations per gridpoint!
-  /*
-    struct timeval start, end;
-    long mtime, seconds, useconds;
-    gettimeofday(&start, NULL);
-  */
-
   const double poison = 0.0/0.0;
 
   // Diagnostic variables.
@@ -212,7 +203,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         } // if rho_star>0
         /***************************************************************/
 
-
         //--------------------------------------------------
         //---------- Primitive recovery succeeded ----------
         //--------------------------------------------------
@@ -221,11 +211,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               ghl_params, ghl_eos, &ADM_metric, &prims);
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
-
-        //Now we compute the difference between original & new conservatives, for diagnostic purposes:
-        error_int_numer += fabs(cons.tau - cons_orig.tau) + fabs(cons.rho - cons_orig.rho) + fabs(cons.SD[0] - cons_orig.SD[0])
-                           + fabs(cons.SD[1] - cons_orig.SD[1]) + fabs(cons.SD[2] - cons_orig.SD[2]);
-        error_int_denom += cons_orig.tau + cons_orig.rho + fabs(cons_orig.SD[0]) + fabs(cons_orig.SD[1]) + fabs(cons_orig.SD[2]);
 
         ghl_return_primitives(
               &prims,
@@ -240,6 +225,11 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               &rho_star[index], &tau[index],
               &Stildex[index], &Stildey[index], &Stildez[index],
               &dummy1, &dummy2);
+
+        //Now we compute the difference between original & new conservatives, for diagnostic purposes:
+        error_int_numer += fabs(cons.tau - cons_orig.tau) + fabs(cons.rho - cons_orig.rho) + fabs(cons.SD[0] - cons_orig.SD[0])
+                         + fabs(cons.SD[1] - cons_orig.SD[1]) + fabs(cons.SD[2] - cons_orig.SD[2]);
+        error_int_denom += cons_orig.tau + cons_orig.rho + fabs(cons_orig.SD[0]) + fabs(cons_orig.SD[1]) + fabs(cons_orig.SD[2]);
 
         pointcount++;
         if(diagnostics.speed_limited) {

@@ -7,6 +7,9 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+// This is used to perturb data for testing
+#define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
+
 // The inner two points of the interpolation function use
 // the value of A_in, and the outer two points use A_out.
 #define A_out -0.0625
@@ -14,14 +17,10 @@
 // Interpolates to the +1/2 face of point Var
 #define COMPUTE_FCVAL(Varm1,Var,Varp1,Varp2) (A_out*(Varm1) + A_in*(Var) + A_in*(Varp1) + A_out*(Varp2))
 
-/*
-   Computes derivative factor face(+1/2) - face(-1/2):
-   Let A = A_out, B = A_in. Let Var at index i be f[i]. Then,
-   dx*deriv = Af[-1] + Bf[0] + Bf[1] + Af[2] - (Af[-2] + Bf[-1] + Bf[0] + Af[1])
-            = Af[-1] - Bf[-1] + Bf[1] - Af[1] + Af[2] - Af[-2]
-            = (B-A)(f[1] - f[-1]) + A(f[2] - f[-2])
-*/
-#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) ((A_in - A_out)*(Varp1 - Varm1) + A_out*(Varp2 - Varm2))
+// Computes 4th-order derivative
+#define B_out -1.0/12.0
+#define B_in  2.0/3.0
+#define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
 extern "C" void GRHayLHDX_interpolate_metric_to_face(
       const Loop::GF3D2index indm1,

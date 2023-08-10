@@ -10,6 +10,7 @@ enum recon_indices{
       BX_STAGGER, BY_STAGGER, BZ_STAGGER,
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};
 
+// This is used to perturb data for testing
 #define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
 
 // The inner two points of the interpolation function use

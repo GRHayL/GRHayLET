@@ -14,7 +14,7 @@ extern "C" void convert_HydroBase_to_GRHayLHDX(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_convert_HydroBase_to_GRHayLHDX;
   DECLARE_CCTK_PARAMETERS;
 
-  const CCTK_REAL poison = 0.0/0.0;
+  const double poison = 0.0/0.0;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
   const Loop::GF3D2layout layout(cctkGH, indextype);
@@ -56,20 +56,18 @@ extern "C" void convert_HydroBase_to_GRHayLHDX(CCTK_ARGUMENTS) {
 
   // Neat feature for debugging: Add a roundoff-error perturbation
   //    to the initial data.
-  // Set random_pert variable to ~1e-14 for a random 15th digit
+  // Set perturb_initial_data variable to ~1e-14 for a random 15th digit
   //    perturbation.
-  if(random_pert > 1e-30) {
+  if(perturb_initial_data > 1e-30) {
     srand(random_seed); // Use srand() as rand() is thread-safe.
     grid.loop_all_device<1, 1, 1>(
         grid.nghostzones,
         [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
       const Loop::GF3D2index index(layout, p.I);
-      const CCTK_REAL pert = (random_pert*(CCTK_REAL)rand() / RAND_MAX);
-      const CCTK_REAL one_plus_pert=(1.0+pert);
-      rho_b(index)*=one_plus_pert;
-      vx(index)*=one_plus_pert;
-      vy(index)*=one_plus_pert;
-      vz(index)*=one_plus_pert;
+      rho_b(index) *= one_plus_pert(perturb_initial_data);
+      vx(index)    *= one_plus_pert(perturb_initial_data);
+      vy(index)    *= one_plus_pert(perturb_initial_data);
+      vz(index)    *= one_plus_pert(perturb_initial_data);
     }); // ccc loop everywhere
   }
 
@@ -99,11 +97,9 @@ extern "C" void convert_HydroBase_to_GRHayLHDX(CCTK_ARGUMENTS) {
           &prims);
 
     ghl_conservative_quantities cons;
-    int speed_limited = 0;
     //This applies inequality fixes on the conservatives
-    ghl_enforce_primitive_limits_and_compute_u0(
-          ghl_params, ghl_eos, &ADM_metric,
-          &prims, &speed_limited);
+    const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
+          ghl_params, ghl_eos, &ADM_metric, &prims);
     //This computes the conservatives from the new primitives
     ghl_compute_conservs(
           &ADM_metric, &metric_aux, &prims, &cons);

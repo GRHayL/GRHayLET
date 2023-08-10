@@ -1,39 +1,3 @@
-/*********************************************
- * Evaluate RHS of GRHD & induction equations
- * (vector potential prescription), using the
- * generalized Lorenz gauge condition for the
- * EM gauge.
- *
- * Based originally on the Illinois GRHD code,
- * written by Matt Duez, Yuk Tung Liu, and Branson
- * Stephens (original version), and then developed
- * primarily by Zachariah Etienne, Yuk Tung Liu,
- * and Vasileios Paschalidis.
- *
- * Rewritten for public release in 2013
- *      by Zachariah B. Etienne
- *
- * References:
- * Original unigrid GRHD evolution prescription:
- *    http://arxiv.org/abs/astro-ph/0503420
- * Vector potential formulation in full GR:
- *    http://arxiv.org/abs/1007.2848
- * Improved EM gauge conditions for AMR grids:
- *    http://arxiv.org/abs/1110.4633
- * Generalized Lorenz gauge prescription:
- *    http://arxiv.org/abs/1207.3354
- *
- * Note that the Generalized Lorenz gauge strength
- *  parameter has units of 1/M, just like the \eta
- *  parameter in the gamma-driving shift condition,
- *  so setting it too large will result in violation
- *  of the CFL condition.
- *
- * This version of PPM implements the standard
- * Colella & Woodward PPM, though modified as in GRHydro
- * to have 3 ghostzones instead of 4.
- *********************************************/
-
 #include "GRHayLHD.h"
 
 void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
@@ -66,7 +30,8 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
         Stildez_rhs[index]  = 0.0;
 
         ghl_metric_quantities ADM_metric;
-        ghl_initialize_metric(alp[index],
+        ghl_initialize_metric(
+              alp[index],
               betax[index], betay[index], betaz[index],
               gxx[index], gxy[index], gxz[index],
               gyy[index], gyz[index], gzz[index],
@@ -90,7 +55,8 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
         ghl_conservative_quantities cons_source;
         cons_source.tau = 0;
-        ghl_calculate_tau_tilde_source_term_extrinsic_curv(&prims, ghl_eos, &ADM_metric, &curv, &cons_source);
+        ghl_calculate_tau_tilde_source_term_extrinsic_curv(
+              &prims, ghl_eos, &ADM_metric, &curv, &cons_source);
         tau_rhs[index] = cons_source.tau;
       }
     }
