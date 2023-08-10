@@ -97,6 +97,8 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
+        double local_failure_checker = 0;
+
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
 
@@ -188,7 +190,7 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
             //--------------------------------------------------
             //----------- Primitive recovery failed ------------
             //--------------------------------------------------
-            failure_checker[index] += 100;
+            local_failure_checker += 100;
             ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
             failures++;
@@ -205,7 +207,7 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
                        ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
           }
         } else {
-          failure_checker[index] += 1;
+          local_failure_checker += 1;
           ghl_set_prims_to_constant_atm(ghl_eos, &prims);
           rho_star_fix_applied++;
         } // if rho_star>0
@@ -242,16 +244,17 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         pointcount++;
         if(diagnostics.speed_limited) {
-          failure_checker[index] += 10;
+          local_failure_checker += 10;
           vel_limited_ptcount++;
         }
         backup0 += diagnostics.backup[0];
         backup1 += diagnostics.backup[1];
         backup2 += diagnostics.backup[2];
         n_iter += diagnostics.n_iter;
-        failure_checker[index] += 1000*diagnostics.backup[0]
-                                + 10000*diagnostics.tau_fix
-                                + 100000*diagnostics.Stilde_fix;
+        failure_checker[index] = local_failure_checker
+                               + 1000*diagnostics.backup[0]
+                               + 10000*diagnostics.tau_fix
+                               + 100000*diagnostics.Stilde_fix;
       }
     }
   }
