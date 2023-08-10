@@ -4,6 +4,9 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
+  if(!CCTK_EQUALS(EOS_type, "hybrid"))
+    CCTK_VERROR("1D test initial data is only defined for hybrid EOS. Please change GRHayLib::EOS_type to \"hybrid\" in the parfile.");
+
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   double rho_l, rho_r;
@@ -11,14 +14,16 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   double vx_l, vy_l, vz_l;
   double vx_r, vy_r, vz_r;
   if(CCTK_EQUALS(test_1D_initial_data,"Balsara1")) {
-    rho_l = press_l = 1.0;
+    rho_l = 1.0;
     rho_r = 0.125;
+    press_l = 1.0;
     press_r = 0.1;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara2")) {
+    rho_l = rho_r = 1.0;
     press_l = 30.0;
-    rho_l = rho_r = press_r = 1.0;
+    press_r = 1.0;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara3")) {
@@ -36,15 +41,17 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     vy_r = vz_r = 0.0;
   } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara5")) {
     rho_l = 1.08;
+    rho_r = 1.0;
     press_l = 0.95;
-    rho_r = press_r = 1.0;
+    press_r = 1.0;
     vx_l = 0.4;
     vy_l = 0.3;
     vx_r = -0.45;
     vy_r = -0.2;
     vz_l = vz_r = 0.2;
   } else if(CCTK_EQUALS(test_1D_initial_data,"equilibrium")) {
-    rho_l = rho_r = press_l = press_r = 1.0;
+    rho_l = rho_r = 1.0;
+    press_l = press_r = 1.0;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   /*
@@ -53,8 +60,10 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     step function but a sin() wave
   */
   } else if(CCTK_EQUALS(test_1D_initial_data,"shock tube")) {
-    rho_l = press_l = 2.0;
-    rho_r = press_r = 1.0;
+    rho_l = 2.0;
+    rho_r = 1.0;
+    press_l = 2.0;
+    press_r = 1.0;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   } else {
@@ -66,20 +75,18 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   //the data for it to work in other directions.
   if(CCTK_EQUALS(test_shock_direction, "y")) {
     //x-->y, y-->z, z-->x
-    double vxtmp, vytmp, vztmp;
-    vxtmp = vx_l; vytmp = vy_l; vztmp = vz_l;
-    vy_l = vxtmp; vz_l = vytmp; vx_l = vztmp;
+    const double vl[3] = {vz_l, vx_l, vy_l};
+    vx_l = vl[0]; vy_l = vl[1]; vz_l = vl[2];
 
-    vxtmp = vx_r; vytmp = vy_r; vztmp = vz_r;
-    vy_r = vxtmp; vz_r = vytmp; vx_r = vztmp;
+    const double vr[3] = {vz_r, vx_r, vy_r};
+    vx_r = vr[0]; vy_r = vr[1]; vz_r = vr[2];
   } else if(CCTK_EQUALS(test_shock_direction, "z")) {
     //x-->z, y-->x, z-->y
-    double vxtmp, vytmp, vztmp;
-    vxtmp = vx_l; vytmp = vy_l; vztmp = vz_l;
-    vz_l = vxtmp; vx_l = vytmp; vy_l = vztmp;
+    const double vl[3] = {vy_l, vz_l, vx_l};
+    vx_l = vl[0]; vy_l = vl[1]; vz_l = vl[2];
 
-    vxtmp = vx_r; vytmp = vy_r; vztmp = vz_r;
-    vz_r = vxtmp; vx_r = vytmp; vy_r = vztmp;
+    const double vr[3] = {vy_r, vz_r, vx_r};
+    vx_r = vr[0]; vy_r = vr[1]; vz_r = vr[2];
   }
 
   grid.loop_all_device<1, 1, 1>(
