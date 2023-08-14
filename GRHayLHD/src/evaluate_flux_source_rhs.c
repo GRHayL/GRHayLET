@@ -31,44 +31,44 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
   const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
-  void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
-                                         const ghl_primitive_quantities *restrict prims_l,
+  void (*calculate_characteristic_speed)(ghl_primitive_quantities *restrict prims_r,
+                                         ghl_primitive_quantities *restrict prims_l,
                                          const ghl_eos_parameters *restrict eos,
                                          const ghl_metric_quantities *restrict ADM_metric_face,
                                          double *cmin, double *cmax);
 
-  void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
+  void (*calculate_source_terms)(ghl_primitive_quantities *restrict prims,
                                  const ghl_eos_parameters *restrict eos,
                                  const ghl_metric_quantities *restrict ADM_metric,
                                  const ghl_metric_quantities *restrict metric_derivs,
                                  ghl_conservative_quantities *restrict cons_sources);
 
-  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
-                                      const ghl_primitive_quantities *restrict prims_l,
+  void (*calculate_HLLE_fluxes)(ghl_primitive_quantities *restrict prims_r,
+                                ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
+                                const double cmin,
+                                const double cmax,
+                                ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn0)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
                                       const ghl_eos_parameters *restrict eos,
                                       const ghl_metric_quantities *restrict ADM_metric_face,
                                       const double cmin,
                                       const double cmax,
                                       ghl_conservative_quantities *restrict cons_fluxes);
 
-  void (*calculate_HLLE_fluxes_dirn0)(const ghl_primitive_quantities *restrict prims_r,
-                                      const ghl_primitive_quantities *restrict prims_l,
+  void (*calculate_HLLE_fluxes_dirn1)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
                                       const ghl_eos_parameters *restrict eos,
                                       const ghl_metric_quantities *restrict ADM_metric_face,
                                       const double cmin,
                                       const double cmax,
                                       ghl_conservative_quantities *restrict cons_fluxes);
 
-  void (*calculate_HLLE_fluxes_dirn1)(const ghl_primitive_quantities *restrict prims_r,
-                                      const ghl_primitive_quantities *restrict prims_l,
-                                      const ghl_eos_parameters *restrict eos,
-                                      const ghl_metric_quantities *restrict ADM_metric_face,
-                                      const double cmin,
-                                      const double cmax,
-                                      ghl_conservative_quantities *restrict cons_fluxes);
-
-  void (*calculate_HLLE_fluxes_dirn2)(const ghl_primitive_quantities *restrict prims_r,
-                                      const ghl_primitive_quantities *restrict prims_l,
+  void (*calculate_HLLE_fluxes_dirn2)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
                                       const ghl_eos_parameters *restrict eos,
                                       const ghl_metric_quantities *restrict ADM_metric_face,
                                       const double cmin,
