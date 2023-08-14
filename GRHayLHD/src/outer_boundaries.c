@@ -31,7 +31,6 @@ void GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
   if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
 
-  const double poison = 0.0/0.0;
   double dummy1, dummy2, dummy3;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
