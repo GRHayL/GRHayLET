@@ -31,7 +31,7 @@ schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
 
-schedule GRHayLHD_enforce_detgtij_eq_1 in GRHayLHD_Prim2Con2Prim as first_initialdata
+schedule GRHayLHD_enforce_detgtij_eq_1 in GRHayLHD_Prim2Con2Prim
 {
    LANG: C
    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
@@ -39,19 +39,39 @@ schedule GRHayLHD_enforce_detgtij_eq_1 in GRHayLHD_Prim2Con2Prim as first_initia
    SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
 } "Enforce BSSN metric is conformally flat and recompute ADM metric"
 
-schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim as second_initialdata after first_initialdata
+schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim after GRHayLHD_enforce_detgtij_eq_1
+{
+  LANG: C
+  READS:  ADMBase::lapse, ADMBase::shift
+  READS:  HydroBase::rho, HydroBase::press,
+          HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
+          HydroBase::temperature
+  WRITES: grmhd_primitives(everywhere)
+  SYNC: grmhd_primitives
+} "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
+
+if(perturb_initial_data) {
+  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD before GRHayLHD_prims_to_conservs
+  {
+    LANG: C
+    READS:  grmhd_primitives
+    WRITES: grmhd_primitives(everywhere)
+    SYNC: grmhd_primitives
+  } "perturb initial primitive data"
+}
+
+schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
-          HydroBase::temperature
+  READS:  HydroBase::eps
+  READS:  grmhd_primitives
   WRITES: HydroBase::eps(everywhere)
   WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere)
-  SYNC: grmhd_primitives, grmhd_conservatives
+  SYNC: grmhd_conservatives
 } "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
 
-schedule GRHayLHD_conserv_to_prims in GRHayLHD_Prim2Con2Prim as third_initialdata after second_initialdata
+schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_conservs_to_prims
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
@@ -63,7 +83,7 @@ schedule GRHayLHD_conserv_to_prims in GRHayLHD_Prim2Con2Prim as third_initialdat
 } "Compute primitive variables from conservatives"
 
 if(Convert_to_HydroBase_every) {
-  schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim as fourth_initialdata after third_initialdata
+  schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim after GRHayLHD_conservs_to_prims
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
@@ -86,7 +106,16 @@ schedule GRHayLHD_empty_function in GRHayLHD_Con2Prim as GRHayLHD_sync_conservat
   SYNC: grmhd_conservatives
 } "Sync conservative variable ghost zones for c2p routine"
 
-schedule GRHayLHD_conserv_to_prims in GRHayLHD_Con2Prim after GRHayLHD_sync_conservatives
+if(perturb_every_con2prim) {
+  schedule GRHayLHD_perturb_conservatives in GRHayLHD_Con2Prim after GRHayLHD_sync_conservatives before GRHayLHD_conservs_to_prims
+  {
+    LANG: C
+    READS:  grmhd_conservatives
+    WRITES: grmhd_conservatives(everywhere)
+  } "Perturb conservatives before con2prim"
+}
+
+schedule GRHayLHD_conservs_to_prims in GRHayLHD_Con2Prim after GRHayLHD_sync_conservatives
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
@@ -96,7 +125,7 @@ schedule GRHayLHD_conserv_to_prims in GRHayLHD_Con2Prim after GRHayLHD_sync_cons
   WRITES: HydroBase::eps(everywhere)
 } "Compute primitive variables from conservatives"
 
-schedule GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
+schedule GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift

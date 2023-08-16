@@ -52,12 +52,15 @@ INT random_seed "Random seed for random, generally roundoff-level perturbation o
  0:99999999 :: "Anything unsigned goes."
 } 0
 
-REAL perturb_initial_data "Random perturbation to initial data"
+REAL random_pert "Magnitude of random perturbations"
 {
  *:* :: "Anything goes."
 } 0
 
-REAL perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+CCTK_BOOLEAN perturb_initial_data "Random perturbation to initial data"
 {
- *:* :: "Anything goes."
-} 0
+} "no"
+
+CCTK_BOOLEAN perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+{
+} "no"

@@ -44,15 +44,25 @@ schedule GRHayLMHD_sync in GRHayLMHD_Prim2Con2Prim
 schedule convert_HydroBase_to_GRHayLMHD in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_sync
 {
   LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+  READS:  ADMBase::lapse, ADMBase::shift
+  READS:  HydroBase::rho, HydroBase::press,
           HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
           HydroBase::temperature, HydroBase::Avec, HydroBase::Aphi
-  WRITES: HydroBase::eps
   WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
           Ax(everywhere), Ay(everywhere), Az(everywhere)
   SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
 } "Convert HydroBase initial data (ID) to GRHayLMHD variables and enforce simulation limits on primitives."
+
+if(perturb_initial_data) {
+  schedule GRHayLMHD_perturb_primitives in GRHayLMHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+  {
+    LANG: C
+    READS:  grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
+    WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+            Ax(everywhere), Ay(everywhere), Az(everywhere)
+    SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
+  } "perturb initial primitive data"
+}
 
 schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHD
 {
@@ -149,6 +159,15 @@ schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRH
   SYNC: grmhd_B_center, grmhd_B_stagger # FIXME: Are both SYNC's necessary?
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
+if(perturb_every_con2prim) {
+  schedule GRHayLMHD_perturb_conservatives in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A before GRHayLMHD_conserv_to_prims
+  {
+    LANG: C
+    READS:  grmhd_conservatives
+    WRITES: grmhd_conservatives(everywhere)
+  } "Perturb conservatives before con2prim"
+}
+
 schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A
 {
   LANG: C
@@ -205,7 +224,6 @@ schedule GRHayLMHD_evaluate_tau_curvature_rhs in GRHayLMHD_RHS
   WRITES: grmhd_conservatives_rhs, EM_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-
 schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_tau_curvature_rhs
 {
   LANG: C
@@ -226,7 +244,7 @@ schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHa
 } "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 
 #########################################################
-# Conversion from GRHayLMHD variables to Hydrobase
+# Set HydroBase variables for analysis
 #########################################################
 
 if(Convert_to_HydroBase_every) {

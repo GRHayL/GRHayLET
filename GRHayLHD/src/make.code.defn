@@ -12,4 +12,7 @@ SRCS = compute_metric_derivs.c         \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
        MoL_registration.c              \
-       outer_boundaries.c
+       outer_boundaries.c              \
+       perturb_conservatives.c         \
+       perturb_primitives.c            \
+       prims_to_conservs.c

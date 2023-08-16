@@ -35,23 +35,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
-  if(perturb_every_con2prim > 1e-30) {
-    srand(random_seed); // Use srand() as rand() is thread-safe.
-#pragma omp parallel for
-    for(int k=0; k<kmax; k++) {
-      for(int j=0; j<jmax; j++) {
-        for(int i=0; i<imax; i++) {
-          const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-          rho_star[index] *= one_plus_pert(perturb_every_con2prim);
-          tau[index]      *= one_plus_pert(perturb_every_con2prim);
-          Stildex[index]  *= one_plus_pert(perturb_every_con2prim);
-          Stildey[index]  *= one_plus_pert(perturb_every_con2prim);
-          Stildez[index]  *= one_plus_pert(perturb_every_con2prim);
-        }
-      }
-    }
-  }
-
   if(CCTK_EQUALS(Symmetry,"equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr=0;

@@ -14,10 +14,6 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLHD;
   DECLARE_CCTK_PARAMETERS;
 
-  const double poison = 0.0/0.0;
-  double dummy1, dummy2, dummy3;
-  double dummy4, dummy5, dummy6;
-
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
@@ -60,76 +56,6 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
         vx[index] = alp[index]*ETvx - betax[index];
         vy[index] = alp[index]*ETvy - betay[index];
         vz[index] = alp[index]*ETvz - betaz[index];
-      }
-    }
-  }
-
-  // Neat feature for debugging: Add a roundoff-error perturbation
-  //    to the initial data.
-  // Set perturb_initial_data variable to ~1e-14 for a random 15th digit
-  //    perturbation.
-  if(perturb_initial_data > 1e-30) {
-    srand(random_seed); // Use srand() as rand() is thread-safe.
-#pragma omp parallel for
-    for(int k=0; k<kmax; k++) {
-      for(int j=0; j<jmax; j++) {
-        for(int i=0; i<imax; i++) {
-          const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-          rho_b[index] *= one_plus_pert(perturb_initial_data);
-          vx[index]    *= one_plus_pert(perturb_initial_data);
-          vy[index]    *= one_plus_pert(perturb_initial_data);
-          vz[index]    *= one_plus_pert(perturb_initial_data);
-        }
-      }
-    }
-  }
-
-  // Finally, enforce limits on primitives & compute conservative variables.
-#pragma omp parallel for
-  for(int k=0; k<kmax; k++) {
-    for(int j=0; j<jmax; j++) {
-      for(int i=0; i<imax; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-
-        ghl_metric_quantities ADM_metric;
-        ghl_initialize_metric(
-              alp[index],
-              betax[index], betay[index], betaz[index],
-              gxx[index], gxy[index], gxz[index],
-              gyy[index], gyz[index], gzz[index],
-              &ADM_metric);
-
-        ghl_ADM_aux_quantities metric_aux;
-        ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
-
-        ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
-              vx[index], vy[index], vz[index],
-              0.0, 0.0, 0.0,
-              poison, poison, poison,
-              &prims);
-
-        ghl_conservative_quantities cons;
-        //This applies inequality fixes on the conservatives
-        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
-              ghl_params, ghl_eos, &ADM_metric, &prims);
-        //This computes the conservatives from the new primitives
-        ghl_compute_conservs(
-              &ADM_metric, &metric_aux, &prims, &cons);
-
-        ghl_return_primitives(
-              &prims,
-              &rho_b[index], &pressure[index], &eps[index],
-              &vx[index], &vy[index], &vz[index],
-              &dummy1, &dummy2, &dummy3,
-              &dummy4, &dummy5, &dummy6);
-
-        ghl_return_conservatives(
-              &cons,
-              &rho_star[index], &tau[index],
-              &Stildex[index], &Stildey[index], &Stildez[index],
-              &dummy1, &dummy2);
       }
     }
   }

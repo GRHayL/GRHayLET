@@ -16,6 +16,8 @@ SRCS = A_flux_rhs.c                        \
        interpolate_metric_to_face.c        \
        MoL_registration.c                  \
        outer_boundaries.c                  \
+       perturb_conservatives.c             \
+       perturb_primitives.c                \
        prims_to_conservs.c                 \
        reconstruction_loop.c               \
        set_gz_symmetries.c                 \
