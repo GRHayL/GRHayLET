@@ -14,8 +14,6 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
 
   if(!CCTK_EQUALS(EOS_type, "tabulated"))
     CCTK_VERROR("ConstantDensitySphere initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"tabulated\" in the parfile.");
-  if(!CCTK_EQUALS(initial_hydro, "ConstantDensitySphere"))
-    CCTK_VERROR("To use ConstantDensitySphere initial data, please add initial_hydro=\"ConstantDensitySphere\" to the parfile.");
   if(!CCTK_EQUALS(initial_Y_e, "ConstantDensitySphere"))
     CCTK_VERROR("To use ConstantDensitySphere initial data, please add initial_Y_e=\"ConstantDensitySphere\" to the parfile.");
   if(!CCTK_EQUALS(initial_temperature, "ConstantDensitySphere"))

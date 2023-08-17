@@ -1,0 +1,72 @@
+\documentclass{article}
+
+% Use the Cactus ThornGuide style file
+% (Automatically used from Cactus distribution, if you have a 
+%  thorn without the Cactus Flesh download this from the Cactus
+%  homepage at www.cactuscode.org)
+\usepackage{../../../../doc/latex/cactus}
+\usepackage{xspace}
+\newcommand{\ghd}{\texttt{GRHayLHD}\xspace}
+\newcommand{\igm}{\texttt{IllinoisGRMHD}\xspace}
+\newcommand{\hydrobase}{\texttt{HydroBase}\xspace}
+
+\begin{document}
+
+\title{GRHayLHD}
+\author{Samuel Cupp \\ Terrence Pierre Jacques \\ Leonardo Rosa Werneck \\ Zachariah Etienne}
+\date{$ $Date$ $}
+
+\maketitle
+
+% Do not delete next line
+% START CACTUS THORNGUIDE
+
+\begin{abstract}
+Provides a hydrodynamic evolution code using GRHayL via the
+GRHayLib thorn. This is a trimmed-down version of the IllinoisGRMHD
+when magnetic fields aren't being evolved or are set to zero.
+\end{abstract}
+
+\section{Introduction}
+
+This thorn provides a hydrodynamic evolution code built on
+the General Relativistic Hydrodynamics Library (GRHayL).
+The core library inherits or adapts code from the original
+\igm thorn into a modular, infrastructure-agnostic
+library. While the \igm thorn can be set to have
+zero magnetic fields, they will still be evolved. This
+is far slower than not evolving them, and \ghd provides an
+implementation for evolving systems without magnetic
+fields.
+
+\section{Parameters}
+
+Most of the behavior of this thorn is controlled by
+\texttt{GRHayLib}, the thorn that provides GRHayL functionality
+within the Einstein Toolkit. However, there are several
+parameters in the thorn which control diagnostic or debugging
+features. Most are self-explanatory, but some parameters deserve
+a more detailed explanation.
+
+First, many analysis or diagnostic thorns use \hydrobase variables.
+By default, \ghd never copies the data back from \ghd variables
+to \hydrobase variables, which would prevent the usage of these
+thorns. The \textbf{Convert\_to\_HydroBase\_every} parameter
+sets how often to copy back this data. Naturally, copying more
+frequently will slow down the simulation, so this should be set
+on the same frequency as the analysis or IO thorn that is using
+the HydroBase variable.
+
+Next, there are several parameters for debugging or other testing.
+The perturbing parameters give users the ability to affect either
+the initial data or evolution data at runtime without slowing down
+standard simulations. The \textbf{perturb\_initial\_data} parameter
+controls whether the initial data from HydroBase is perturbed, and
+the \text{perturb\_every\_con2prim} parameter controls whether
+the conservative variables are perturbed before every con2prim call.
+The magnitude of these perturbations is set by \textbf{random\_pert}.
+
+% Do not delete next line
+% END CACTUS THORNGUIDE
+
+\end{document}
