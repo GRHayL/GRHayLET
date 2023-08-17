@@ -93,6 +93,7 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         if( ghl_eos->eos_type == ghl_eos_tabulated ) {
           Y_e[index]         = Ye[index];
           temperature[index] = temp[index];
+          ghl_tabulated_compute_eps_from_T(ghl_eos, rho[index], Y_e[index], temperature[index], &eps[index]);
         }
         if( ghl_params->evolve_entropy )
           entropy[index] = ent[index];
