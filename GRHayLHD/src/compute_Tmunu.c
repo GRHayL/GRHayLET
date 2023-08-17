@@ -46,6 +46,12 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         eTyy[index] += Tmunu.T4[2][2];
         eTyz[index] += Tmunu.T4[2][3];
         eTzz[index] += Tmunu.T4[3][3];
+
+        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
+          // fprintf(stderr, "Tmunu: %e %e %e %e %e %e %e %e %e %e\n",
+                  // eTtt[index], eTtx[index], eTty[index], eTtz[index], eTxx[index],
+                  // eTxy[index], eTxz[index], eTyy[index], eTyz[index], eTzz[index]);
+        // }
       }
     }
   }

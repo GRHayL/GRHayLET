@@ -47,6 +47,11 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
           temperature[index] = tempL;
           entropy    [index] = entL;
         }
+
+        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
+          // fprintf(stderr, "ID: %.15e %.15e %.15e -> %.15e %.15e\n",
+                  // rho[index], Y_e[index], temperature[index], press[index], eps[index]);
+        // }
       }
     }
   }

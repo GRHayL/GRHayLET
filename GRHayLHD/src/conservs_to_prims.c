@@ -27,9 +27,12 @@
 #include "GRHayLHD.h"
 #include "Symmetry.h"
 
-void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_conservs_to_prims;
+void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_conserv_to_prims;
   DECLARE_CCTK_PARAMETERS;
+
+  static int n_entries = 0;
+  n_entries++;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
@@ -72,6 +75,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
+        diagnostics.check = false;
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
@@ -101,6 +105,11 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
               Stildex[index], Stildey[index], Stildez[index],
               ent_star[index], Ye_star[index], &cons);
 
+        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
+          // diagnostics.check = true;
+          // debug_cons(cons);
+        // }
+
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;
 
@@ -116,7 +125,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
         }
 
         /************* Main conservative-to-primitive logic ************/
-        if(cons.rho>0.0) {
+        if(cons.rho>ghl_eos->rho_atm) {
           // Apply the tau floor
           if( ghl_eos->eos_type == ghl_eos_hybrid )
             ghl_apply_conservative_limits(
