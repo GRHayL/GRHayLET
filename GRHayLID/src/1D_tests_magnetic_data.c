@@ -1,5 +1,6 @@
 #include "GRHayLID.h"
 
+// Note that we assumed staggered vector potential
 void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_magnetic_data;
   DECLARE_CCTK_PARAMETERS;
@@ -61,6 +62,8 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     Bz_r = Bxtmp; Bx_r = Bytmp; By_r = Bztmp;
   }
 
+  CCTK_REAL dx[3] = { CCTK_DELTA_SPACE(0), CCTK_DELTA_SPACE(1), CCTK_DELTA_SPACE(2) };
+
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
@@ -71,31 +74,37 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
         const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
         if(CCTK_EQUALS(test_shock_direction, "x")) {
+          const double y_stag = y[index] + dx[1];
+          const double z_stag = z[index] + dx[2];
           if(x[index] <= discontinuity_position) {
-            Avec[ind4x] = By_l * z[index] - Bz_l * y[index];
+            Avec[ind4x] = By_l * z_stag - Bz_l * y_stag;
           } else {
-            Avec[ind4x] = By_r * z[index] - Bz_r * y[index];
+            Avec[ind4x] = By_r * z_stag - Bz_r * y_stag;
           }
           Avec[ind4y] = 0.0;
-          Avec[ind4z] = Bx_r * y[index];
+          Avec[ind4z] = Bx_r * y_stag;
 
         } else if(CCTK_EQUALS(test_shock_direction, "y")) {
+          const double x_stag = x[index] + dx[0];
+          const double z_stag = z[index] + dx[2];
           if(y[index] <= discontinuity_position) {
-            Avec[ind4y] = Bz_l * x[index] - Bx_l * z[index];
+            Avec[ind4y] = Bz_l * x_stag - Bx_l * z_stag;
           } else {
-            Avec[ind4y] = Bz_r * x[index] - Bx_r * z[index];
+            Avec[ind4y] = Bz_r * x_stag - Bx_r * z_stag;
           }
-          Avec[ind4x] = By_r * z[index];
+          Avec[ind4x] = By_r * z_stag;
           Avec[ind4z] = 0.0;
 
         } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+          const double x_stag = x[index] + dx[0];
+          const double y_stag = y[index] + dx[1];
           if(z[index] <= discontinuity_position) {
-            Avec[ind4z] = Bx_l * y[index] - By_l * x[index];
+            Avec[ind4z] = Bx_l * y_stag - By_l * x_stag;
           } else {
-            Avec[ind4z] = Bx_r * y[index] - By_r * x[index];
+            Avec[ind4z] = Bx_r * y_stag - By_r * x_stag;
           }
           Avec[ind4x] = 0.0;
-          Avec[ind4y] = Bz_r * x[index];
+          Avec[ind4y] = Bz_r * x_stag;
         }
       }
     }
