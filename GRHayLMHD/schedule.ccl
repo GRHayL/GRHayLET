@@ -3,10 +3,18 @@
 # This should be done by ADMBase by setting initial_shift
 STORAGE: ADMBase::shift[shift_timelevels]
 
+# This should be done by setting correct HydroBase parameters
+if( CCTK_EQUALS(EOS_type, "tabulated") ) {
+  STORAGE: HydroBase::temperature[1], HydroBase::Y_e[1]
+}
+if( evolve_entropy ) {
+  STORAGE: HydroBase::entropy[1]
+}
+
 # This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
 STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 
-STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3] 
+STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, grmhd_flux_temps, failure_checker
@@ -103,8 +111,9 @@ if(Convert_to_HydroBase_every) {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
     READS:  grmhd_primitives_allbutBi, grmhd_B_center
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere),
+            HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
   } "Convert GRHayLMHD-native variables to HydroBase"
 }
 
@@ -145,7 +154,7 @@ schedule GRHayLMHD_outer_boundaries_on_A_mu in GRHayLMHD_Con2Prim after GRHayLMH
   READS:  phitilde, Ax, Ay, Az
   WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
- 
+
 schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRHayLMHD_outer_boundaries_on_A_mu
 {
   LANG: C

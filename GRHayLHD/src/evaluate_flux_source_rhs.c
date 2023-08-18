@@ -127,7 +127,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
         calculate_source_terms = &ghl_calculate_source_terms_dirn2;
         break;
       default:
-        CCTK_VERROR("Warning: invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
+        CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
     }
 
     // Count number of additional reconstructed variables
@@ -167,7 +167,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
             others_stencil[1][ind]         = vy[stencil];
             others_stencil[2][ind]         = vz[stencil];
             others_stencil[ent_index][ind] = ent[stencil];
-            others_stencil[Ye_index][ind]  = Ye[stencil];
+            others_stencil[Ye_index ][ind] = Ye[stencil];
           }
 
           // Compute Gamma
@@ -211,12 +211,12 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
           rho_star_flux[index] = cons_fluxes.rho;
-          tau_flux[index]      = cons_fluxes.tau;
-          Stildex_flux[index]  = cons_fluxes.SD[0];
-          Stildey_flux[index]  = cons_fluxes.SD[1];
-          Stildez_flux[index]  = cons_fluxes.SD[2];
+          tau_flux     [index] = cons_fluxes.tau;
+          Stildex_flux [index] = cons_fluxes.SD[0];
+          Stildey_flux [index] = cons_fluxes.SD[1];
+          Stildez_flux [index] = cons_fluxes.SD[2];
           ent_star_flux[index] = cons_fluxes.entropy;
-          Ye_star_flux[index]  = cons_fluxes.Y_e;
+          Ye_star_flux [index] = cons_fluxes.Y_e;
         }
       }
     }

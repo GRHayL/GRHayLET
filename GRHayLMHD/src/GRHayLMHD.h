@@ -81,8 +81,8 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
                          CCTK_REAL **out_prims_l);
 
 void GRHayLMHD_calculate_MHD_dirn_rhs(
-      const cGH *cctkGH,
-      const int flux_dirn,
+      const cGH *restrict cctkGH,
+      const int flux_dir,
       const CCTK_REAL *restrict dX,
       const CCTK_REAL *restrict lapse,
       const CCTK_REAL *restrict betax,
@@ -94,15 +94,18 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       const CCTK_REAL *restrict gyy,
       const CCTK_REAL *restrict gyz,
       const CCTK_REAL *restrict gzz,
-      const double *rho,
-      const double *pressure,
-      const double *vx,
-      const double *vy,
-      const double *vz,
+      const CCTK_REAL *restrict rho_b,
+      const CCTK_REAL *restrict pressure,
+      const CCTK_REAL *restrict ent,
+      const CCTK_REAL *restrict Ye,
+      const CCTK_REAL *restrict temp,
+      const CCTK_REAL *vx,
+      const CCTK_REAL *vy,
+      const CCTK_REAL *vz,
       const CCTK_REAL **B_center,
-      const double *B_stagger,
-      /*const*/ CCTK_REAL **in_prims_r,
-      /*const*/ CCTK_REAL **in_prims_l,
+      const CCTK_REAL *restrict B_stagger,
+      CCTK_REAL **vel_r,
+      CCTK_REAL **vel_l,
       CCTK_REAL *restrict cmin,
       CCTK_REAL *restrict cmax,
       CCTK_REAL *restrict rho_star_flux,
@@ -110,11 +113,15 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       CCTK_REAL *restrict Stildex_flux,
       CCTK_REAL *restrict Stildey_flux,
       CCTK_REAL *restrict Stildez_flux,
+      CCTK_REAL *restrict ent_star_flux,
+      CCTK_REAL *restrict Ye_star_flux,
       CCTK_REAL *restrict rho_star_rhs,
       CCTK_REAL *restrict tau_rhs,
       CCTK_REAL *restrict Stildex_rhs,
       CCTK_REAL *restrict Stildey_rhs,
-      CCTK_REAL *restrict Stildez_rhs);
+      CCTK_REAL *restrict Stildez_rhs,
+      CCTK_REAL *restrict ent_star_rhs,
+      CCTK_REAL *restrict Ye_star_rhs);
 
 // The const are commented out because C does not support implicit typecasting of types when
 // they are more than 1 level removed from the top pointer. i.e. I can pass the argument with

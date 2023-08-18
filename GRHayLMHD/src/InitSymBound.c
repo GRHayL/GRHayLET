@@ -59,7 +59,7 @@ void GRHayLMHD_InitSymBound(CCTK_ARGUMENTS)
       SetCartSymVN(cctkGH, sym,"GRHayLMHD::Stilde_z");
       SetCartSymVN(cctkGH, sym,"GRHayLMHD::vz");
     } else {
-      CCTK_VERROR("GRHayLMHD_initsymbound: Should not be here; picked an impossible symmetry.");
+      CCTK_ERROR("GRHayLMHD_initsymbound: Should not be here; picked an impossible symmetry.");
     }
   }
 }
