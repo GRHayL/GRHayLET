@@ -1,7 +1,6 @@
 # Schedule definitions for thorn GRHayLID
 
-if (CCTK_Equals(initial_hydro, "HydroTest1D"))
-{
+if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
   schedule GRHayLID_1D_tests_hydro_data in HydroBase_Initial
   {
     LANG: C
@@ -10,8 +9,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::eps(everywhere), HydroBase::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-  if (initialize_magnetic_quantities)
-  {
+  if (initialize_magnetic_quantities) {
     schedule GRHayLID_1D_tests_magnetic_data in HydroBase_Initial after GRHayLID_1D_tests_hydro_data
     {
       LANG: C
@@ -19,8 +17,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
       WRITES: HydroBase::Avec(everywhere)
     } "Set initial magnetic data for 1D test"
   }
-} else if (CCTK_Equals(initial_hydro, "IsotropicGas"))
-{
+} else if (CCTK_Equals(initial_hydro, "IsotropicGas")) {
   schedule GRHayLID_IsotropicGas in HydroBase_Initial
   {
     LANG: C
@@ -31,8 +28,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere"))
-{
+} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere")) {
   schedule GRHayLID_ConstantDensitySphere in HydroBase_Initial
   {
     LANG: C
@@ -44,11 +40,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
   } "Set initial hydrodynamic data for 1D test"
 }
 
-if( CCTK_Equals(initial_Y_e        , "GRHayLID_BetaEquilibrium") ||
-    CCTK_Equals(initial_temperature, "GRHayLID_BetaEquilibrium") ||
-    CCTK_Equals(initial_entropy    , "GRHayLID_BetaEquilibrium") )
-{
-  STORAGE: HydroBase::Y_e[1], HydroBase::temperature[1], HydroBase::entropy[1]
+if(impose_beta_equilibrium) {
   schedule GRHayLID_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial
   {
     LANG: C

@@ -11,31 +11,31 @@ EXTENDS KEYWORD initial_hydro
   "ConstantDensitySphere" :: "Initial data set to constant density sphere"
 }
 
-EXTENDS KEYWORD initial_Avec
-{
-  "GRHayLID" :: "Initial vector potential set by GRHayLID"
-}
-
 EXTENDS KEYWORD initial_Y_e
 {
-  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium Y_e set by GRHayLID"
+  "GRHayLID" :: "Initial Y_e set by GRHayLID"
 }
 
 EXTENDS KEYWORD initial_temperature
 {
-  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium temperature set by GRHayLID"
+  "GRHayLID" :: "Initial temperature set by GRHayLID"
 }
 
 EXTENDS KEYWORD initial_entropy
 {
-  "GRHayLID_BetaEquilibrium" :: "Initial neutrino free beta-equilibrium entropy set by GRHayLID"
+  "GRHayLID" :: "Initial entropy set by GRHayLID"
+}
+
+EXTENDS KEYWORD initial_Avec
+{
+  "GRHayLID" :: "Initial vector potential set by GRHayLID"
 }
 
 restricted:
 #########################################################
 
 # 1D test parameters
-KEYWORD test_1D_initial_data "Set initial data type for 1D tests"
+KEYWORD initial_data_1D "Set initial data type for 1D tests"
 {
   "equilibrium" :: "initial data for the equilibrium test"
   "sound wave" :: "initial data for the sound wave test"
@@ -47,7 +47,7 @@ KEYWORD test_1D_initial_data "Set initial data type for 1D tests"
   "Balsara5" :: "initial data for the Balsara5 test"
 } "Balsara1"
 
-KEYWORD test_shock_direction "Set direction for shock in test data"
+KEYWORD shock_direction "Set direction for shock in test data"
 {
   "x" :: "Test data will have discontinuities along x direction"
   "y" :: "Test data will have discontinuities along y direction"
@@ -59,7 +59,7 @@ CCTK_REAL discontinuity_position "Set location of the shock discontinuity"
   *:*
 } 0.0
 
-CCTK_REAL test_wave_amplitude "Wave amplitude for sound wave initial data"
+CCTK_REAL wave_amplitude "Wave amplitude for sound wave initial data"
 {
   0.0:* :: ""
 } 1.0e-3
@@ -137,12 +137,12 @@ CCTK_REAL ConstantDensitySphere_T_exterior "Exterior temperature in MeV"
 #########################################################
 
 # BetaEquilibrium parameters
+CCTK_BOOLEAN impose_beta_equilibrium "Impose beta-equilibrium on initial data"
+{
+} "no"
+
 CCTK_REAL beq_temperature "Temperature used to impose beta-equilibrium"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
-
-BOOLEAN beq_set_entropy "Whether or not to set the entropy"
-{
-} no

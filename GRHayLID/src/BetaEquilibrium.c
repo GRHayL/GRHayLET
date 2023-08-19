@@ -8,7 +8,7 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
   DECLARE_CCTK_PARAMETERS;
 
   if( ghl_eos->eos_type != ghl_eos_tabulated )
-    CCTK_ERROR("GRhayL can only impose beta-equilibrium if tabulated EOS is used");
+    CCTK_ERROR("GRHayL can only impose beta-equilibrium if tabulated EOS is used");
 
   if( beq_temperature < ghl_eos->table_T_min || beq_temperature > ghl_eos->table_T_max )
     CCTK_VERROR("Parameter beq_temperature (%g) exceeds table bounds [%g, %g]",
@@ -19,9 +19,9 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
   double *Ye_of_lr;
   ghl_tabulated_compute_Ye_of_rho_beq_constant_T(ghl_eos, beq_temperature, &Ye_of_lr);
 
-  for(int k=0;k<cctk_lsh[2];k++) {
-    for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {
+  for(int k=0; k<cctk_lsh[2]; k++) {
+    for(int j=0; j<cctk_lsh[1]; j++) {
+      for(int i=0; i<cctk_lsh[0]; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         const double rhoL  = rho[index];
@@ -47,11 +47,6 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
           temperature[index] = tempL;
           entropy    [index] = entL;
         }
-
-        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
-          // fprintf(stderr, "ID: %.15e %.15e %.15e -> %.15e %.15e\n",
-                  // rho[index], Y_e[index], temperature[index], press[index], eps[index]);
-        // }
       }
     }
   }
