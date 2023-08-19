@@ -41,7 +41,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
 }
 
 if(impose_beta_equilibrium) {
-  schedule GRHayLID_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial
+  schedule GRHayLID_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial as impose_beta_equilibrium
   {
     LANG: C
     READS:  HydroBase::rho
