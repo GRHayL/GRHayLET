@@ -71,7 +71,7 @@ schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_Hydr
   SYNC: grmhd_conservatives
 } "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
 
-schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_conservs_to_prims
+schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_prims_to_conservs
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
