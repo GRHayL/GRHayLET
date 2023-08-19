@@ -3,14 +3,6 @@
 # This should be done by ADMBase by setting initial_shift
 STORAGE: ADMBase::shift[shift_timelevels]
 
-# This should be done by setting correct HydroBase parameters
-if( CCTK_EQUALS(EOS_type, "tabulated") ) {
-  STORAGE: HydroBase::temperature[1], HydroBase::Y_e[1]
-}
-if( evolve_entropy ) {
-  STORAGE: HydroBase::entropy[1]
-}
-
 # This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
 STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 

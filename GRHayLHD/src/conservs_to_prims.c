@@ -27,28 +27,9 @@
 #include "GRHayLHD.h"
 #include "Symmetry.h"
 
-#define debug_prims(p)                                                              \
-  fprintf(stderr, "(%03d - lvl %d - %d) ",                                          \
-          __LINE__, (int)GetRefinementLevel(cctkGH), n_entries);                    \
-  fprintf(stderr, "v's and B's: %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", \
-          p.vU[0], p.vU[1], p.vU[2], p.BU[0], p.BU[1], p.BU[2]);                    \
-  fprintf(stderr, "(%03d - lvl %d - %d) ",                                          \
-          __LINE__, (int)GetRefinementLevel(cctkGH), n_entries);                    \
-  fprintf(stderr, "The rest   : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", \
-          p.rho, p.press, p.eps, p.entropy, p.Y_e, p.temperature);
-
-#define debug_cons(c)                                                                       \
-  fprintf(stderr, "(%03d - lvl %d - %d) ",                                                  \
-          __LINE__, (int)GetRefinementLevel(cctkGH), n_entries);                            \
-  fprintf(stderr, "conservs   : %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e %22.15e\n", \
-          c.SD[0], c.SD[1], c.SD[2], c.tau, c.rho, c.entropy, c.Y_e);
-
-void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_conserv_to_prims;
+void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
-
-  static int n_entries = 0;
-  n_entries++;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
@@ -91,7 +72,6 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
-        diagnostics.check = false;
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
@@ -120,11 +100,6 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
               rho_star[index], tau[index],
               Stildex[index], Stildey[index], Stildez[index],
               ent_star[index], Ye_star[index], &cons);
-
-        // if( (i==cctk_lsh[0]/2) && (j==cctk_lsh[1]/2) && (k==cctk_lsh[2]/2) ) {
-          // diagnostics.check = true;
-          // debug_cons(cons);
-        // }
 
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;

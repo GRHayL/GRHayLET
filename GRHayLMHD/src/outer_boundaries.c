@@ -354,7 +354,8 @@ void GRHayLMHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, 
   const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
         ghl_params, ghl_eos, &ADM_metric, prims);
 
-  ghl_compute_conservs(&ADM_metric, &metric_aux, prims, &cons);
+  ghl_compute_conservs(
+        &ADM_metric, &metric_aux, prims, &cons);
 
   ghl_return_conservatives(
         &cons,

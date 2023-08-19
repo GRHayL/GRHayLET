@@ -1,15 +1,17 @@
 #include "GRHayLHD.h"
 
-static inline double
-get_Gamma_eff_hybrid(const double rho_in, const double press_in) {
+static inline double get_Gamma_eff_hybrid(
+      const double rho_in,
+      const double press_in) {
   double K, Gamma;
   ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
   const double P_cold = K*pow(rho_in, Gamma);
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
-static inline double
-get_Gamma_eff_tabulated(const double rho_in, const double press_in) {
+static inline double get_Gamma_eff_tabulated(
+      const double rho_in,
+      const double press_in) {
   return 1.0;
 }
 
@@ -80,20 +82,17 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
       calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy;
       calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy;
       calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy;
-    }
-    else {
+    } else {
       calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid;
       calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid;
       calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid;
     }
-  }
-  else {
+  } else {
     if( ghl_params->evolve_entropy ) {
       calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
       calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
       calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
-    }
-    else {
+    } else {
       calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated;
       calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated;
       calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated;
@@ -131,7 +130,7 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
     }
 
     // Count number of additional reconstructed variables
-    const int num_others = 5;
+    const int num_others = 3 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
 
     // If using the entropy, it should be the first reconstructed variable
     // after the three velocities

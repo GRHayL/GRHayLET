@@ -1,15 +1,17 @@
 #include "GRHayLMHD.h"
 
-static inline double
-get_Gamma_eff_hybrid(const double rho_in, const double press_in) {
+static inline double get_Gamma_eff_hybrid(
+      const double rho_in,
+      const double press_in) {
   double K, Gamma;
   ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
   const double P_cold = K*pow(rho_in, Gamma);
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
-static inline double
-get_Gamma_eff_tabulated(const double rho_in, const double press_in) {
+static inline double get_Gamma_eff_tabulated(
+      const double rho_in,
+      const double press_in) {
   return 1.0;
 }
 
@@ -198,7 +200,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
   }
 
   // Count number of additional reconstructed variables
-  const int num_others = 7;
+  const int num_others = 5 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
 
   // If using the entropy, it should be the first reconstructed variable
   // after the three velocities
@@ -238,7 +240,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
         CCTK_REAL rhor, rhol, pressr, pressl, B_r[3], B_l[3];
-        CCTK_REAL others_stencil[num_others][6], others_r[num_others], others_l[num_others];
+        CCTK_REAL others_stencil[7][6], others_r[7], others_l[7];
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
