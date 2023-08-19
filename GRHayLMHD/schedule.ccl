@@ -233,7 +233,9 @@ schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_t
           grmhd_B_stagger, phitilde, Ax, Ay, Az,
           grmhd_conservatives_rhs(interior)
   WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, grmhd_cmin_cmax_temps,
-          grmhd_conservatives_rhs, EM_rhs
+          grmhd_conservatives_rhs, EM_rhs,
+          HydroBase::rho(everywhere), HydroBase::Y_e(everywhere),
+          HydroBase::temperature(everywhere), HydroBase::vel(everywhere)
 } "Evaluate RHSs for GRMHD equations"
 
 schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHayLMHD_evaluate_MHD_rhs
