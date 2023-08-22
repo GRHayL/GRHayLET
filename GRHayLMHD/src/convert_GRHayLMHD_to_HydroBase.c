@@ -82,7 +82,7 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         // A = 1.0-one_minus_one_over_alpha_u0_squared = 1-(1-1/(al u0)^2) = 1/(al u0)^2
         // 1/sqrt(A) = al u0
         const double alpha_u0 = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared);
-        if(isnan(alpha_u0*lapseL_inv)) printf("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
+        if(isnan(alpha_u0*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
 
         w_lorentz[index] = alpha_u0;
 
