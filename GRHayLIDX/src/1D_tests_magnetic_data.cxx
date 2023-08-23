@@ -58,6 +58,31 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     Bz_r = Bxtmp; Bx_r = Bytmp; By_r = Bztmp;
   }
 
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
+
+  grid.loop_all_device<1, 1, 1>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+    const Loop::GF3D2index index(layout, p.I);
+
+    double step = p.x;
+    if(CCTK_EQUALS(test_shock_direction, "y")) {
+      step = p.y;
+    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+      step = p.z;
+    }
+
+    if(step <= discontinuity_position) {
+      Bvecx(index) = Bx_l;
+      Bvecy(index) = By_l;
+      Bvecz(index) = Bz_l;
+    } else {
+      Bvecx(index) = Bx_r;
+      Bvecy(index) = By_r;
+      Bvecz(index) = Bz_r;
+    }
+  });
+
   grid.loop_all_device<1, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
