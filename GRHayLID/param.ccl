@@ -26,6 +26,10 @@ EXTENDS KEYWORD initial_entropy
   "GRHayLID" :: "Initial entropy set by GRHayLID"
 }
 
+EXTENDS KEYWORD initial_Bvec
+{
+  "GRHayLID" :: "Initial magnetic field set by GRHayLID"
+}
 EXTENDS KEYWORD initial_Avec
 {
   "GRHayLID" :: "Initial vector potential set by GRHayLID"
@@ -65,6 +69,10 @@ CCTK_REAL test_wave_amplitude "Wave amplitude for sound wave initial data"
 } 1.0e-3
 
 CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initialized"
+{
+} "yes"
+
+CCTK_BOOLEAN stagger_Avec "Set whether Avec is staggered (by +1/2)"
 {
 } "yes"
 
