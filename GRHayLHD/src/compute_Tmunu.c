@@ -26,10 +26,10 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
+              rho[index], press[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              ent[index], Ye[index], temp[index], &prims);
+              entropy[index], Y_e[index], temperature[index], &prims);
 
         prims.u0 = u0[index];
 

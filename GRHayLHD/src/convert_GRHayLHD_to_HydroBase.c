@@ -16,10 +16,6 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
-        /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
-        rho[index]   = rho_b[index];
-        press[index] = pressure[index];
-
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
@@ -89,14 +85,6 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         Bvec[index4D0] = 0.0;
         Bvec[index4D1] = 0.0;
         Bvec[index4D2] = 0.0;
-
-        if( ghl_eos->eos_type == ghl_eos_tabulated ) {
-          Y_e[index]         = Ye[index];
-          temperature[index] = temp[index];
-          ghl_tabulated_compute_eps_from_T(ghl_eos, rho[index], Y_e[index], temperature[index], &eps[index]);
-        }
-        if( ghl_params->evolve_entropy )
-          entropy[index] = ent[index];
       }
     }
   }

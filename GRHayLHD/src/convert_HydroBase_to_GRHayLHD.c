@@ -24,9 +24,6 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        rho_b[index] = rho[index];
-        pressure[index] = press[index];
-
         const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
         const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
         const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];
@@ -56,13 +53,6 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
         vx[index] = alp[index]*ETvx - betax[index];
         vy[index] = alp[index]*ETvy - betay[index];
         vz[index] = alp[index]*ETvz - betaz[index];
-
-        if( ghl_eos->eos_type == ghl_eos_tabulated ) {
-          Ye[index]   = Y_e[index];
-          temp[index] = temperature[index];
-        }
-        if( ghl_params->evolve_entropy )
-          ent[index] = entropy[index];
       }
     }
   }

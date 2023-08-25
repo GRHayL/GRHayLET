@@ -40,10 +40,10 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
+              rho[index], press[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              ent[index], Ye[index], temp[index],
+              entropy[index], Y_e[index], temperature[index],
               &prims);
 
         ghl_conservative_quantities cons;
@@ -56,10 +56,10 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
 
         ghl_return_primitives(
               &prims,
-              &rho_b[index], &pressure[index], &eps[index],
+              &rho[index], &press[index], &eps[index],
               &vx[index], &vy[index], &vz[index],
               &dummy1, &dummy2, &dummy3,
-              &ent[index], &Ye[index], &temp[index]);
+              &entropy[index], &Y_e[index], &temperature[index]);
 
         ghl_return_conservatives(
               &cons,

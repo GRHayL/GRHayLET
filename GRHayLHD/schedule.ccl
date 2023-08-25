@@ -3,8 +3,8 @@
 # This should be done by ADMBase by setting initial_shift
 STORAGE: ADMBase::shift[shift_timelevels]
 
-STORAGE: grmhd_conservatives[3]
-STORAGE: grmhd_primitives, u0, grmhd_conservatives_rhs
+STORAGE: grmhd_conservatives[3], grmhd_velocities
+STORAGE: u0, grmhd_conservatives_rhs
 STORAGE: grmhd_flux_temps, failure_checker
 
 #########################################################
@@ -31,44 +31,43 @@ schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
 
-schedule GRHayLHD_enforce_detgtij_eq_1 in GRHayLHD_Prim2Con2Prim
-{
-   LANG: C
-   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-   WRITES: ADMBase::metric(everywhere)
-   SYNC: ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
-} "Enforce BSSN metric is conformally flat and recompute ADM metric"
 
-schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim after GRHayLHD_enforce_detgtij_eq_1
+if(perturb_initial_data) {
+  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim before convert_HydroBase_to_GRHayLHD
+  {
+    LANG: C
+    READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+            HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+            grmhd_velocities
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+            HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            grmhd_velocities(everywhere)
+    SYNC:   HydroBase::rho, HydroBase::press, HydroBase::eps,
+            HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+            grmhd_velocities
+  } "perturb initial primitive data"
+}
+
+schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
 {
   LANG: C
   READS:  ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::rho, HydroBase::press,
-          HydroBase::vel, HydroBase::Y_e, HydroBase::entropy,
-          HydroBase::temperature
-  WRITES: grmhd_primitives(everywhere)
-  SYNC: grmhd_primitives
+  READS:  HydroBase::vel
+  WRITES: grmhd_velocities(everywhere)
+  SYNC: grmhd_velocities
 } "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
-
-if(perturb_initial_data) {
-  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD before GRHayLHD_prims_to_conservs
-  {
-    LANG: C
-    READS:  grmhd_primitives
-    WRITES: grmhd_primitives(everywhere)
-    SYNC: grmhd_primitives
-  } "perturb initial primitive data"
-}
 
 schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::eps
-  READS:  grmhd_primitives
-  WRITES: HydroBase::eps(everywhere)
-  WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere)
-  SYNC: grmhd_conservatives
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_velocities
+  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+          grmhd_velocities(everywhere), grmhd_conservatives(everywhere)
+  SYNC:   grmhd_conservatives
 } "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
 
 schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_prims_to_conservs
@@ -77,9 +76,10 @@ schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_pri
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
   READS:  grmhd_conservatives
    # Con2Prim routine also recomputes conservatives after solving for primitives
-  WRITES: u0(everywhere), grmhd_primitives(everywhere),
-          grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBase::eps(everywhere)
+  WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
+  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+          grmhd_velocities(everywhere)
 } "Compute primitive variables from conservatives"
 
 if(Convert_to_HydroBase_every) {
@@ -87,10 +87,8 @@ if(Convert_to_HydroBase_every) {
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-    READS:  grmhd_primitives
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
-            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere),
-            HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    READS:  grmhd_velocities
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
 }
 
@@ -122,19 +120,28 @@ schedule GRHayLHD_conservs_to_prims in GRHayLHD_Con2Prim after GRHayLHD_sync_con
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
   READS:  grmhd_conservatives
-  WRITES: u0(everywhere), grmhd_primitives(everywhere),
-          grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBase::eps(everywhere)
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_velocities
+  WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
+  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+          grmhd_velocities(everywhere)
 } "Compute primitive variables from conservatives"
 
-schedule GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
+schedule GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBase::eps(everywhere)
-  SYNC: grmhd_primitives
-} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_velocities
+  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+          grmhd_velocities(everywhere)
+  WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere)
+  SYNC:   HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature, grmhd_velocities
+} "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 #########################################################
 # Stress-energy Tensor
@@ -144,8 +151,9 @@ schedule GRHayLHD_compute_Tmunu in AddToTmunu
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::eps
-  READS:  grmhd_primitives, u0
+  READS:  u0, HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_velocities
   WRITES: TmunuBase::stress_energy_scalar(everywhere),
           TmunuBase::stress_energy_vector(everywhere),
           TmunuBase::stress_energy_tensor(everywhere)
@@ -170,8 +178,9 @@ schedule GRHayLHD_evaluate_tau_curvature_rhs in GRHayLHD_RHS after GRHayLHD_enfo
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
-  READS:  HydroBase::eps
-  READS:  grmhd_primitives
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_velocities
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
@@ -179,9 +188,10 @@ schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evalua
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
-  READS:  HydroBase::eps
-  READS:  grmhd_primitives,
-          grmhd_conservatives_rhs(interior)
+  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps
+  READS:  HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  grmhd_velocities
+  READS:  grmhd_conservatives_rhs(interior)
   WRITES: grmhd_flux_temps, grmhd_conservatives_rhs
 } "Evaluate RHSs of GRHD equations"
 
@@ -190,13 +200,12 @@ schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evalua
 #########################################################
 
 if(Convert_to_HydroBase_every) {
-  SCHEDULE convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
-  {
-    LANG: C
-    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-    READS:  grmhd_primitives
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
-  } "Convert GRHayLHD-native variables to HydroBase"
+ SCHEDULE convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
+ {
+   LANG: C
+   OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+   READS:  grmhd_velocities
+   WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+ } "Convert GRHayLHD-native variables to HydroBase"
 }

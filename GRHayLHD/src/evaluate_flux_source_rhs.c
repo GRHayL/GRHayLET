@@ -160,17 +160,17 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
             const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
             v_flux[ind]                    = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-            rho_stencil[ind]               = rho_b[stencil];
-            press_stencil[ind]             = pressure[stencil];
+            rho_stencil[ind]               = rho[stencil];
+            press_stencil[ind]             = press[stencil];
             others_stencil[0][ind]         = vx[stencil];
             others_stencil[1][ind]         = vy[stencil];
             others_stencil[2][ind]         = vz[stencil];
-            others_stencil[ent_index][ind] = ent[stencil];
-            others_stencil[Ye_index ][ind] = Ye[stencil];
+            others_stencil[ent_index][ind] = entropy[stencil];
+            others_stencil[Ye_index ][ind] = Y_e[stencil];
           }
 
           // Compute Gamma
-          const double Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
+          const double Gamma = get_Gamma_eff(rho[index], press[index]);
 
           ghl_ppm(
                 rho_stencil, press_stencil, others_stencil,
@@ -246,10 +246,10 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
 
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
-                rho_b[index], pressure[index], eps[index],
+                rho[index], press[index], eps[index],
                 vx[index], vy[index], vz[index],
                 0.0, 0.0, 0.0,
-                ent[index], Ye[index], temp[index],
+                entropy[index], Y_e[index], temperature[index],
                 &prims);
 
           const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);
