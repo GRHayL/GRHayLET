@@ -1,7 +1,6 @@
 # Schedule definitions for thorn GRHayLID
 
-if (CCTK_Equals(initial_hydro, "HydroTest1D"))
-{
+if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
   schedule GRHayLID_1D_tests_hydro_data in HydroBase_Initial
   {
     LANG: C
@@ -10,8 +9,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::eps(everywhere), HydroBase::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-  if (initialize_magnetic_quantities)
-  {
+  if (initialize_magnetic_quantities) {
     schedule GRHayLID_1D_tests_magnetic_data in HydroBase_Initial after GRHayLID_1D_tests_hydro_data
     {
       LANG: C
@@ -19,8 +17,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
       WRITES: HydroBase::Avec(everywhere)
     } "Set initial magnetic data for 1D test"
   }
-} else if (CCTK_Equals(initial_hydro, "IsotropicGas"))
-{
+} else if (CCTK_Equals(initial_hydro, "IsotropicGas")) {
   schedule GRHayLID_IsotropicGas in HydroBase_Initial
   {
     LANG: C
@@ -31,8 +28,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere"))
-{
+} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere")) {
   schedule GRHayLID_ConstantDensitySphere in HydroBase_Initial
   {
     LANG: C
@@ -42,4 +38,17 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
             HydroBase::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
+}
+
+if(impose_beta_equilibrium) {
+  schedule GRHayLID_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial as impose_beta_equilibrium
+  {
+    LANG: C
+    READS:  HydroBase::rho
+    WRITES: HydroBase::press(everywhere),
+            HydroBase::eps(everywhere),
+            HydroBase::Y_e(everywhere),
+            HydroBase::temperature(everywhere),
+            HydroBase::entropy(everywhere)
+  } "Set Y_e, temperature, entropy, press, eps in neutrino free beta-equilibrium"
 }

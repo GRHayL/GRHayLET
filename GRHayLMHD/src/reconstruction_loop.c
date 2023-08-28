@@ -1,6 +1,21 @@
 #include "GRHayLMHD.h"
 
-static double eos_Gamma_eff(const double rho_in, const double press_in);
+static inline double get_Gamma_eff_hybrid(
+      const double rho_in,
+      const double press_in) {
+  double K, Gamma;
+  ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
+  const double P_cold = K*pow(rho_in, Gamma);
+  return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
+}
+
+static inline double get_Gamma_eff_tabulated(
+      const double rho_in,
+      const double press_in) {
+  return 1.0;
+}
+
+static double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
 
 void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
                          const int *restrict var_indices,
@@ -22,6 +37,9 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
   const int kmin = cctkGH->cctk_nghostzones[2];
   const int kmax = (cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2]) + 1;
 
+  if( ghl_eos->eos_type == ghl_eos_tabulated )
+    get_Gamma_eff = &get_Gamma_eff_tabulated;
+
 #pragma omp parallel for
   for(int k=kmin; k<kmax; k++) {
     for(int j=jmin; j<jmax; j++) {
@@ -41,7 +59,7 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
         }
 
         // Compute Gamma
-        const double Gamma = eos_Gamma_eff(rho_b[index], pressure[index]);
+        const double Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm_no_rho_P(
               press_stencil, var_data,
@@ -55,11 +73,4 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
       }
     }
   }
-}
-
-static double eos_Gamma_eff(const double rho_in, const double press_in) {
-  double K, Gamma;
-  ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
-  const double P_cold = K*pow(rho_in, Gamma);
-  return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }

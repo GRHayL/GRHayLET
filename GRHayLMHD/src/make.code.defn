@@ -7,6 +7,7 @@ SRCS = A_flux_rhs.c                        \
        compute_metric_derivs.c             \
        compute_Tmunu.c                     \
        conservs_to_prims.c                 \
+       convert_for_NRPyLeakage.c           \
        convert_HydroBase_to_GRHayLMHD.c    \
        convert_GRHayLMHD_to_HydroBase.c    \
        evaluate_MHD_rhs.c                  \

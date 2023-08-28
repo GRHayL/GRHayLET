@@ -47,8 +47,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     if(ierr!=0) CCTK_VERROR("Error with setting equatorial symmetries in con2prim.");
   }
 
-  const double poison = 0.0/0.0;
-
   // Diagnostic variables.
   int failures=0;
   int vel_limited_ptcount=0;
@@ -62,7 +60,6 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   double error_int_numer=0;
   double error_int_denom=0;
   int n_iter=0;
-  double dummy1, dummy2, dummy3;
 
 #pragma omp parallel for reduction(+:failures,vel_limited_ptcount,rho_star_fix_applied,pointcount,failures_inhoriz,pointcount_inhoriz,backup0,backup1,backup2,error_int_numer,error_int_denom,n_iter) schedule(static)
   for(int k=0; k<kmax; k++) {
@@ -94,14 +91,14 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               Bx_center[index], By_center[index], Bz_center[index],
-              poison, poison, poison, &prims);
+              ent[index], Ye[index], temp[index], &prims);
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
         ghl_initialize_conservatives(
               rho_star[index], tau[index],
               Stildex[index], Stildey[index], Stildez[index],
-              poison, poison, &cons);
+              ent_star[index], Ye_star[index], &cons);
 
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;
@@ -120,10 +117,9 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
-            ghl_apply_conservative_limits(
-                  ghl_params, ghl_eos, &ADM_metric,
-                  &prims, &cons, &diagnostics);
+          ghl_apply_conservative_limits(
+                ghl_params, ghl_eos, &ADM_metric,
+                &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
@@ -140,23 +136,23 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
             //Check for NAN!
             if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
               CCTK_VERROR("***********************************************************\n"
-                          "NAN found after Con2Prim with routine index %d!\n"
+                          "NAN found after Con2Prim routine %s!\n"
                           "Input variables:\n"
                           "lapse, shift = %e %e %e %e\n"
                           "gij = %e %e %e %e %e %e\n"
-                          "rho_*, ~tau, ~S_{i}: %e %e %e %e %e\n"
-                          "Undensitized conserved variables:\n"
-                          "D, tau, S_{i}: %e %e %e %e %e\n"
+                          "B^i = %e %e %e\n"
+                          "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
                           "Output primitive variables:\n"
-                          "rho, P: %e %e\n"
+                          "rho, P, S, Y_e: %e %e %e %e\n"
                           "v: %e %e %e\n"
                           "***********************************************************",
-                          diagnostics.which_routine, ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                          ghl_get_con2prim_routine_name(diagnostics.which_routine),
+                          ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                           ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
-                          cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
-                          prims.rho, prims.press,
+                          prims.BU[0], prims.BU[1], prims.BU[2],
+                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
+                          prims.rho, prims.press, prims.entropy, prims.Y_e,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
           } else {
@@ -172,9 +168,11 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               pointcount_inhoriz++;
             }
             CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
-            CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e, Bi = %e %e %e,\n"
+            CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e,\n"
+                       "~DS = %e, ~DY_e = %e Bi = %e %e %e,\n"
                        "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                       cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2], prims.BU[0], prims.BU[1], prims.BU[2],
+                       cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
+                       cons.entropy, cons.Y_e, prims.BU[0], prims.BU[1], prims.BU[2],
                        ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                        ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                        ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
@@ -200,14 +198,14 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               &rho_b[index], &pressure[index], &eps[index],
               &vx[index], &vy[index], &vz[index],
               &Bx_center[index], &By_center[index], &Bz_center[index],
-              &dummy1, &dummy2, &dummy3);
+              &ent[index], &Ye[index], &temp[index]);
         u0[index] = prims.u0;
 
         ghl_return_conservatives(
               &cons,
               &rho_star[index], &tau[index],
               &Stildex[index], &Stildey[index], &Stildez[index],
-              &dummy1, &dummy2);
+              &ent_star[index], &Ye_star[index]);
 
         //Now we compute the difference between original & new conservatives, for diagnostic purposes:
         error_int_numer += fabs(cons.tau - cons_orig.tau) + fabs(cons.rho - cons_orig.rho) + fabs(cons.SD[0] - cons_orig.SD[0])

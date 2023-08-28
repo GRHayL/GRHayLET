@@ -35,7 +35,7 @@ restricted:
 #########################################################
 
 # 1D test parameters
-KEYWORD test_1D_initial_data "Set initial data type for 1D tests"
+KEYWORD initial_data_1D "Set initial data type for 1D tests"
 {
   "equilibrium" :: "initial data for the equilibrium test"
   "sound wave" :: "initial data for the sound wave test"
@@ -47,7 +47,7 @@ KEYWORD test_1D_initial_data "Set initial data type for 1D tests"
   "Balsara5" :: "initial data for the Balsara5 test"
 } "Balsara1"
 
-KEYWORD test_shock_direction "Set direction for shock in test data"
+KEYWORD shock_direction "Set direction for shock in test data"
 {
   "x" :: "Test data will have discontinuities along x direction"
   "y" :: "Test data will have discontinuities along y direction"
@@ -59,7 +59,7 @@ CCTK_REAL discontinuity_position "Set location of the shock discontinuity"
   *:*
 } 0.0
 
-CCTK_REAL test_wave_amplitude "Wave amplitude for sound wave initial data"
+CCTK_REAL wave_amplitude "Wave amplitude for sound wave initial data"
 {
   0.0:* :: ""
 } 1.0e-3
@@ -129,6 +129,19 @@ CCTK_REAL ConstantDensitySphere_Y_e_exterior "Exterior electron fraction (dimens
 } -1
 
 CCTK_REAL ConstantDensitySphere_T_exterior "Exterior temperature in MeV"
+{
+  0:* :: "Non-negative values"
+  -1  :: "Forbidden value"
+} -1
+
+#########################################################
+
+# BetaEquilibrium parameters
+CCTK_BOOLEAN impose_beta_equilibrium "Impose beta-equilibrium on initial data"
+{
+} "no"
+
+CCTK_REAL beq_temperature "Temperature used to impose beta-equilibrium"
 {
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"

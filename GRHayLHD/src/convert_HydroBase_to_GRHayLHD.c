@@ -24,9 +24,6 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        rho_b[index] = rho[index];
-        pressure[index] = press[index];
-
         const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
         const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
         const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];

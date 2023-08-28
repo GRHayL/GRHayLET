@@ -9,8 +9,6 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     CCTK_VINFO("***** Iter. # %d, Lev: %d, Integrating to time: %e *****",cctk_iteration,levelnumber,cctk_delta_time/cctk_levfac[0]+cctk_time);
   }
 
-  const double poison = 0.0/0.0;
-
   const int imin = cctk_nghostzones[0];
   const int jmin = cctk_nghostzones[1];
   const int kmin = cctk_nghostzones[2];
@@ -45,10 +43,10 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
+              rho[index], press[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              poison, poison, poison, // entropy, Y_e, temp
+              entropy[index], Y_e[index], temperature[index],
               &prims);
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);

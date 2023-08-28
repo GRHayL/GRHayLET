@@ -82,13 +82,21 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         // A = 1.0-one_minus_one_over_alpha_u0_squared = 1-(1-1/(al u0)^2) = 1/(al u0)^2
         // 1/sqrt(A) = al u0
         const double alpha_u0 = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared);
-        if(isnan(alpha_u0*lapseL_inv)) printf("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
+        if(isnan(alpha_u0*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
 
         w_lorentz[index] = alpha_u0;
 
         Bvec[index4D0] = Bx_center[index];
         Bvec[index4D1] = By_center[index];
         Bvec[index4D2] = Bz_center[index];
+
+        if( ghl_eos->eos_type == ghl_eos_tabulated ) {
+          Y_e[index]         = Ye[index];
+          temperature[index] = temp[index];
+          ghl_tabulated_compute_eps_from_T(ghl_eos, rho[index], Y_e[index], temperature[index], &eps[index]);
+        }
+        if( ghl_params->evolve_entropy )
+          entropy[index] = ent[index];
       }
     }
   }

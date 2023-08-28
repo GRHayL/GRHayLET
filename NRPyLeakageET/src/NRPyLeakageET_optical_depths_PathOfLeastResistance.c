@@ -36,7 +36,7 @@ static void set_optical_depths_struct_from_gfs(
 
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_optical_depths_PathOfLeastResistance;
   DECLARE_CCTK_PARAMETERS;
 
   if(!NRPyLeakageET_ProcessOwnsData()) return;

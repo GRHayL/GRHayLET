@@ -4,8 +4,6 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
-  const double poison = 0.0/0.0;
-
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
@@ -28,10 +26,10 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
+              rho[index], press[index], eps[index],
               vx[index], vy[index], vz[index],
               0.0, 0.0, 0.0,
-              poison, poison, poison, &prims);
+              entropy[index], Y_e[index], temperature[index], &prims);
 
         prims.u0 = u0[index];
 

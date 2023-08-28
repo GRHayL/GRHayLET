@@ -6,7 +6,7 @@ STORAGE: ADMBase::shift[shift_timelevels]
 # This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
 STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 
-STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3] 
+STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, grmhd_flux_temps, failure_checker
@@ -98,13 +98,14 @@ schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_p
 } "Compute primitive variables from conservatives"
 
 if(Convert_to_HydroBase_every) {
-  SCHEDULE convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_conserv_to_prims
+  schedule convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_conserv_to_prims
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
     READS:  grmhd_primitives_allbutBi, grmhd_B_center
-    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+    WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+            HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere),
+            HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
   } "Convert GRHayLMHD-native variables to HydroBase"
 }
 
@@ -145,7 +146,7 @@ schedule GRHayLMHD_outer_boundaries_on_A_mu in GRHayLMHD_Con2Prim after GRHayLMH
   READS:  phitilde, Ax, Ay, Az
   WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
- 
+
 schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRHayLMHD_outer_boundaries_on_A_mu
 {
   LANG: C
@@ -235,6 +236,17 @@ schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_t
           grmhd_conservatives_rhs, EM_rhs
 } "Evaluate RHSs for GRMHD equations"
 
+if( CCTK_IsThornActive("NRPyLeakageET") ) {
+  schedule GRHayLMHD_convert_for_NRPyLeakage in GRHayLMHD_RHS after GRHayLMHD_evaluate_MHD_rhs
+  {
+    LANG: C
+    READS:  ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_primitives_allbutBi
+    WRITES: HydroBase::rho(everywhere), HydroBase::Y_e(everywhere),
+            HydroBase::temperature(everywhere), HydroBase::vel(everywhere)
+  } "Convert needed HydroBase variables for NRPyLeakage"
+}
+
 schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHayLMHD_evaluate_MHD_rhs
 {
   LANG: C
@@ -248,7 +260,7 @@ schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHa
 #########################################################
 
 if(Convert_to_HydroBase_every) {
-  SCHEDULE convert_GRHayLMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
+  schedule convert_GRHayLMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL

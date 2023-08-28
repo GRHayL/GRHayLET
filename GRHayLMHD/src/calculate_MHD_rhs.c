@@ -1,11 +1,21 @@
 #include "GRHayLMHD.h"
 
-CCTK_REAL eos_Gamma_eff(const CCTK_REAL rho_in, const CCTK_REAL press_in) {
-  CCTK_REAL K, Gamma;
+static inline double get_Gamma_eff_hybrid(
+      const double rho_in,
+      const double press_in) {
+  double K, Gamma;
   ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
-  const CCTK_REAL P_cold = K*pow(rho_in, Gamma);
+  const double P_cold = K*pow(rho_in, Gamma);
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
+
+static inline double get_Gamma_eff_tabulated(
+      const double rho_in,
+      const double press_in) {
+  return 1.0;
+}
+
+static double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
 
 void reconstruct_v_edges(
       const cGH *restrict cctkGH,
@@ -43,6 +53,9 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       const CCTK_REAL *restrict gzz,
       const CCTK_REAL *restrict rho_b,
       const CCTK_REAL *restrict pressure,
+      const CCTK_REAL *restrict ent,
+      const CCTK_REAL *restrict Ye,
+      const CCTK_REAL *restrict temp,
       const CCTK_REAL *vx,
       const CCTK_REAL *vy,
       const CCTK_REAL *vz,
@@ -57,35 +70,95 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       CCTK_REAL *restrict Stildex_flux,
       CCTK_REAL *restrict Stildey_flux,
       CCTK_REAL *restrict Stildez_flux,
+      CCTK_REAL *restrict ent_star_flux,
+      CCTK_REAL *restrict Ye_star_flux,
       CCTK_REAL *restrict rho_star_rhs,
       CCTK_REAL *restrict tau_rhs,
       CCTK_REAL *restrict Stildex_rhs,
       CCTK_REAL *restrict Stildey_rhs,
-      CCTK_REAL *restrict Stildez_rhs) {
+      CCTK_REAL *restrict Stildez_rhs,
+      CCTK_REAL *restrict ent_star_rhs,
+      CCTK_REAL *restrict Ye_star_rhs) {
 
   const CCTK_REAL dxi = 1.0/dX[flux_dir];
   const CCTK_REAL poison = 0.0/0.0;
 
+  const int imin = cctkGH->cctk_nghostzones[0];
+  const int jmin = cctkGH->cctk_nghostzones[1];
+  const int kmin = cctkGH->cctk_nghostzones[2];
+  const int imax = cctkGH->cctk_lsh[0] - cctkGH->cctk_nghostzones[0];
+  const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
+  const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
+
   // Function pointer to allow for loop over fluxes and sources
-  void (*calculate_characteristic_speed)(const ghl_primitive_quantities *restrict prims_r,
-                                         const ghl_primitive_quantities *restrict prims_l,
+  void (*calculate_characteristic_speed)(ghl_primitive_quantities *restrict prims_r,
+                                         ghl_primitive_quantities *restrict prims_l,
                                          const ghl_eos_parameters *restrict eos,
                                          const ghl_metric_quantities *restrict ADM_metric_face,
-                                         CCTK_REAL *cmin, CCTK_REAL *cmax);
+                                         double *cmin, double *cmax);
 
-  void (*calculate_HLLE_fluxes)(const ghl_primitive_quantities *restrict prims_r,
-                                const ghl_primitive_quantities *restrict prims_l,
-                                const ghl_eos_parameters *restrict eos,
-                                const ghl_metric_quantities *restrict ADM_metric_face,
-                                const CCTK_REAL cmin,
-                                const CCTK_REAL cmax,
-                                ghl_conservative_quantities *restrict cons_fluxes);
-
-  void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
+  void (*calculate_source_terms)(ghl_primitive_quantities *restrict prims,
                                  const ghl_eos_parameters *restrict eos,
                                  const ghl_metric_quantities *restrict ADM_metric,
                                  const ghl_metric_quantities *restrict metric_derivs,
                                  ghl_conservative_quantities *restrict cons_sources);
+
+  void (*calculate_HLLE_fluxes)(ghl_primitive_quantities *restrict prims_r,
+                                ghl_primitive_quantities *restrict prims_l,
+                                const ghl_eos_parameters *restrict eos,
+                                const ghl_metric_quantities *restrict ADM_metric_face,
+                                const double cmin,
+                                const double cmax,
+                                ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn0)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn1)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  void (*calculate_HLLE_fluxes_dirn2)(ghl_primitive_quantities *restrict prims_r,
+                                      ghl_primitive_quantities *restrict prims_l,
+                                      const ghl_eos_parameters *restrict eos,
+                                      const ghl_metric_quantities *restrict ADM_metric_face,
+                                      const double cmin,
+                                      const double cmax,
+                                      ghl_conservative_quantities *restrict cons_fluxes);
+
+  if( ghl_eos->eos_type == ghl_eos_hybrid ) {
+    if( ghl_params->evolve_entropy ) {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy;
+    }
+    else {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_hybrid;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_hybrid;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_hybrid;
+    }
+  }
+  else {
+    if( ghl_params->evolve_entropy ) {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
+    }
+    else {
+      calculate_HLLE_fluxes_dirn0 = &ghl_calculate_HLLE_fluxes_dirn0_tabulated;
+      calculate_HLLE_fluxes_dirn1 = &ghl_calculate_HLLE_fluxes_dirn1_tabulated;
+      calculate_HLLE_fluxes_dirn2 = &ghl_calculate_HLLE_fluxes_dirn2_tabulated;
+    }
+  }
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
@@ -101,7 +174,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 1;
       B_recon[2] = 2;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn0;
+      calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn0;
       calculate_source_terms = &ghl_calculate_source_terms_dirn0;
       break;
     case 1:
@@ -110,7 +183,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 2;
       B_recon[2] = 0;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn1;
+      calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn1;
       calculate_source_terms = &ghl_calculate_source_terms_dirn1;
       break;
     case 2:
@@ -119,19 +192,26 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[1] = 0;
       B_recon[2] = 1;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
-      calculate_HLLE_fluxes = &ghl_calculate_HLLE_fluxes_dirn2;
+      calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn2;
       calculate_source_terms = &ghl_calculate_source_terms_dirn2;
       break;
     default:
-      CCTK_VERROR("Warning: invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
+      CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
   }
 
-  const int imin = cctkGH->cctk_nghostzones[0];
-  const int jmin = cctkGH->cctk_nghostzones[1];
-  const int kmin = cctkGH->cctk_nghostzones[2];
-  const int imax = cctkGH->cctk_lsh[0] - cctkGH->cctk_nghostzones[0];
-  const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
-  const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
+  // Count number of additional reconstructed variables
+  const int num_others = 5 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
+
+  // If using the entropy, it should be the first reconstructed variable
+  // after the three velocities
+  const int ent_index = 5 + !ghl_params->evolve_entropy;
+
+  // If not using the entropy, then Ye should be the first reconstructed
+  // variable after the three velocities
+  const int Ye_index = 6 - !ghl_params->evolve_entropy;
+
+  if( ghl_eos->eos_type == ghl_eos_tabulated )
+    get_Gamma_eff = &get_Gamma_eff_tabulated;
 
 #pragma omp parallel for
   for(int k=0; k<cctkGH->cctk_lsh[2]; k++) {
@@ -160,42 +240,44 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
         CCTK_REAL rhor, rhol, pressr, pressl, B_r[3], B_l[3];
-        CCTK_REAL var_data[5][6], vars_r[5], vars_l[5];
+        CCTK_REAL others_stencil[7][6], others_r[7], others_l[7];
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
-          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux_dir[ind] = v_flux[stencil]; // Could be smaller; doesn't use full stencil
-          rho_stencil[ind] = rho_b[stencil];
-          press_stencil[ind] = pressure[stencil];
-          var_data[0][ind] = vx[stencil];
-          var_data[1][ind] = vy[stencil];
-          var_data[2][ind] = vz[stencil];
-          var_data[3][ind] = B_center[B_recon[1]][stencil];
-          var_data[4][ind] = B_center[B_recon[2]][stencil];
+          const int stencil              = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
+          v_flux_dir[ind]                = v_flux[stencil]; // Could be smaller; doesn't use full stencil
+          rho_stencil[ind]               = rho_b[stencil];
+          press_stencil[ind]             = pressure[stencil];
+          others_stencil[0][ind]         = vx[stencil];
+          others_stencil[1][ind]         = vy[stencil];
+          others_stencil[2][ind]         = vz[stencil];
+          others_stencil[3][ind]         = B_center[B_recon[1]][stencil];
+          others_stencil[4][ind]         = B_center[B_recon[2]][stencil];
+          others_stencil[ent_index][ind] = ent[stencil];
+          others_stencil[Ye_index ][ind] = Ye[stencil];
         }
 
         // Compute Gamma
-        const CCTK_REAL Gamma = eos_Gamma_eff(rho_b[index], pressure[index]);
+        const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm(
-              rho_stencil, press_stencil, var_data,
-              5, v_flux_dir, Gamma,
-              &rhor, &rhol, &pressr, &pressl, vars_r, vars_l);
+              rho_stencil, press_stencil, others_stencil,
+              num_others, v_flux_dir, Gamma,
+              &rhor, &rhol, &pressr, &pressl, others_r, others_l);
 
-        vel_r[0][index] = vars_r[0];
-        vel_r[1][index] = vars_r[1];
-        vel_r[2][index] = vars_r[2];
+        vel_r[0][index] = others_r[0];
+        vel_r[1][index] = others_r[1];
+        vel_r[2][index] = others_r[2];
 
-        vel_l[0][index] = vars_l[0];
-        vel_l[1][index] = vars_l[1];
-        vel_l[2][index] = vars_l[2];
+        vel_l[0][index] = others_l[0];
+        vel_l[1][index] = others_l[1];
+        vel_l[2][index] = others_l[2];
 
-        B_r[B_recon[1]] = vars_r[3];
-        B_r[B_recon[2]] = vars_r[4];
+        B_r[B_recon[1]] = others_r[3];
+        B_r[B_recon[2]] = others_r[4];
 
-        B_l[B_recon[1]] = vars_l[3];
-        B_l[B_recon[2]] = vars_l[4];
+        B_l[B_recon[1]] = others_l[3];
+        B_l[B_recon[2]] = others_l[4];
 
         ghl_metric_quantities ADM_metric_face;
         GRHayLMHD_interpolate_metric_to_face(
@@ -215,14 +297,14 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               rhor, pressr, poison,
               vel_r[0][index], vel_r[1][index], vel_r[2][index],
               B_r[0], B_r[1], B_r[2],
-              poison, poison, poison, // entropy, Y_e, temp
+              others_r[ent_index], others_r[Ye_index], ghl_eos->T_max,
               &prims_r);
 
         ghl_initialize_primitives(
               rhol, pressl, poison,
               vel_l[0][index], vel_l[1][index], vel_l[2][index],
               B_l[0], B_l[1], B_l[2],
-              poison, poison, poison, // entropy, Y_e, temp
+              others_l[ent_index], others_l[Ye_index], ghl_eos->T_max,
               &prims_l);
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
@@ -233,10 +315,12 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin[index], cmax[index], &cons_fluxes);
 
         rho_star_flux[index] = cons_fluxes.rho;
-        tau_flux[index]      = cons_fluxes.tau;
-        Stildex_flux[index]  = cons_fluxes.SD[0];
-        Stildey_flux[index]  = cons_fluxes.SD[1];
-        Stildez_flux[index]  = cons_fluxes.SD[2];
+        tau_flux     [index] = cons_fluxes.tau;
+        Stildex_flux [index] = cons_fluxes.SD[0];
+        Stildey_flux [index] = cons_fluxes.SD[1];
+        Stildez_flux [index] = cons_fluxes.SD[2];
+        ent_star_flux[index] = cons_fluxes.entropy;
+        Ye_star_flux [index] = cons_fluxes.Y_e;
       }
     }
   }
@@ -372,10 +456,12 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
         rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-        tau_rhs[index]      += dxi*(tau_flux[index]      - tau_flux[indp1]);
-        Stildex_rhs[index]  += dxi*(Stildex_flux[index]  - Stildex_flux[indp1]);
-        Stildey_rhs[index]  += dxi*(Stildey_flux[index]  - Stildey_flux[indp1]);
-        Stildez_rhs[index]  += dxi*(Stildez_flux[index]  - Stildez_flux[indp1]);
+        tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+        Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+        Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+        Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+        ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
+        Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
@@ -390,7 +476,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               rho_b[index], pressure[index], poison,
               vx[index], vy[index], vz[index],
               B_center[0][index], B_center[1][index], B_center[2][index],
-              poison, poison, poison, // entropy, Y_e, temp
+              ent[index], Ye[index], temp[index],
               &prims);
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(
@@ -463,7 +549,7 @@ void reconstruct_v_edges(
         }
 
         // Compute Gamma
-        const CCTK_REAL Gamma = eos_Gamma_eff(rho_b[index], pressure[index]);
+        const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm_no_rho_P(
               press_stencil, var_data,

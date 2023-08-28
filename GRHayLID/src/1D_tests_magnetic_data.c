@@ -10,41 +10,41 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 
   double Bx_l, By_l, Bz_l;
   double Bx_r, By_r, Bz_r;
-  if(CCTK_EQUALS(test_1D_initial_data,"Balsara1")) {
+  if(CCTK_EQUALS(initial_data_1D,"Balsara1")) {
     Bx_l = Bx_r = 0.5;
     By_l = 1.0;
     By_r = -1.0;
     Bz_l = Bz_r = 0.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara2")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara2")) {
     Bx_l = Bx_r = 5.0;
     By_l = Bz_l = 6.0;
     By_r = Bz_r = 0.7;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara3")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara3")) {
     Bx_l = Bx_r = 10.0;
     By_l = Bz_l = 7.0;
     By_r = Bz_r = 0.7;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara4")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara4")) {
     Bx_l = Bx_r = 10.0;
     By_l = Bz_l = 7.0;
     By_r = Bz_r = -7.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara5")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara5")) {
     Bx_l = Bx_r = 2.0;
     By_l = Bz_l = 0.3;
     By_r = -0.7;
     Bz_r = 0.5;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"equilibrium")
-         || CCTK_EQUALS(test_1D_initial_data,"sound wave")
-         || CCTK_EQUALS(test_1D_initial_data,"shock tube")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"equilibrium")
+         || CCTK_EQUALS(initial_data_1D,"sound wave")
+         || CCTK_EQUALS(initial_data_1D,"shock tube")) {
     Bx_l = By_l = Bz_l = 0.0;
     Bx_r = By_r = Bz_r = 0.0;
   } else {
-    CCTK_VERROR("Parameter test_1D_initial_data is not set "
+    CCTK_VERROR("Parameter initial_data_1D is not set "
                 "to a valid test name. Something has gone wrong.");
   }
 
   //Above data assumes that the shock is in the x direction; we just have to rotate
   //the data for it to work in other directions.
-  if(CCTK_EQUALS(test_shock_direction, "y")) {
+  if(CCTK_EQUALS(shock_direction, "y")) {
     //x-->y, y-->z, z-->x
     double Bxtmp, Bytmp, Bztmp;
     Bxtmp = Bx_l; Bytmp = By_l; Bztmp = Bz_l;
@@ -52,7 +52,7 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 
     Bxtmp = Bx_r; Bytmp = By_r; Bztmp = Bz_r;
     By_r = Bxtmp; Bz_r = Bytmp; Bx_r = Bztmp;
-  } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+  } else if(CCTK_EQUALS(shock_direction, "z")) {
     //x-->z, y-->x, z-->y
     double Bxtmp, Bytmp, Bztmp;
     Bxtmp = Bx_l; Bytmp = By_l; Bztmp = Bz_l;
@@ -73,7 +73,7 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
         const int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
-        if(CCTK_EQUALS(test_shock_direction, "x")) {
+        if(CCTK_EQUALS(shock_direction, "x")) {
           const double y_stag = y[index] + dx[1];
           const double z_stag = z[index] + dx[2];
           if(x[index] <= discontinuity_position) {
@@ -84,7 +84,7 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
           Avec[ind4y] = 0.0;
           Avec[ind4z] = Bx_r * y_stag;
 
-        } else if(CCTK_EQUALS(test_shock_direction, "y")) {
+        } else if(CCTK_EQUALS(shock_direction, "y")) {
           const double x_stag = x[index] + dx[0];
           const double z_stag = z[index] + dx[2];
           if(y[index] <= discontinuity_position) {
@@ -95,7 +95,7 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
           Avec[ind4x] = By_r * z_stag;
           Avec[ind4z] = 0.0;
 
-        } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+        } else if(CCTK_EQUALS(shock_direction, "z")) {
           const double x_stag = x[index] + dx[0];
           const double y_stag = y[index] + dx[1];
           if(z[index] <= discontinuity_position) {
@@ -109,5 +109,5 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
       }
     }
   }
-  CCTK_VINFO("Finished writing magnetic ID for %s test", test_1D_initial_data);
+  CCTK_VINFO("Finished writing magnetic ID for %s test", initial_data_1D);
 }
