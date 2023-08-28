@@ -31,9 +31,19 @@ schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
 
+# Runs everywhere. Shouldn't need to sync
+schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
+{
+  LANG: C
+  READS:  ADMBase::lapse, ADMBase::shift
+  READS:  HydroBase::vel
+  WRITES: grmhd_velocities(everywhere)
+  SYNC: grmhd_velocities
+} "Convert HydroBase initial data (ID) to GRHayLHD variables"
 
+# Runs everywhere. Shouldn't need to sync
 if(perturb_initial_data) {
-  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim before convert_HydroBase_to_GRHayLHD
+  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD before GRHayLHD_prims_to_conservs
   {
     LANG: C
     READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
@@ -48,15 +58,7 @@ if(perturb_initial_data) {
   } "perturb initial primitive data"
 }
 
-schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
-{
-  LANG: C
-  READS:  ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::vel
-  WRITES: grmhd_velocities(everywhere)
-  SYNC: grmhd_velocities
-} "Convert HydroBase initial data (ID) to GRHayLHD variables and enforce simulation limits on primitives"
-
+# Runs everywhere. Shouldn't need to sync
 schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
@@ -100,6 +102,7 @@ schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 {
 } "Compute primitive variables from conservatives"
 
+# Does MoL sync evolved variables after each substep? If so, no need for this
 schedule GRHayLHD_empty_function in GRHayLHD_Con2Prim as GRHayLHD_sync_conservatives
 {
   LANG: C
@@ -129,6 +132,7 @@ schedule GRHayLHD_conservs_to_prims in GRHayLHD_Con2Prim after GRHayLHD_sync_con
           grmhd_velocities(everywhere)
 } "Compute primitive variables from conservatives"
 
+# Runs everywhere. Shouldn't need to sync
 schedule GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
 {
   LANG: C
@@ -194,6 +198,16 @@ schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evalua
   READS:  grmhd_conservatives_rhs(interior)
   WRITES: grmhd_flux_temps, grmhd_conservatives_rhs
 } "Evaluate RHSs of GRHD equations"
+
+if( CCTK_IsThornActive("NRPyLeakageET") ) {
+  schedule GRHayLHD_convert_for_NRPyLeakage in GRHayLHD_RHS after GRHayLHD_evaluate_flux_source_rhs
+  {
+    LANG: C
+    READS:  ADMBase::lapse, ADMBase::shift
+    READS:  grmhd_velocities
+    WRITES: HydroBase::vel(everywhere)
+  } "Convert needed HydroBase variables for NRPyLeakage"
+}
 
 #########################################################
 # Set HydroBase variables for analysis

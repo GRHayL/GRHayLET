@@ -4,6 +4,7 @@
 SRCS = compute_metric_derivs.c         \
        compute_Tmunu.c                 \
        conservs_to_prims.c             \
+       convert_for_NRPyLeakage.c       \
        convert_HydroBase_to_GRHayLHD.c \
        convert_GRHayLHD_to_HydroBase.c \
        enforce_detgtij_eq_1.c          \
