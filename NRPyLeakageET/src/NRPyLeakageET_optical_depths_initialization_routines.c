@@ -110,9 +110,10 @@ void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCT
 
 void NRPyLeakageET_copy_optical_depths_from_previous_time_level(CCTK_ARGUMENTS) {
 
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_copy_optical_depths_from_previous_time_level;
   DECLARE_CCTK_PARAMETERS;
-    // Step 1: Copy optical depths from the previous time level to the current time level
+
+  // Step 1: Copy optical depths from the previous time level to the current time level
 #pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) {
     for(int j=0;j<cctk_lsh[1];j++) {
@@ -120,7 +121,7 @@ void NRPyLeakageET_copy_optical_depths_from_previous_time_level(CCTK_ARGUMENTS) 
         // Step 1.a: Set gridpoint index
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        // Step 1.d: Copy optical depths
+        // Step 1.: Copy optical depths
         tau_0_nue [index] = tau_0_nue_p [index];
         tau_1_nue [index] = tau_1_nue_p [index];
         tau_0_anue[index] = tau_0_anue_p[index];
