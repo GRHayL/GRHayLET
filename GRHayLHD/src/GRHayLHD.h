@@ -21,11 +21,6 @@
 #define B_in  2.0/3.0
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
-#define FLUX_DERIV2(Varm1,Varp1) (Varm1 - Varp1)
-#define C_out 1.0/24.0
-#define C_in  27.0/24.0
-#define FLUX_DERIV4(Varm2,Varm1,Varp1,Varp2) (C_in*(Varm1 - Varp1) + C_out*(Varp2 - Varm2))
-
 void GRHayLHD_interpolate_metric_to_face(
       const cGH *cctkGH,
       const int i, const int j, const int k,

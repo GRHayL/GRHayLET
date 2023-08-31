@@ -48,21 +48,37 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
   }
 
   // Diagnostic variables.
-  int failures=0;
-  int vel_limited_ptcount=0;
-  int rho_star_fix_applied=0;
-  int pointcount=0;
-  int failures_inhoriz=0;
-  int pointcount_inhoriz=0;
-  int backup0=0;
-  int backup1=0;
-  int backup2=0;
-  double error_int_numer=0;
-  double error_int_denom=0;
-  int n_iter=0;
+  int failures = 0;
+  int vel_limited_ptcount = 0;
+  int rho_star_fix_applied = 0;
+  int pointcount = 0;
+  int failures_inhoriz = 0;
+  int pointcount_inhoriz = 0;
+  int backup0 = 0;
+  int backup1 = 0;
+  int backup2 = 0;
+  double error_rho_numer = 0;
+  double error_tau_numer = 0;
+  double error_Sx_numer = 0;
+  double error_Sy_numer = 0;
+  double error_Sz_numer = 0;
+  double error_entropy_numer = 0;
+  double error_Ye_numer = 0;
+
+  double error_rho_denom = 0;
+  double error_tau_denom = 0;
+  double error_Sx_denom = 0;
+  double error_Sy_denom = 0;
+  double error_Sz_denom = 0;
+  double error_entropy_denom = 0;
+  double error_Ye_denom = 0;
+  int n_iter = 0;
   double dummy1, dummy2, dummy3;
 
-#pragma omp parallel for reduction(+:failures,vel_limited_ptcount,rho_star_fix_applied,pointcount,failures_inhoriz,pointcount_inhoriz,backup0,backup1,backup2,error_int_numer,error_int_denom,n_iter) schedule(static)
+#pragma omp parallel for reduction(+: \
+      pointcount, backup0, backup1, backup2, vel_limited_ptcount, rho_star_fix_applied, failures, failures_inhoriz, pointcount_inhoriz, n_iter, \
+      error_rho_numer, error_tau_numer, error_Sx_numer, error_Sy_numer, error_Sz_numer, error_entropy_numer, error_Ye_numer,                    \
+      error_rho_denom, error_tau_denom, error_Sx_denom, error_Sy_denom, error_Sz_denom, error_entropy_denom, error_Ye_denom) schedule(static)
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
@@ -142,7 +158,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
                           "Input variables:\n"
                           "lapse, shift = %e %e %e %e\n"
                           "gij = %e %e %e %e %e %e\n"
-                          "rho_*, ~tau, ~S_{i}: %e %e %e %e %e\n"
+                          "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
                           "Undensitized conserved variables:\n"
                           "D, tau, S_{i}: %e %e %e %e %e\n"
                           "Output primitive variables:\n"
@@ -152,7 +168,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
                           diagnostics.which_routine, ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                           ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
                           cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
                           prims.rho, prims.press,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
@@ -171,8 +187,10 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
             }
             CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
             CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
+                       "~DS = %e, ~DY_e = %e\n"
                        "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
                        cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
+                       cons.entropy, cons.Y_e,
                        ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                        ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                        ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
@@ -208,9 +226,20 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
               &ent_star[index], &Ye_star[index]);
 
         //Now we compute the difference between original & new conservatives, for diagnostic purposes:
-        error_int_numer += fabs(cons.tau - cons_orig.tau) + fabs(cons.rho - cons_orig.rho) + fabs(cons.SD[0] - cons_orig.SD[0])
-                         + fabs(cons.SD[1] - cons_orig.SD[1]) + fabs(cons.SD[2] - cons_orig.SD[2]);
-        error_int_denom += cons_orig.tau + cons_orig.rho + fabs(cons_orig.SD[0]) + fabs(cons_orig.SD[1]) + fabs(cons_orig.SD[2]);
+        error_rho_numer += fabs(cons.rho - cons_orig.rho);
+        error_tau_numer += fabs(cons.tau - cons_orig.tau);
+        error_Sx_numer  += fabs(cons.SD[0] - cons_orig.SD[0]);
+        error_Sy_numer  += fabs(cons.SD[1] - cons_orig.SD[1]);
+        error_Sz_numer  += fabs(cons.SD[2] - cons_orig.SD[2]);
+        error_entropy_numer  += fabs(cons.entropy - cons_orig.entropy);
+        error_Ye_numer  += fabs(cons.Y_e - cons_orig.Y_e);
+        error_rho_denom += cons_orig.tau;
+        error_tau_denom += cons_orig.rho;
+        error_Sx_denom  += fabs(cons_orig.SD[0]);
+        error_Sy_denom  += fabs(cons_orig.SD[1]);
+        error_Sz_denom  += fabs(cons_orig.SD[2]);
+        error_entropy_denom  += cons_orig.entropy;
+        error_Ye_denom  += cons_orig.Y_e;
 
         pointcount++;
         if(diagnostics.speed_limited) {
@@ -229,6 +258,13 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
     }
   }
 
+  const double rho_error     = (error_rho_denom==0) ?     error_rho_numer :     error_rho_numer/error_rho_denom;
+  const double tau_error     = (error_tau_denom==0) ?     error_tau_numer :     error_tau_numer/error_tau_denom;
+  const double Sx_error      = (error_Sx_denom==0) ?      error_Sx_numer :      error_Sx_numer/error_Sx_denom;
+  const double Sy_error      = (error_Sy_denom==0) ?      error_Sy_numer :      error_Sy_numer/error_Sy_denom;
+  const double Sz_error      = (error_Sz_denom==0) ?      error_Sz_numer :      error_Sz_numer/error_Sz_denom;
+  const double entropy_error = (error_entropy_denom==0) ? error_entropy_numer : error_entropy_numer/error_entropy_denom;
+  const double Ye_error      = (error_Ye_denom==0) ?      error_Ye_numer :      error_Ye_numer/error_Ye_denom;
   /*
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
@@ -238,12 +274,70 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
      10k: tau~ was reset in ghl_apply_conservative_limits
     100k: S~ was reset in ghl_apply_conservative_limits
   */
-  if(CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    CCTK_VINFO("C2P: Lev: %d NumPts= %d | Fixes: Font= %d VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | Error: %.3e, ErrDenom: %.3e | %.2f iters/gridpt",
-               (int)GetRefinementLevel(cctkGH), pointcount,
-               backup0, vel_limited_ptcount, rho_star_fix_applied,
-               failures, failures_inhoriz, pointcount_inhoriz,
-               error_int_numer/error_int_denom, error_int_denom,
-               (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ));
+  if(CCTK_Equals(verbose, "yes")) {
+    if(ghl_eos->eos_type == ghl_eos_hybrid) {
+      if(ghl_params->evolve_entropy) {
+        CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+                   "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e\n"
+                   "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
+                   cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,
+                   backup0, backup1, backup2,
+                   vel_limited_ptcount, rho_star_fix_applied,
+                   failures, failures_inhoriz, pointcount_inhoriz,
+                   (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+                   rho_error, error_rho_denom,
+                   tau_error, error_tau_denom,
+                   entropy_error, error_entropy_denom,
+                   Sx_error, error_Sx_denom,
+                   Sy_error, error_Sy_denom,
+                   Sz_error, error_Sz_denom);
+      } else {
+        CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+                   "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
+                   cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,
+                   backup0, backup1, backup2,
+                   vel_limited_ptcount, rho_star_fix_applied,
+                   failures, failures_inhoriz, pointcount_inhoriz,
+                   (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+                   rho_error, error_rho_denom,
+                   tau_error, error_tau_denom,
+                   Sx_error, error_Sx_denom,
+                   Sy_error, error_Sy_denom,
+                   Sz_error, error_Sz_denom);
+      }
+    } else if( ghl_eos->eos_type == ghl_eos_tabulated ) {
+      if(ghl_params->evolve_entropy) {
+        CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+                   "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e | Y_e %.3e, %.3e\n"
+                   "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
+                   cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,
+                   backup0, backup1, backup2,
+                   vel_limited_ptcount, rho_star_fix_applied,
+                   failures, failures_inhoriz, pointcount_inhoriz,
+                   (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+                   rho_error, error_rho_denom,
+                   tau_error, error_tau_denom,
+                   entropy_error, error_entropy_denom,
+                   Ye_error, error_Ye_denom,
+                   Sx_error, error_Sx_denom,
+                   Sy_error, error_Sy_denom,
+                   Sz_error, error_Sz_denom);
+      } else {
+        CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+                   "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | Y_e %.3e, %.3e\n"
+                   "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
+                   cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,
+                   backup0, backup1, backup2,
+                   vel_limited_ptcount, rho_star_fix_applied,
+                   failures, failures_inhoriz, pointcount_inhoriz,
+                   (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+                   rho_error, error_rho_denom,
+                   tau_error, error_tau_denom,
+                   Ye_error, error_Ye_denom,
+                   Sx_error, error_Sx_denom,
+                   Sy_error, error_Sy_denom,
+                   Sz_error, error_Sz_denom);
+      }
+    }
   }
 }
