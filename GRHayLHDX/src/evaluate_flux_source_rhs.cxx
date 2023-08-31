@@ -10,7 +10,6 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_flux_source_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  const CCTK_REAL poison = 0.0/0.0;
   const Loop::GF3D2layout ccc_layout(cctkGH, {1, 1, 1});
 
   constexpr std::array<int, Loop::dim> facetype = {flux_dir!=0, flux_dir!=1, flux_dir!=2};
@@ -19,11 +18,12 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
   // These nested condtional ternary operators let us tell the compiler that
   // these pointers can be set at compiler time while making the templated functions
   // instead of using a switch statement at runtime.
-  constexpr void (*calculate_source_terms)(const ghl_primitive_quantities *restrict prims,
-                                 const ghl_eos_parameters *restrict eos,
-                                 const ghl_metric_quantities *restrict ADM_metric,
-                                 const ghl_metric_quantities *restrict metric_derivs,
-                                 ghl_conservative_quantities *restrict cons_sources)
+  constexpr void (*calculate_source_terms)(
+        ghl_primitive_quantities *restrict prims,
+        const ghl_eos_parameters *restrict eos,
+        const ghl_metric_quantities *restrict ADM_metric,
+        const ghl_metric_quantities *restrict metric_derivs,
+        ghl_conservative_quantities *restrict cons_sources)
     = flux_dir==0 ? &ghl_calculate_source_terms_dirn0 :
       flux_dir==1 ? &ghl_calculate_source_terms_dirn1 :
                     &ghl_calculate_source_terms_dirn2 ;
@@ -58,10 +58,12 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
     const Loop::GF3D2index ind_flp1(flux_layout, p.I + p.DI[flux_dir]);
 
     rho_star_rhs(index) += dxi*(rho_star_flux(ind_flux) - rho_star_flux(ind_flp1));
-    tau_rhs(index)      += dxi*(tau_flux(ind_flux) - tau_flux(ind_flp1));
-    Stildex_rhs(index)  += dxi*(Sx_flux(ind_flux)  - Sx_flux(ind_flp1));
-    Stildey_rhs(index)  += dxi*(Sy_flux(ind_flux)  - Sy_flux(ind_flp1));
-    Stildez_rhs(index)  += dxi*(Sz_flux(ind_flux)  - Sz_flux(ind_flp1));
+    tau_rhs(index)      += dxi*(tau_flux(ind_flux)      - tau_flux(ind_flp1));
+    Stildex_rhs(index)  += dxi*(Sx_flux(ind_flux)       - Sx_flux(ind_flp1));
+    Stildey_rhs(index)  += dxi*(Sy_flux(ind_flux)       - Sy_flux(ind_flp1));
+    Stildez_rhs(index)  += dxi*(Sz_flux(ind_flux)       - Sz_flux(ind_flp1));
+    ent_star_rhs[index] += dxi*(ent_star_flux[index]    - ent_star_flux[indp1]);
+    Ye_star_rhs [index] += dxi*(Ye_star_flux [index]    - Ye_star_flux [indp1]);
 
     ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(ccc_lapse(index),
@@ -72,10 +74,10 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
 
     ghl_primitive_quantities prims;
     ghl_initialize_primitives(
-          rho_b(index), pressure(index), eps(index),
+          rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          poison, poison, poison, // entropy, Y_e, temp
+          entropy[index], Y_e[index], temperature[index],
           &prims);
 
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);

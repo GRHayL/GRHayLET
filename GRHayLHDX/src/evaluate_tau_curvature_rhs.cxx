@@ -4,8 +4,6 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_tau_curvature_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  const CCTK_REAL poison = 0.0/0.0;
-
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   grid.loop_int_device<1, 1, 1>(
@@ -14,7 +12,6 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     const Loop::GF3D2index index(layout, p.I);
 
     rho_star_rhs(index) = 0.0;
-    tau_rhs(index)      = 0.0;
     Stildex_rhs(index)  = 0.0;
     Stildey_rhs(index)  = 0.0;
     Stildez_rhs(index)  = 0.0;
@@ -34,10 +31,10 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
     ghl_primitive_quantities prims;
     ghl_initialize_primitives(
-          rho_b(index), pressure(index), eps(index),
+          rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          poison, poison, poison, // entropy, Y_e, temp
+          entropy[index], Y_e[index], temperature[index],
           &prims);
 
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);
@@ -45,6 +42,6 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
     ghl_conservative_quantities cons_source;
     cons_source.tau = 0;
     ghl_calculate_tau_tilde_source_term_extrinsic_curv(&prims, ghl_eos, &ADM_metric, &curv, &cons_source);
-    tau_rhs(index) += cons_source.tau;
+    tau_rhs(index) = cons_source.tau;
   }); // ccc loop interior
 }
