@@ -39,6 +39,15 @@ EXTENDS KEYWORD initial_Bvec
 restricted:
 #########################################################
 
+CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initialized"
+{
+} "yes"
+
+CCTK_BOOLEAN stagger_A_fields "Sets whether Avec is staggered to +1/2 (following IllinoisGRMHD convention)"
+{
+} "yes"
+
+
 # 1D test parameters
 KEYWORD initial_data_1D "Set initial data type for 1D tests"
 {
@@ -68,10 +77,6 @@ CCTK_REAL wave_amplitude "Wave amplitude for sound wave initial data"
 {
   0.0:* :: ""
 } 1.0e-3
-
-CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initialized"
-{
-} "yes"
 
 #########################################################
 

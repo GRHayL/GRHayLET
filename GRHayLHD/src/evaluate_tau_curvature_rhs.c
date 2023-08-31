@@ -4,11 +4,6 @@ void GRHayLHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_evaluate_tau_curvature_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  if(CCTK_Equals(verbose, "essential+iteration output")) {
-    const int levelnumber = GetRefinementLevel(cctkGH);
-    CCTK_VINFO("***** Iter. # %d, Lev: %d, Integrating to time: %e *****",cctk_iteration,levelnumber,cctk_delta_time/cctk_levfac[0]+cctk_time);
-  }
-
   const int imin = cctk_nghostzones[0];
   const int jmin = cctk_nghostzones[1];
   const int kmin = cctk_nghostzones[2];

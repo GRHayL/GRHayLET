@@ -80,13 +80,27 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
           step = z[index];
         }
 
-        const double x_stag = x[index] + dx[0];
-        const double y_stag = y[index] + dx[1];
-        const double z_stag = z[index] + dx[2];
         if(step <= discontinuity_position) {
           Bvec[ind4x] = Bx_l;
           Bvec[ind4y] = By_l;
           Bvec[ind4z] = Bz_l;
+        } else {
+          Bvec[ind4x] = Bx_r;
+          Bvec[ind4y] = By_r;
+          Bvec[ind4z] = Bz_r;
+        }
+        const double x_stag = x[index] + stagger_A_fields*dx[0];
+        const double y_stag = y[index] + stagger_A_fields*dx[1];
+        const double z_stag = z[index] + stagger_A_fields*dx[2];
+
+        step = x_stag;
+        if(CCTK_EQUALS(shock_direction, "y")) {
+          step = y_stag;
+        } else if(CCTK_EQUALS(shock_direction, "z")) {
+          step = z_stag;
+        }
+
+        if(step <= discontinuity_position) {
           if(CCTK_EQUALS(shock_direction, "x")) {
             Avec[ind4x] = By_l * z_stag - Bz_l * y_stag;
             Avec[ind4y] = 0.0;
@@ -101,9 +115,6 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
             Avec[ind4z] = Bx_l * y_stag - By_l * x_stag;
           }
         } else {
-          Bvec[ind4x] = Bx_r;
-          Bvec[ind4y] = By_r;
-          Bvec[ind4z] = Bz_r;
           if(CCTK_EQUALS(shock_direction, "x")) {
             Avec[ind4x] = By_r * z_stag - Bz_r * y_stag;
             Avec[ind4y] = 0.0;
