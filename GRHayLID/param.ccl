@@ -31,6 +31,11 @@ EXTENDS KEYWORD initial_Avec
   "GRHayLID" :: "Initial vector potential set by GRHayLID"
 }
 
+EXTENDS KEYWORD initial_Bvec
+{
+  "GRHayLID" :: "Initial vector potential set by GRHayLID"
+}
+
 restricted:
 #########################################################
 

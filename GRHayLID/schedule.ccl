@@ -14,7 +14,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     {
       LANG: C
       READS:  Grid::coordinates
-      WRITES: HydroBase::Avec(everywhere)
+      WRITES: HydroBase::Avec(everywhere), HydroBase::Bvec(everywhere)
     } "Set initial magnetic data for 1D test"
   }
 } else if (CCTK_Equals(initial_hydro, "IsotropicGas")) {
