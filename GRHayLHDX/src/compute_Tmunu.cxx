@@ -31,7 +31,8 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
           rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          entropy(index), Ye(index), temperature(index),
+          0.0, 0.0, 0.0,
+          //entropy(index), Ye(index), temperature(index),
           &prims);
     prims.u0 = u0(index);
 

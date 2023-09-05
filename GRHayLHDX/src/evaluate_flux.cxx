@@ -15,7 +15,7 @@ static inline double get_Gamma_eff_tabulated(
   return 1.0;
 }
 
-template <int flux_dir, int eos_type, int evolve_entropy>
+template <int flux_dir, int tabulated_eos, int evolve_entropy>
 void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_flux;
   DECLARE_CCTK_PARAMETERS;
@@ -47,7 +47,7 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
         const CCTK_REAL cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
 
-  if(eos_type) {
+  if(tabulated_eos) {
     if(evolve_entropy) {
       calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy :
                               flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy :
@@ -72,7 +72,7 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   constexpr double (*get_Gamma_eff)(
         const double,
         const double)
-    = eos_type ? &get_Gamma_eff_tabulated : &get_Gamma_eff_hybrid;
+    = tabulated_eos ? &get_Gamma_eff_tabulated : &get_Gamma_eff_hybrid;
 
   Loop::GF3D2<const CCTK_REAL> v_flux_dir = flux_dir==0 ? vx :
                                             flux_dir==1 ? vy : vz;
@@ -92,14 +92,14 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   Loop::GF3D2<CCTK_REAL> Sz_flux = flux_dir==0 ? Sz_flux_x :
                                    flux_dir==1 ? Sz_flux_y : Sz_flux_z;
 
-  Loop::GF3D2<CCTK_REAL> ent_flux = flux_dir==0 ? ent_flux_x :
-                                    flux_dir==1 ? ent_flux_y : ent_flux_z;
+  //Loop::GF3D2<CCTK_REAL> ent_flux = flux_dir==0 ? ent_flux_x :
+  //                                  flux_dir==1 ? ent_flux_y : ent_flux_z;
 
-  Loop::GF3D2<CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
-                                   flux_dir==1 ? Ye_flux_y : Ye_flux_z;
+  //Loop::GF3D2<CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
+  //                                 flux_dir==1 ? Ye_flux_y : Ye_flux_z;
 
   // Count number of additional reconstructed variables
-  constexpr int num_others = 3 + evolve_entropy + eos_type;
+  constexpr int num_others = 3 + evolve_entropy + tabulated_eos;
 
   // If using the entropy, it should be the first reconstructed variable
   // after the three velocities
@@ -132,8 +132,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
       others_stencil[0][ind]         = vx(stencil);
       others_stencil[1][ind]         = vy(stencil);
       others_stencil[2][ind]         = vz(stencil);
-      others_stencil[ent_index][ind] = entropy(stencil);
-      others_stencil[Ye_index][ind] = Ye(stencil);
+      //others_stencil[ent_index][ind] = entropy(stencil);
+      //others_stencil[Ye_index][ind] = Ye(stencil);
     }
 
     // Compute Gamma
@@ -157,14 +157,16 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
           rhor, pressr, poison,
           others_r[0], others_r[1], others_r[2],
           0.0, 0.0, 0.0,
-          others_r[ent_index], others_r[Ye_index], poison,
+          0.0, 0.0, 0.0,
+          //others_r[ent_index], others_r[Ye_index], poison,
           &prims_r);
 
     ghl_initialize_primitives(
           rhol, pressl, poison,
           others_l[0], others_l[1], others_l[2],
           0.0, 0.0, 0.0,
-          others_l[ent_index], others_l[Ye_index], poison,
+          0.0, 0.0, 0.0,
+          //others_l[ent_index], others_l[Ye_index], poison,
           &prims_l);
 
     int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
@@ -180,8 +182,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
     Sx_flux(ind_flux)  = cons_fluxes.SD[0];
     Sy_flux(ind_flux)  = cons_fluxes.SD[1];
     Sz_flux(ind_flux)  = cons_fluxes.SD[2];
-    ent_flux(ind_flux) = cons_fluxes.entropy;
-    Ye_flux (ind_flux) = cons_fluxes.Y_e;
+    //ent_flux(ind_flux) = cons_fluxes.entropy;
+    //Ye_flux (ind_flux) = cons_fluxes.Y_e;
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 

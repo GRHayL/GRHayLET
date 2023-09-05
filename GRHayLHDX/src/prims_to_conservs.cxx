@@ -38,7 +38,8 @@ extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
           rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          entropy(index), Ye(index), temperature(index),
+          0.0, 0.0, 0.0,
+          //entropy(index), Ye(index), temperature(index),
           &prims);
 
     ghl_conservative_quantities cons;
@@ -56,12 +57,14 @@ extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
           &rho(index), &press(index), &eps(index),
           &vx(index), &vy(index), &vz(index),
           &dummy1, &dummy2, &dummy3,
-          &entropy(index), &Ye(index), &temperature(index));
+          &dummy4, &dummy5, &dummy6);
+          //&entropy(index), &Ye(index), &temperature(index));
 
     ghl_return_conservatives(
           &cons,
           &rho_star(index), &tau(index),
           &Stildex(index), &Stildey(index), &Stildez(index),
-          &ent_star(index), &Ye_star(index));
+          &dummy1, &dummy2);
+          //&ent_star(index), &Ye_star(index));
   }); // ccc loop everywhere
 }

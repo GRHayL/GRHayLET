@@ -16,8 +16,8 @@ extern "C" void GRHayLHDX_perturb_primitives(CCTK_ARGUMENTS) {
     vx         (index) *= one_plus_pert(random_pert);
     vy         (index) *= one_plus_pert(random_pert);
     vz         (index) *= one_plus_pert(random_pert);
-    entropy    (index) *= one_plus_pert(random_pert);
-    Ye         (index) *= one_plus_pert(random_pert);
-    temperature(index) *= one_plus_pert(random_pert);
+    //entropy    (index) *= one_plus_pert(random_pert);
+    //Ye         (index) *= one_plus_pert(random_pert);
+    //temperature(index) *= one_plus_pert(random_pert);
   }); // ccc loop everywhere
 }

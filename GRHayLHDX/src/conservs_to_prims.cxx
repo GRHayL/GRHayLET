@@ -31,18 +31,18 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   // Diagnostic variables.
-  int failures = 0;
-  int vel_limited_ptcount = 0;
-  int rho_star_fix_applied = 0;
-  int pointcount = 0;
-  int failures_inhoriz = 0;
-  int pointcount_inhoriz = 0;
-  int backup0 = 0;
-  int backup1 = 0;
-  int backup2 = 0;
-  double error_int_numer = 0;
-  double error_int_denom = 0;
-  int n_iter = 0;
+  //int failures = 0;
+  //int vel_limited_ptcount = 0;
+  //int rho_star_fix_applied = 0;
+  //int pointcount = 0;
+  //int failures_inhoriz = 0;
+  //int pointcount_inhoriz = 0;
+  //int backup0 = 0;
+  //int backup1 = 0;
+  //int backup2 = 0;
+  //double error_int_numer = 0;
+  //double error_int_denom = 0;
+  //int n_iter = 0;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -76,19 +76,17 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
 
     // Read in primitive variables from gridfunctions
     ghl_primitive_quantities prims;
-    ghl_initialize_primitives(
-          rho(index), press(index), eps(index),
-          vx(index), vy(index), vz(index),
-          0.0, 0.0, 0.0,
-          entropy(index), Ye(index), temperature(index),
-          &prims);
+    prims.BU[0] = 0.0;
+    prims.BU[1] = 0.0;
+    prims.BU[2] = 0.0;
 
     // Read in conservative variables from gridfunctions
     ghl_conservative_quantities cons, cons_orig;
     ghl_initialize_conservatives(
           rho_star(index), tau(index),
           Stildex(index), Stildey(index), Stildez(index),
-          ent_star(index), Ye_star(index), &cons);
+          0,0,
+         /* ent_star(index), Ye_star(index),*/ &cons);
 
     // Here we save the original values of conservative variables in cons_orig for debugging purposes.
     cons_orig = cons;
@@ -184,20 +182,24 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
     ghl_compute_conservs(
           &ADM_metric, &metric_aux, &prims, &cons);
 
-    double dummy1, dummy2, dummy3;
-    ghl_return_primitives(
-          &prims,
-          &rho(index), &press(index), &eps(index),
-          &vx(index), &vy(index), &vz(index),
-          &dummy1, &dummy2, &dummy3,
-          &entropy(index), &Ye(index), &temperature(index));
+    rho(index) = prims.rho;
+    press(index) = prims.press;
+    eps(index) = prims.eps;
     u0(index) = prims.u0;
+    vx(index) = prims.vU[0];
+    vy(index) = prims.vU[1];
+    vz(index) = prims.vU[2];
+    //entropy(index) = prims.entropy;
+    //Ye(index) = prims.Y_e;
+    //temperature(index) = prims.temperature;
 
-    ghl_return_conservatives(
-          &cons,
-          &rho_star(index), &tau(index),
-          &Stildex(index), &Stildey(index), &Stildez(index),
-          &ent_star(index), &Ye_star(index));
+    rho_star(index) = cons.rho;
+    tau(index) = cons.tau;
+    Stildex(index) = cons.SD[0];
+    Stildey(index) = cons.SD[1];
+    Stildez(index) = cons.SD[2];
+    //ent_star(index) = cons.entropy;
+    //Ye_star(index) = cons.Y_e;
 
     /* The following code involves the diagnostics requiring reduction
     //Now we compute the difference between original & new conservatives, for diagnostic purposes:
@@ -225,11 +227,11 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
     backup1 += diagnostics.backup[1];
     backup2 += diagnostics.backup[2];
     n_iter += diagnostics.n_iter;
-    failure_checker[index] = local_failure_checker
+    */
+    failure_checker(index) = local_failure_checker
                            + 1000*diagnostics.backup[0]
                            + 10000*diagnostics.tau_fix
                            + 100000*diagnostics.Stilde_fix;
-    */
   }); // ccc loop everywhere
 
   /*
