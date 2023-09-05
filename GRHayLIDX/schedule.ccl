@@ -13,7 +13,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     {
       LANG: C
       WRITES: HydroBaseX::Avecx(everywhere), HydroBaseX::Avecy(everywhere),
-              HydroBaseX::Avecz(everywhere), HydroBase::Bvec(everywhere)
+              HydroBaseX::Avecz(everywhere), HydroBaseX::Bvec(everywhere)
     } "Set initial magnetic data for 1D test"
   }
 } else if (CCTK_Equals(initial_hydro, "IsotropicGas")) {
@@ -44,7 +44,7 @@ if(impose_beta_equilibrium) {
     READS:  HydroBaseX::rho
     WRITES: HydroBaseX::press(everywhere),
             HydroBaseX::eps(everywhere),
-            HydroBaseX::Y_e(everywhere),
+            HydroBaseX::Ye(everywhere),
             HydroBaseX::temperature(everywhere),
             HydroBaseX::entropy(everywhere)
   } "Set Y_e, temperature, entropy, press, eps in neutrino free beta-equilibrium"

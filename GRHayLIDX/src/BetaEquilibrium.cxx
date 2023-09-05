@@ -31,7 +31,7 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
     if( rhoL <= 1.01*ghl_eos->rho_atm ) {
       press      (index) = ghl_eos->press_atm;
       eps        (index) = ghl_eos->eps_atm;
-      Y_e        (index) = ghl_eos->Y_e_atm;
+      Ye         (index) = ghl_eos->Y_e_atm;
       temperature(index) = ghl_eos->T_atm;
       entropy    (index) = ghl_eos->entropy_atm;
     }
@@ -45,7 +45,7 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
 
       press      (index) = pressL;
       eps        (index) = epsL;
-      Y_e        (index) = YeL;
+      Ye         (index) = YeL;
       temperature(index) = tempL;
       entropy    (index) = entL;
     }
