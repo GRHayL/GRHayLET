@@ -44,7 +44,7 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
   double error_int_denom = 0;
   int n_iter = 0;
 
-  const Loop::GF3D2layout layout(cctkGH, {1,1,1});
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
 //I don't think I can do this sort of diagnostic summing in carpetx
 //#pragma omp parallel for reduction(+: \
@@ -80,7 +80,7 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          entropy[index], Y_e[index], temperature[index],
+          entropy(index), Ye(index), temperature(index),
           &prims);
 
     // Read in conservative variables from gridfunctions
@@ -88,7 +88,7 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
     ghl_initialize_conservatives(
           rho_star(index), tau(index),
           Stildex(index), Stildey(index), Stildez(index),
-          ent_star[index], Ye_star[index], &cons);
+          ent_star(index), Ye_star(index), &cons);
 
     // Here we save the original values of conservative variables in cons_orig for debugging purposes.
     cons_orig = cons;
@@ -96,9 +96,9 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
     //FIXME: might slow down the code. Was formerly a CCTK_WARN
     if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2])) {
       CCTK_VERROR("NaN found at start of C2P kernel:\n"
-                  "  index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
+                  "  position %e %e %e, rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
                   "  lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e\n",
-                  i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                  p.x, p.y, p.z, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
                   ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                   ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                   ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
@@ -153,10 +153,10 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
         local_failure_checker += 100;
         ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
-        failures++;
+        //failures++;
         if(ADM_metric.sqrt_detgamma > ghl_params->psi6threshold) {
-          failures_inhoriz++;
-          pointcount_inhoriz++;
+          //failures_inhoriz++;
+          //pointcount_inhoriz++;
         }
         CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
         CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
@@ -190,14 +190,14 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           &rho(index), &press(index), &eps(index),
           &vx(index), &vy(index), &vz(index),
           &dummy1, &dummy2, &dummy3,
-          &entropy(index), &Y_e(index), &temperature(index));
+          &entropy(index), &Ye(index), &temperature(index));
     u0(index) = prims.u0;
 
     ghl_return_conservatives(
           &cons,
           &rho_star(index), &tau(index),
           &Stildex(index), &Stildey(index), &Stildez(index),
-          &ent_star[index], &Ye_star[index]);
+          &ent_star(index), &Ye_star(index));
 
     /* The following code involves the diagnostics requiring reduction
     //Now we compute the difference between original & new conservatives, for diagnostic purposes:

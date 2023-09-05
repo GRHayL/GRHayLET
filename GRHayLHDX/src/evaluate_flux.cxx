@@ -27,8 +27,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   const Loop::GF3D2layout flux_layout(cctkGH, facetype);
 
   constexpr void (*calculate_characteristic_speed)(
-        const ghl_primitive_quantities *restrict prims_r,
-        const ghl_primitive_quantities *restrict prims_l,
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
         CCTK_REAL *cmin, CCTK_REAL *cmax)
@@ -39,8 +39,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   // I used constexpr with ternary operators elsewhere, but here there would be way too
   // many operators here, so I resort to if statements.
   void (*calculate_HLLE_fluxes)(
-        const ghl_primitive_quantities *restrict prims_r,
-        const ghl_primitive_quantities *restrict prims_l,
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
         const CCTK_REAL cmin,
@@ -59,13 +59,13 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
     }
   } else {
     if(evolve_entropy) {
-      calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy;
-                              flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy;
-                                            &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy;
+      calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy :
+                              flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy :
+                                            &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy ;
     } else {
-      calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid;
-                              flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid;
-                                            &ghl_calculate_HLLE_fluxes_dirn2_hybrid;
+      calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid :
+                              flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid :
+                                            &ghl_calculate_HLLE_fluxes_dirn2_hybrid ;
     }
   }
 
@@ -91,6 +91,12 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
 
   Loop::GF3D2<CCTK_REAL> Sz_flux = flux_dir==0 ? Sz_flux_x :
                                    flux_dir==1 ? Sz_flux_y : Sz_flux_z;
+
+  Loop::GF3D2<CCTK_REAL> ent_flux = flux_dir==0 ? ent_flux_x :
+                                    flux_dir==1 ? ent_flux_y : ent_flux_z;
+
+  Loop::GF3D2<CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
+                                   flux_dir==1 ? Ye_flux_y : Ye_flux_z;
 
   // Count number of additional reconstructed variables
   constexpr int num_others = 3 + evolve_entropy + eos_type;
@@ -127,7 +133,7 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
       others_stencil[1][ind]         = vy(stencil);
       others_stencil[2][ind]         = vz(stencil);
       others_stencil[ent_index][ind] = entropy(stencil);
-      others_stencil[Ye_index ][ind] = Y_e(stencil);
+      others_stencil[Ye_index][ind] = Ye(stencil);
     }
 
     // Compute Gamma
@@ -174,8 +180,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
     Sx_flux(ind_flux)  = cons_fluxes.SD[0];
     Sy_flux(ind_flux)  = cons_fluxes.SD[1];
     Sz_flux(ind_flux)  = cons_fluxes.SD[2];
-    ent_star_flux(index) = cons_fluxes.entropy;
-    Ye_star_flux (index) = cons_fluxes.Y_e;
+    ent_flux(ind_flux) = cons_fluxes.entropy;
+    Ye_flux (ind_flux) = cons_fluxes.Y_e;
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 
@@ -192,6 +198,7 @@ extern "C" void GRHayLHDX_evaluate_flux(CCTK_ARGUMENTS) {
       GRHayLHDX_evaluate_flux_dir<0, 0, 0>(cctkGH);
       GRHayLHDX_evaluate_flux_dir<1, 0, 0>(cctkGH);
       GRHayLHDX_evaluate_flux_dir<2, 0, 0>(cctkGH);
+    }
   } else if(ghl_eos->eos_type==ghl_eos_tabulated) {
     if(ghl_params->evolve_entropy) {
       GRHayLHDX_evaluate_flux_dir<0, 1, 1>(cctkGH);
@@ -201,5 +208,6 @@ extern "C" void GRHayLHDX_evaluate_flux(CCTK_ARGUMENTS) {
       GRHayLHDX_evaluate_flux_dir<0, 1, 0>(cctkGH);
       GRHayLHDX_evaluate_flux_dir<1, 1, 0>(cctkGH);
       GRHayLHDX_evaluate_flux_dir<2, 1, 0>(cctkGH);
+    }
   }
 }

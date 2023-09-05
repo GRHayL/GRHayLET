@@ -43,6 +43,12 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
   Loop::GF3D2<const CCTK_REAL> Sz_flux = flux_dir==0 ? Sz_flux_x :
                                          flux_dir==1 ? Sz_flux_y : Sz_flux_z;
 
+  Loop::GF3D2<const CCTK_REAL> ent_flux = flux_dir==0 ? ent_flux_x :
+                                          flux_dir==1 ? ent_flux_y : ent_flux_z;
+
+  Loop::GF3D2<const CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
+                                         flux_dir==1 ? Ye_flux_y : Ye_flux_z;
+
   const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
 
   grid.loop_int_device<1, 1, 1>(
@@ -62,8 +68,8 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
     Stildex_rhs(index)  += dxi*(Sx_flux(ind_flux)       - Sx_flux(ind_flp1));
     Stildey_rhs(index)  += dxi*(Sy_flux(ind_flux)       - Sy_flux(ind_flp1));
     Stildez_rhs(index)  += dxi*(Sz_flux(ind_flux)       - Sz_flux(ind_flp1));
-    ent_star_rhs[index] += dxi*(ent_star_flux[index]    - ent_star_flux[indp1]);
-    Ye_star_rhs [index] += dxi*(Ye_star_flux [index]    - Ye_star_flux [indp1]);
+    ent_star_rhs(index) += dxi*(ent_flux(ind_flux)      - ent_flux(ind_flp1));
+    Ye_star_rhs (index) += dxi*(Ye_flux (ind_flux)      - Ye_flux(ind_flp1));
 
     ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(ccc_lapse(index),
@@ -77,7 +83,7 @@ void GRHayLHDX_evaluate_flux_source_rhs_dir(CCTK_ARGUMENTS) {
           rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          entropy[index], Y_e[index], temperature[index],
+          entropy(index), Ye(index), temperature(index),
           &prims);
 
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);

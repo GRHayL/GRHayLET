@@ -4,6 +4,8 @@ extern "C" void GRHayLHDX_perturb_primitives(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_perturb_primitives;
   DECLARE_CCTK_PARAMETERS;
 
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
+
   srand(random_seed); // Use srand() as rand() is thread-safe.
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
@@ -15,7 +17,7 @@ extern "C" void GRHayLHDX_perturb_primitives(CCTK_ARGUMENTS) {
     vy         (index) *= one_plus_pert(random_pert);
     vz         (index) *= one_plus_pert(random_pert);
     entropy    (index) *= one_plus_pert(random_pert);
-    Y_e        (index) *= one_plus_pert(random_pert);
+    Ye         (index) *= one_plus_pert(random_pert);
     temperature(index) *= one_plus_pert(random_pert);
   }); // ccc loop everywhere
 }

@@ -10,8 +10,8 @@
 
 #include "GRHayLHDX.h"
 
-extern "C" void prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_prims_to_conservs;
+extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
@@ -38,7 +38,7 @@ extern "C" void prims_to_conservs(CCTK_ARGUMENTS) {
           rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          entropy[index], Y_e[index], temperature[index],
+          entropy(index), Ye(index), temperature(index),
           &prims);
 
     ghl_conservative_quantities cons;
@@ -56,12 +56,12 @@ extern "C" void prims_to_conservs(CCTK_ARGUMENTS) {
           &rho(index), &press(index), &eps(index),
           &vx(index), &vy(index), &vz(index),
           &dummy1, &dummy2, &dummy3,
-          &dummy4, &dummy5, &dummy6);
+          &entropy(index), &Ye(index), &temperature(index));
 
     ghl_return_conservatives(
           &cons,
           &rho_star(index), &tau(index),
           &Stildex(index), &Stildey(index), &Stildez(index),
-          &dummy1, &dummy2);
+          &ent_star(index), &Ye_star(index));
   }); // ccc loop everywhere
 }

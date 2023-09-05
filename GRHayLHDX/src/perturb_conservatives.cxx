@@ -4,6 +4,8 @@ extern "C" void GRHayLHDX_perturb_conservatives(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_perturb_conservatives;
   DECLARE_CCTK_PARAMETERS;
 
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
+
   srand(random_seed); // Use srand() as rand() is thread-safe.
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,

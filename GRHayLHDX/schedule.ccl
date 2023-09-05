@@ -30,41 +30,41 @@ schedule convert_HydroBase_to_GRHayLHDX in GRHayLHDX_Prim2Con2Prim after GRHayLH
 
 # Runs everywhere. Shouldn't need to sync
 if(perturb_initial_data) {
-  schedule GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD before GRHayLHD_prims_to_conservs
+  schedule GRHayLHDX_perturb_primitives in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX before GRHayLHDX_prims_to_conservs
   {
     LANG: C
     READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-            HydroBaseX::entropy, HydroBaseX::Y_e, HydroBaseX::temperature,
+            HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
             grmhd_velocities
     WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-            HydroBaseX::entropy(everywhere), HydroBaseX::Y_e(everywhere), HydroBaseX::temperature(everywhere),
+            HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
             grmhd_velocities(everywhere)
     SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-            HydroBaseX::entropy, HydroBaseX::Y_e, HydroBaseX::temperature,
+            HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
             grmhd_velocities
   } "perturb initial primitive data"
 }
 
 # Runs everywhere. Shouldn't need to sync
-schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
+schedule GRHayLHDX_prims_to_conservs in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+  READS:  ccc_spacetime
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-          HydroBaseX::entropy, HydroBaseX::Y_e, HydroBaseX::temperature,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
           grmhd_velocities
   WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-          HydroBaseX::entropy(everywhere), HydroBaseX::Y_e(everywhere), HydroBaseX::temperature(everywhere),
+          HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
           grmhd_velocities(everywhere), grmhd_conservatives(everywhere)
   SYNC:   grmhd_conservatives
 } "Enforce simulation limits on primitives and compute conservatives"
 
-schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX
+schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_prims_to_conservs
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives
-  WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+  WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+          HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
   WRITES: u0(everywhere), grmhd_velocities(everywhere),
           grmhd_conservatives(everywhere), failure_checker(everywhere)
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
@@ -109,8 +109,8 @@ schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Con2Prim after GRHayLHDX_compu
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   WRITES: u0(everywhere), grmhd_velocities(everywhere),
           grmhd_conservatives(everywhere), failure_checker(everywhere)
 } "Compute primitive variables from conservatives"
@@ -146,8 +146,8 @@ schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS #af
 schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_compute_ccc_centered_extrinsic_curvature
 {
   LANG: C
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   READS:  ccc_spacetime, ccc_curv, grmhd_velocities
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
@@ -158,8 +158,8 @@ schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_c
 schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_curvature_rhs
 {
   LANG: C
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   READS:  ccc_spacetime, grmhd_velocities
   WRITES: flux_x, flux_y, flux_z
 } "Compute GRHD fluxes"
@@ -167,8 +167,8 @@ schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_c
 schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_flux
 {
   LANG: C
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   READS:  ccc_spacetime, grmhd_velocities,
           flux_x, flux_y, flux_z,
           grmhd_conservatives_rhs(interior)
@@ -183,8 +183,8 @@ schedule GRHayLHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_velocities, u0
-  READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
 } "Interpolate stress-energy tensor to vertices"
 
