@@ -1,7 +1,6 @@
 # Schedule definitions for thorn GRHayLIDX
 
-if (CCTK_Equals(initial_hydro, "HydroTest1D"))
-{
+if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
   schedule GRHayLIDX_1D_tests_hydro_data in HydroBaseX_InitialData
   {
     LANG: C
@@ -9,17 +8,15 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBaseX::eps(everywhere), HydroBaseX::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-  if (initialize_magnetic_quantities)
-  {
+  if (initialize_magnetic_quantities) {
     schedule GRHayLIDX_1D_tests_magnetic_data in HydroBaseX_InitialData after GRHayLIDX_1D_tests_hydro_data
     {
       LANG: C
       WRITES: HydroBaseX::Avecx(everywhere), HydroBaseX::Avecy(everywhere),
-              HydroBaseX::Avecz(everywhere)
+              HydroBaseX::Avecz(everywhere), HydroBaseX::Bvec(everywhere)
     } "Set initial magnetic data for 1D test"
   }
-} else if (CCTK_Equals(initial_hydro, "IsotropicGas"))
-{
+} else if (CCTK_Equals(initial_hydro, "IsotropicGas")) {
   schedule GRHayLIDX_IsotropicGas in HydroBaseX_InitialData
   {
     LANG: C
@@ -29,8 +26,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBaseX::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
-} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere"))
-{
+} else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere")) {
   schedule GRHayLIDX_ConstantDensitySphere in HydroBaseX_InitialData
   {
     LANG: C
@@ -39,4 +35,17 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D"))
             HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
             HydroBaseX::entropy(everywhere)
   } "Set initial hydrodynamic data for 1D test"
+}
+
+if(impose_beta_equilibrium) {
+  schedule GRHayLIDX_BetaEquilibrium at CCTK_INITIAL after HydroBase_Initial before HydroBase_Prim2ConInitial as impose_beta_equilibrium
+  {
+    LANG: C
+    READS:  HydroBaseX::rho
+    WRITES: HydroBaseX::press(everywhere),
+            HydroBaseX::eps(everywhere),
+            HydroBaseX::Ye(everywhere),
+            HydroBaseX::temperature(everywhere),
+            HydroBaseX::entropy(everywhere)
+  } "Set Y_e, temperature, entropy, press, eps in neutrino free beta-equilibrium"
 }

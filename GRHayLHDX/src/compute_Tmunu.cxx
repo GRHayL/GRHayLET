@@ -4,8 +4,6 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
-  const CCTK_REAL poison = 0.0/0.0;
-
   constexpr std::array<int, Loop::dim> vvvtype = {0, 0, 0};
   const Loop::GF3D2layout vvv_layout(cctkGH, vvvtype);
 
@@ -30,10 +28,12 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
 
     ghl_primitive_quantities prims;
     ghl_initialize_primitives(
-          rho_b(index), pressure(index), eps(index),
+          rho(index), press(index), eps(index),
           vx(index), vy(index), vz(index),
           0.0, 0.0, 0.0,
-          poison, poison, poison, &prims);
+          0.0, 0.0, 0.0,
+          //entropy(index), Ye(index), temperature(index),
+          &prims);
     prims.u0 = u0(index);
 
     ghl_stress_energy Tmunu;

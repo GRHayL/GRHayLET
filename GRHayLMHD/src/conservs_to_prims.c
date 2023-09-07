@@ -113,11 +113,11 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
         }
-
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          ghl_apply_conservative_limits(
+          if( ghl_eos->eos_type == ghl_eos_hybrid )
+            ghl_apply_conservative_limits(
                 ghl_params, ghl_eos, &ADM_metric,
                 &prims, &cons, &diagnostics);
 
@@ -143,8 +143,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
                           "B^i = %e %e %e\n"
                           "Output primitive variables:\n"
-                          "rho, P, S, Y_e: %e %e %e %e\n"
-                          "v: %e %e %e\n"
+                          "rho, P, S, Y_e, T: %e, %e, %e, %e, %e\n"
+                          "v^i: %e, %e, %e\n"
                           "***********************************************************",
                           ghl_get_con2prim_routine_name(diagnostics.which_routine),
                           ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
@@ -152,7 +152,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
                           cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
                           prims.BU[0], prims.BU[1], prims.BU[2],
-                          prims.rho, prims.press, prims.entropy, prims.Y_e,
+                          prims.rho, prims.press, prims.entropy, prims.Y_e, prims.temperature,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
           } else {

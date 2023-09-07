@@ -1,7 +1,7 @@
 # Schedule for thorn GRHayLHDX
 
 STORAGE: grmhd_conservatives
-STORAGE: grmhd_primitives, u0, grmhd_conservatives_rhs
+STORAGE: grmhd_velocities, u0, grmhd_conservatives_rhs
 STORAGE: flux_x, flux_y, flux_z, failure_checker
 
 #########################################################
@@ -22,22 +22,51 @@ schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Prim2C
 schedule convert_HydroBase_to_GRHayLHDX in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
-  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-          HydroBaseX::vel #, HydroBaseX::Ye, HydroBaseX::entropy,
- #         HydroBaseX::temperature
+  READS:  HydroBaseX::vel
   READS:  ccc_spacetime
-  WRITES: HydroBaseX::eps(everywhere)
-  WRITES: grmhd_primitives(everywhere), grmhd_conservatives(everywhere)
-  SYNC: grmhd_primitives, grmhd_conservatives
+  WRITES: grmhd_velocities(everywhere)
+  SYNC: grmhd_velocities
 } "Convert HydroBaseX initial data (ID) to GRHayLHDX variables and enforce simulation limits on primitives."
 
-schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX
+# Runs everywhere. Shouldn't need to sync
+if(perturb_initial_data) {
+  schedule GRHayLHDX_perturb_primitives in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX before GRHayLHDX_prims_to_conservs
+  {
+    LANG: C
+    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+            #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+            grmhd_velocities
+    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+            #HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+            grmhd_velocities(everywhere)
+    SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+            #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+            grmhd_velocities
+  } "perturb initial primitive data"
+}
+
+# Runs everywhere. Shouldn't need to sync
+schedule GRHayLHDX_prims_to_conservs in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
+{
+  LANG: C
+  READS:  ccc_spacetime
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+          grmhd_velocities
+  WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+          #HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+          grmhd_velocities(everywhere), grmhd_conservatives(everywhere)
+  SYNC:   grmhd_conservatives
+} "Enforce simulation limits on primitives and compute conservatives"
+
+schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_prims_to_conservs
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives
-  WRITES: u0(everywhere), grmhd_primitives(everywhere),
+  WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+          #HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+          u0(everywhere), grmhd_velocities(everywhere),
           grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBaseX::eps(everywhere)
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 # Convert data back to ensure both codes have the same data
@@ -46,9 +75,8 @@ if(Convert_to_HydroBase_every)
   SCHEDULE convert_GRHayLHDX_to_HydroBase in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_conservs_to_prims
   {
     LANG: C
-    READS:  ccc_spacetime, grmhd_primitives
-    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
-            HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+    READS:  ccc_spacetime, grmhd_velocities
+    WRITES: HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
   } "Convert GRHayLHDX-native variables to HydroBaseX"
 }
 
@@ -59,6 +87,7 @@ schedule GROUP GRHayLHDX_Con2Prim in ODESolvers_PostStep
 {
 } "Compute the cell-centered spacetime quantities and solve for primitives"
 
+# Does MoL sync evolved variables after each substep? If so, no need for this sync
 schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Con2Prim
 {
   LANG: C
@@ -67,13 +96,23 @@ schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Con2Pr
   SYNC: grmhd_conservatives
 } "Interpolate spacetime quantities to cell centers"
 
+if(perturb_every_con2prim) {
+  schedule GRHayLHDX_perturb_conservatives in GRHayLHDX_Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities before GRHayLHD_conservs_to_prims
+  {
+    LANG: C
+    READS:  grmhd_conservatives
+    WRITES: grmhd_conservatives(everywhere)
+  } "Perturb conservatives before con2prim"
+}
+
 schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives
-  WRITES: u0(everywhere), grmhd_primitives(everywhere),
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps #,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+  WRITES: u0(everywhere), grmhd_velocities(everywhere),
           grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBaseX::eps(everywhere)
 } "Compute primitive variables from conservatives"
 
 # For now, let's just rely on CarpetX's BCs
@@ -81,12 +120,12 @@ schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Con2Prim after GRHayLHDX_compu
 #{
 #  LANG: C
 #  READS:  ccc_spacetime
-#  WRITES: grmhd_primitives(boundary), grmhd_conservatives(boundary),
+#  WRITES: grmhd_velocities(boundary), grmhd_conservatives(boundary),
 #          failure_checker(boundary)
 #          #ccc_Tmunu(boundary), failure_checker(boundary)
 #  WRITES: HydroBaseX::eps(boundary)
 ## We must sync {P,rho_b,vx,vy,vz} here.
-#  SYNC: grmhd_primitives
+#  SYNC: grmhd_velocities
 #} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 #########################################################
@@ -107,27 +146,30 @@ schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS #af
 schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_compute_ccc_centered_extrinsic_curvature
 {
   LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, ccc_curv, grmhd_primitives
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+          ccc_spacetime, ccc_curv, grmhd_velocities
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
 # We have to split computation of the flux from the 
 # computation of the RHS because the OMP is outside the
-# actual scheduled f'n call, and it wouldn't be thread-safe.
+# actual scheduled function call, and it wouldn't be thread-safe.
 schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_curvature_rhs
 {
   LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, grmhd_primitives
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+          ccc_spacetime, grmhd_velocities
   WRITES: flux_x, flux_y, flux_z
 } "Compute GRHD fluxes"
 
 schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_flux
 {
   LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, grmhd_primitives,
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+          ccc_spacetime, grmhd_velocities,
           flux_x, flux_y, flux_z,
           grmhd_conservatives_rhs(interior)
   WRITES: grmhd_conservatives_rhs
@@ -140,8 +182,9 @@ schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_eva
 schedule GRHayLHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
 {
   LANG: C
-  READS:  ccc_spacetime, grmhd_primitives, u0
-  READS:  HydroBaseX::eps
+  READS:  ccc_spacetime, grmhd_velocities, u0
+  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps #,
+          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature
   WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
 } "Interpolate stress-energy tensor to vertices"
 
@@ -162,8 +205,7 @@ if(Convert_to_HydroBase_every)
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-    READS:  ccc_spacetime, grmhd_primitives
-    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
-            HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+    READS:  ccc_spacetime, grmhd_velocities
+    WRITES: HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
   } "Convert GRHayLHDX-native variables to HydroBaseX"
 }

@@ -13,33 +13,33 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   double press_l, press_r;
   double vx_l, vy_l, vz_l;
   double vx_r, vy_r, vz_r;
-  if(CCTK_EQUALS(test_1D_initial_data,"Balsara1")) {
+  if(CCTK_EQUALS(initial_data_1D,"Balsara1")) {
     rho_l = 1.0;
     rho_r = 0.125;
     press_l = 1.0;
     press_r = 0.1;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara2")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara2")) {
     rho_l = rho_r = 1.0;
     press_l = 30.0;
     press_r = 1.0;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara3")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara3")) {
     rho_l = rho_r = 1.0;
     press_l = 1000.0;
     press_r = 0.1;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara4")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara4")) {
     rho_l = rho_r = 1.0;
     press_l = press_r = 0.1;
     vx_l = 0.999;
     vx_r = -0.999;
     vy_l = vz_l = 0.0;
     vy_r = vz_r = 0.0;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"Balsara5")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"Balsara5")) {
     rho_l = 1.08;
     rho_r = 1.0;
     press_l = 0.95;
@@ -49,17 +49,17 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     vx_r = -0.45;
     vy_r = -0.2;
     vz_l = vz_r = 0.2;
-  } else if(CCTK_EQUALS(test_1D_initial_data,"equilibrium")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"equilibrium")) {
     rho_l = rho_r = 1.0;
     press_l = press_r = 1.0;
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   /*
-  } else if(CCTK_EQUALS(test_1D_initial_data,"sound wave")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"sound wave")) {
     this case is handled in the loop because it isn't a
     step function but a sin() wave
   */
-  } else if(CCTK_EQUALS(test_1D_initial_data,"shock tube")) {
+  } else if(CCTK_EQUALS(initial_data_1D,"shock tube")) {
     rho_l = 2.0;
     rho_r = 1.0;
     press_l = 2.0;
@@ -67,20 +67,20 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     vx_l = vy_l = vz_l = 0.0;
     vx_r = vy_r = vz_r = 0.0;
   } else {
-    CCTK_VERROR("Parameter test_1D_initial_data is not set "
+    CCTK_VERROR("Parameter initial_data_1D is not set "
                 "to a valid test name. Something has gone wrong.");
   }
 
   //Above data assumes that the shock is in the x direction; we just have to rotate
   //the data for it to work in other directions.
-  if(CCTK_EQUALS(test_shock_direction, "y")) {
+  if(CCTK_EQUALS(shock_direction, "y")) {
     //x-->y, y-->z, z-->x
     const double vl[3] = {vz_l, vx_l, vy_l};
     vx_l = vl[0]; vy_l = vl[1]; vz_l = vl[2];
 
     const double vr[3] = {vz_r, vx_r, vy_r};
     vx_r = vr[0]; vy_r = vr[1]; vz_r = vr[2];
-  } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+  } else if(CCTK_EQUALS(shock_direction, "z")) {
     //x-->z, y-->x, z-->y
     const double vl[3] = {vy_l, vz_l, vx_l};
     vx_l = vl[0]; vy_l = vl[1]; vz_l = vl[2];
@@ -95,16 +95,16 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     const Loop::GF3D2index index(layout, p.I);
 
     double step = p.x;
-    if(CCTK_EQUALS(test_shock_direction, "y")) {
+    if(CCTK_EQUALS(shock_direction, "y")) {
       step = p.y;
-    } else if(CCTK_EQUALS(test_shock_direction, "z")) {
+    } else if(CCTK_EQUALS(shock_direction, "z")) {
       step = p.z;
     }
 
-    if(CCTK_EQUALS(test_1D_initial_data,"sound wave")) {
+    if(CCTK_EQUALS(initial_data_1D,"sound wave")) {
       rho(index)   = 1.0;
       press(index) = 1.0; // should add kinetic energy here
-      velx(index)  = test_wave_amplitude * sin(M_PI * step);
+      velx(index)  = wave_amplitude * sin(M_PI * step);
       vely(index)  = velz(index)  = 0.0;
     } else if(step <= discontinuity_position) {
       rho(index)   = rho_l;

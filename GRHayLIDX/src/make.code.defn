@@ -3,5 +3,6 @@
 # Source files in this directory
 SRCS = 1D_tests_hydro_data.cxx    \
        1D_tests_magnetic_data.cxx \
+       BetaEquilibrium.cxx        \
        ConstantDensitySphere.cxx  \
        IsotropicGas.cxx

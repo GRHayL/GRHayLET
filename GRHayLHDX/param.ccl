@@ -1,5 +1,9 @@
 # Parameter definitions for thorn GRHayLHDX
 
+shares: GRHayLib
+USES KEYWORD EOS_type
+USES CCTK_BOOLEAN evolve_entropy as extern_evolve_entropy
+
 #########################################################
 
 INT Convert_to_HydroBase_every "How often to convert GRHayLHDX primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure GRHayLHDX runs."
@@ -21,10 +25,9 @@ KEYWORD Matter_BC "Chosen Matter boundary condition"
 # Verbosity Level
 KEYWORD verbose "Determines how much evolution information is output" STEERABLE=ALWAYS
 {
-  "no"        :: "Complete silence"
-  "essential" :: "Essential health monitoring of the GRMHD evolution: Information about conservative-to-primitive fixes, etc."
-  "essential+iteration output" :: "Outputs health monitoring information, plus a record of which RK iteration. Very useful for backtracing a crash."
-} "essential+iteration output"
+  "no"  :: "Complete silence"
+  "yes" :: "Outputs information about conservative-to-primitive fixes, failures, etc."
+} "yes"
 
 #########################################################
 
@@ -34,12 +37,15 @@ INT random_seed "Random seed for random, generally roundoff-level perturbation o
  0:99999999 :: "Anything unsigned goes."
 } 0
 
-REAL perturb_initial_data "Random perturbation to initial data"
+REAL random_pert "Magnitude of random perturbations"
 {
  *:* :: "Anything goes."
 } 0
 
-REAL perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+CCTK_BOOLEAN perturb_initial_data "Random perturbation to initial data"
 {
- *:* :: "Anything goes."
-} 0
+} "no"
+
+CCTK_BOOLEAN perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+{
+} "no"
