@@ -120,8 +120,8 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
           // Apply the tau floor
           if( ghl_eos->eos_type == ghl_eos_hybrid )
             ghl_apply_conservative_limits(
-                  ghl_params, ghl_eos, &ADM_metric,
-                  &prims, &cons, &diagnostics);
+                ghl_params, ghl_eos, &ADM_metric,
+                &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
@@ -138,23 +138,21 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
             //Check for NAN!
             if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
               CCTK_VERROR("***********************************************************\n"
-                          "NAN found after Con2Prim with routine index %d!\n"
+                          "NAN found after Con2Prim routine %s!\n"
                           "Input variables:\n"
                           "lapse, shift = %e %e %e %e\n"
                           "gij = %e %e %e %e %e %e\n"
-                          "rho_*, ~tau, ~S_{i}: %e %e %e %e %e\n"
-                          "Undensitized conserved variables:\n"
-                          "D, tau, S_{i}: %e %e %e %e %e\n"
+                          "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
                           "Output primitive variables:\n"
-                          "rho, P: %e %e\n"
+                          "rho, P, S, Y_e: %e %e %e %e\n"
                           "v: %e %e %e\n"
                           "***********************************************************",
-                          diagnostics.which_routine, ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                          ghl_get_con2prim_routine_name(diagnostics.which_routine),
+                          ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                           ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
-                          cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
-                          prims.rho, prims.press,
+                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
+                          prims.rho, prims.press, prims.entropy, prims.Y_e,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
           } else {
@@ -171,8 +169,10 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
             }
             CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
             CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
+                       "~DS = %e, ~DY_e = %e Bi = %e %e %e\n"
                        "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
                        cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
+                       cons.entropy, cons.Y_e, prims.BU[0], prims.BU[1], prims.BU[2],
                        ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                        ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                        ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);

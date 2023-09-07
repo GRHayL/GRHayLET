@@ -297,14 +297,14 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               rhor, pressr, poison,
               vel_r[0][index], vel_r[1][index], vel_r[2][index],
               B_r[0], B_r[1], B_r[2],
-              others_r[ent_index], others_r[Ye_index], ghl_eos->T_max,
+              others_r[ent_index], others_r[Ye_index], temp[index],
               &prims_r);
 
         ghl_initialize_primitives(
               rhol, pressl, poison,
               vel_l[0][index], vel_l[1][index], vel_l[2][index],
               B_l[0], B_l[1], B_l[2],
-              others_l[ent_index], others_l[Ye_index], ghl_eos->T_max,
+              others_l[ent_index], others_l[Ye_index], temp[index],
               &prims_l);
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
@@ -456,12 +456,12 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
         rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-        tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-        Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
-        Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
-        Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+        tau_rhs     [index] += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+        Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+        Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+        Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
         ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
-        Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
+        Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(

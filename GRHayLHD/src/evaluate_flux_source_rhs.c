@@ -191,14 +191,14 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
                 rhor, pressr, poison,
                 others_r[0], others_r[1], others_r[2],
                 0.0, 0.0, 0.0,
-                others_r[ent_index], others_r[Ye_index], poison,
+                others_r[ent_index], others_r[Ye_index], temperature[index],
                 &prims_r);
 
           ghl_initialize_primitives(
                 rhol, pressl, poison,
                 others_l[0], others_l[1], others_l[2],
                 0.0, 0.0, 0.0,
-                others_l[ent_index], others_l[Ye_index], poison,
+                others_l[ent_index], others_l[Ye_index], temperature[index],
                 &prims_l);
 
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
@@ -278,4 +278,23 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
       }
     }
   }
+
+  static int prev_it=-1, substep;
+  if( cctk_iteration != prev_it ) {
+    prev_it = cctk_iteration;
+    substep = 0;
+  }
+  substep++;
+  char filename[256];
+  sprintf(filename, "grhd_rhss_%d_%d.txt", cctk_iteration, substep);
+  FILE *fp = fopen(filename, "w");
+  const int k = cctk_lsh[2]/2;
+  for(int j=jmin; j<jmax; j++) {
+    for(int i=imin; i<imax; i++) {
+      const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+      fprintf(fp, "%d %d %d %e %e %e %e %e %e %e\n", i, j, k, rho_star_rhs[index], tau_rhs[index], Stildex_rhs[index], Stildey_rhs[index], Stildez_rhs[index], ent_star_flux[index], Ye_star_rhs[index]);
+    }
+    fprintf(fp, "\n");
+  }
+  fclose(fp);
 }

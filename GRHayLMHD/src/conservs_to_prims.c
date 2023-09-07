@@ -140,8 +140,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           "Input variables:\n"
                           "lapse, shift = %e %e %e %e\n"
                           "gij = %e %e %e %e %e %e\n"
-                          "B^i = %e %e %e\n"
                           "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
+                          "B^i = %e %e %e\n"
                           "Output primitive variables:\n"
                           "rho, P, S, Y_e: %e %e %e %e\n"
                           "v: %e %e %e\n"
@@ -150,8 +150,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                           ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                           ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                          prims.BU[0], prims.BU[1], prims.BU[2],
                           cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
+                          prims.BU[0], prims.BU[1], prims.BU[2],
                           prims.rho, prims.press, prims.entropy, prims.Y_e,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
@@ -168,8 +168,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               pointcount_inhoriz++;
             }
             CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
-            CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e,\n"
-                       "~DS = %e, ~DY_e = %e Bi = %e %e %e,\n"
+            CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
+                       "~DS = %e, ~DY_e = %e Bi = %e %e %e\n"
                        "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
                        cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
                        cons.entropy, cons.Y_e, prims.BU[0], prims.BU[1], prims.BU[2],
