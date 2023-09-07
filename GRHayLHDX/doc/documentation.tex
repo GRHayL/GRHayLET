@@ -9,6 +9,7 @@
 \newcommand{\grhayl}{\texttt{GRHayL}\xspace}
 \newcommand{\glib}{\texttt{GRHayLib}\xspace}
 \newcommand{\ghd}{\texttt{GRHayLHD}\xspace}
+\newcommand{\ghdx}{\texttt{GRHayLHDX}\xspace}
 \newcommand{\igm}{\texttt{IllinoisGRMHD}\xspace}
 \newcommand{\hydrobase}{\texttt{HydroBase}\xspace}
 
@@ -26,7 +27,8 @@
 \begin{abstract}
 Provides a hydrodynamic evolution code using \grhayl via the
 \glib thorn. This is a trimmed-down version of the \igm thorn
-where magnetic fields are set to zero.
+where magnetic fields are set to zero adapted to use the
+\texttt{CarpetX} driver thorn.
 \end{abstract}
 
 \section{Introduction}
@@ -42,8 +44,11 @@ is much slower than not evolving them, and \ghd provides an
 implementation for evolving systems without magnetic
 fields.
 
-This thorn provides support for hybrid and tabulated EOS, both
-with and without entropy. The core functions all come from \glib,
+This thorn currently only provides support for hybrid EOS, but
+work towards providing full support for tabulated EOS is ongoing.
+%This thorn provides support for hybrid and tabulated EOS, both
+%with and without entropy.
+ The core functions all come from \glib,
 ensuring that any improvements or updates to the library can
 be easily adopted by the thorn. The conservative-to-primitive
 solver is selected at runtime, allowing for users to take

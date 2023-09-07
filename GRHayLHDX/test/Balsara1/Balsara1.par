@@ -75,6 +75,8 @@ GRHayLIDX::initialize_magnetic_quantities = no
 GRHayLIDX::shock_direction = "x"
 GRHayLIDX::discontinuity_position = 0.0
 
+CarpetX::out_performance = no
+
 IO::out_dir = $parfile
 IO::out_every = 10
 
