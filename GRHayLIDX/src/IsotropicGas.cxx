@@ -13,15 +13,14 @@ void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
 
   CCTK_INFO("Beginning IsotropicGas initial data");
 
-  CCTK_REAL IsotropicGas_press, IsotropicGas_eps, IsotropicGas_entropy;
-  ghl_tabulated_compute_P_eps_S_from_T(
+  CCTK_REAL IsotropicGas_press, IsotropicGas_eps;
+  ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         IsotropicGas_rho,
         IsotropicGas_Y_e,
         IsotropicGas_temperature,
         &IsotropicGas_press,
-        &IsotropicGas_eps,
-        &IsotropicGas_entropy);
+        &IsotropicGas_eps);
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -39,7 +38,6 @@ void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
     temperature(index) = IsotropicGas_temperature;
     press(index)       = IsotropicGas_press;
     eps(index)         = IsotropicGas_eps;
-    entropy(index)     = IsotropicGas_entropy;
   });
 
   CCTK_INFO("All done!");

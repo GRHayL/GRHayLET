@@ -18,25 +18,23 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
   CCTK_INFO("Beginning ConstantDensitySphere initial data");
 
   // Compute hydro quantities inside and outside the sphere
-  CCTK_REAL P_interior, eps_interior, S_interior;
-  ghl_tabulated_compute_P_eps_S_from_T(
+  CCTK_REAL P_interior, eps_interior;
+  ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         ConstantDensitySphere_rho_interior,
         ConstantDensitySphere_Y_e_interior,
         ConstantDensitySphere_T_interior,
         &P_interior,
-        &eps_interior,
-        &S_interior );
+        &eps_interior);
 
-  CCTK_REAL P_exterior, eps_exterior, S_exterior;
-  ghl_tabulated_compute_P_eps_S_from_T(
+  CCTK_REAL P_exterior, eps_exterior;
+  ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         ConstantDensitySphere_rho_exterior,
         ConstantDensitySphere_Y_e_exterior,
         ConstantDensitySphere_T_exterior,
         &P_exterior,
-        &eps_exterior,
-        &S_exterior );
+        &eps_exterior);
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -56,7 +54,6 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
       temperature(index) = ConstantDensitySphere_T_exterior;
       press(index)       = P_exterior;
       eps(index)         = eps_exterior;
-      entropy(index)     = S_exterior;
     }
     else {
       // Inside the sphere
@@ -65,7 +62,6 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
       temperature(index) = ConstantDensitySphere_T_interior;
       press(index)       = P_interior;
       eps(index)         = eps_interior;
-      entropy(index)     = S_interior;
     }
   });
 

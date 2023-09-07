@@ -4,5 +4,6 @@
 SRCS = 1D_tests_hydro_data.cxx    \
        1D_tests_magnetic_data.cxx \
        BetaEquilibrium.cxx        \
+       ComputeEntropy.cxx         \
        ConstantDensitySphere.cxx  \
        IsotropicGas.cxx

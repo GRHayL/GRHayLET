@@ -33,21 +33,19 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
       eps        (index) = ghl_eos->eps_atm;
       Ye         (index) = ghl_eos->Y_e_atm;
       temperature(index) = ghl_eos->T_atm;
-      entropy    (index) = ghl_eos->entropy_atm;
     }
     else {
       const double tempL = beq_temperature;
       const double YeL   = ghl_tabulated_get_Ye_from_rho(
                               ghl_eos->N_rho, ghl_eos->table_logrho, Ye_of_lr, rhoL);
 
-      double pressL, epsL, entL;
-      ghl_tabulated_compute_P_eps_S_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL, &entL);
+      double pressL, epsL;
+      ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
 
       press      (index) = pressL;
       eps        (index) = epsL;
       Ye         (index) = YeL;
       temperature(index) = tempL;
-      entropy    (index) = entL;
     }
   });
 

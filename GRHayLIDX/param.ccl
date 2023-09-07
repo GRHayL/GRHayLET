@@ -126,3 +126,10 @@ CCTK_REAL beq_temperature "Temperature used to impose beta-equilibrium"
   0:* :: "Non-negative values"
   -1  :: "Forbidden value"
 } -1
+
+#########################################################
+
+# ComputeEntropy parameters
+CCTK_BOOLEAN compute_entropy "Calculate entropy from initial data"
+{
+} "no"

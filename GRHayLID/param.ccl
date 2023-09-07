@@ -33,7 +33,7 @@ EXTENDS KEYWORD initial_Avec
 
 EXTENDS KEYWORD initial_Bvec
 {
-  "GRHayLID" :: "Initial vector potential set by GRHayLID"
+  "GRHayLID" :: "Initial magnetic fields set by GRHayLID"
 }
 
 restricted:
@@ -46,7 +46,6 @@ CCTK_BOOLEAN initialize_magnetic_quantities "Set whether Avec should be initiali
 CCTK_BOOLEAN stagger_A_fields "Sets whether Avec is staggered to +1/2 (following IllinoisGRMHD convention)"
 {
 } "yes"
-
 
 # 1D test parameters
 KEYWORD initial_data_1D "Set initial data type for 1D tests"
