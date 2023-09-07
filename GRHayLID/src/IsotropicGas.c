@@ -26,15 +26,14 @@ void GRHayLID_IsotropicGas(CCTK_ARGUMENTS) {
 
   CCTK_INFO("Beginning IsotropicGas initial data");
 
-  CCTK_REAL IsotropicGas_press, IsotropicGas_eps, IsotropicGas_entropy;
-  ghl_tabulated_compute_P_eps_S_from_T(
+  CCTK_REAL IsotropicGas_press, IsotropicGas_eps;
+  ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         IsotropicGas_rho,
         IsotropicGas_Y_e,
         IsotropicGas_temperature,
         &IsotropicGas_press,
-        &IsotropicGas_eps,
-        &IsotropicGas_entropy);
+        &IsotropicGas_eps);
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
@@ -54,8 +53,6 @@ void GRHayLID_IsotropicGas(CCTK_ARGUMENTS) {
         vel[ind4x] = 0;
         vel[ind4y] = 0;
         vel[ind4z] = 0;
-
-        if(CCTK_EQUALS(initial_entropy, "GRHayLID")) entropy[index] = IsotropicGas_entropy;
       }
     }
   }

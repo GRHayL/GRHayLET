@@ -24,8 +24,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     READS:  Grid::coordinates
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
-            HydroBase::entropy(everywhere)
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 
 } else if (CCTK_Equals(initial_hydro, "ConstantDensitySphere")) {
@@ -35,8 +34,7 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     READS:  Grid::coordinates
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
-            HydroBase::entropy(everywhere)
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }
 
@@ -45,10 +43,25 @@ if(impose_beta_equilibrium) {
   {
     LANG: C
     READS:  HydroBase::rho
-    WRITES: HydroBase::press(everywhere),
-            HydroBase::eps(everywhere),
-            HydroBase::Y_e(everywhere),
-            HydroBase::temperature(everywhere),
-            HydroBase::entropy(everywhere)
+    WRITES: HydroBase::press(everywhere), HydroBase::eps(everywhere),
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
   } "Set Y_e, temperature, entropy, press, eps in neutrino free beta-equilibrium"
+}
+
+if (CCTK_EQUALS(initial_entropy, "GRHayLID")) {
+  if (CCTK_EQUALS(EOS_type, "hybrid")) {
+    schedule GRHayLID_compute_entropy_hybrid after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
+    {
+      LANG: C
+      READS:  HydroBase::rho, HydroBase::press
+      WRITES: HydroBase::entropy(everywhere)
+    } "Computes entropy from density and pressure using Hybrid EOS"
+  } else if (CCTK_EQUALS(EOS_type, "tabulated")) {
+    schedule GRHayLID_compute_entropy_tabulated after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
+    {
+      LANG: C
+      READS:  HydroBase::rho, HydroBase::Y_e, HydroBase::temperature
+      WRITES: HydroBase::entropy(everywhere)
+    } "Computes entropy from density, electron fraction (Y_e), and temperature using Tabulated EOS"
+  }
 }
