@@ -14,6 +14,8 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLMHD;
   DECLARE_CCTK_PARAMETERS;
 
+  const double mag_factor = rescale_initial_A ? sqrt(4.0*M_PI) : 1;
+
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
@@ -34,9 +36,9 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         const double ETvy = vel[ind1];
         const double ETvz = vel[ind2];
 
-        Ax[index] = Avec[ind0];
-        Ay[index] = Avec[ind1];
-        Az[index] = Avec[ind2];
+        Ax[index] = mag_factor*Avec[ind0];
+        Ay[index] = mag_factor*Avec[ind1];
+        Az[index] = mag_factor*Avec[ind2];
         phitilde[index] = Aphi[index];
 
         // IllinoisGRMHD defines v^i = u^i/u^0.

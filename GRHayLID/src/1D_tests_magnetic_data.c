@@ -89,9 +89,9 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
           Bvec[ind4y] = By_r;
           Bvec[ind4z] = Bz_r;
         }
-        const double x_stag = x[index] + stagger_A_fields*dx[0];
-        const double y_stag = y[index] + stagger_A_fields*dx[1];
-        const double z_stag = z[index] + stagger_A_fields*dx[2];
+        const double x_stag = x[index];
+        const double y_stag = y[index];
+        const double z_stag = z[index];
 
         step = x_stag;
         if(CCTK_EQUALS(shock_direction, "y")) {

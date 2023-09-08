@@ -96,6 +96,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       const CCTK_REAL *restrict gzz,
       const CCTK_REAL *restrict rho_b,
       const CCTK_REAL *restrict pressure,
+      const CCTK_REAL *restrict eps,
       const CCTK_REAL *restrict ent,
       const CCTK_REAL *restrict Ye,
       const CCTK_REAL *restrict temp,

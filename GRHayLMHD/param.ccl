@@ -17,6 +17,10 @@ CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEER
 {
 } "yes"
 
+CCTK_BOOLEAN rescale_initial_A "Rescale initial A_i data by sqrt(4pi)"
+{
+} "no"
+
 #########################################################
 
 # Symmetry boundary params. Needed for handling staggered gridfunctions.
@@ -35,7 +39,8 @@ REAL Sym_Bz "In-progress equatorial symmetry support: Symmetry parameter across 
 # OUTER BOUNDARY CONDITION CHOICE
 KEYWORD Matter_BC "Chosen Matter boundary condition"
 {
-  "outflow" :: "Outflow boundary conditions"
+  "copy"    :: "Copy BCs"
+  "outflow" :: "Copy BCs with additional outflow BC for velocities"
   "frozen"  :: "Frozen boundaries"
 } "outflow"
 
@@ -51,9 +56,10 @@ KEYWORD EM_BC "EM field boundary condition"
 KEYWORD verbose "Determines how much evolution information is output" STEERABLE=ALWAYS
 {
   "no"        :: "Complete silence"
-  "essential" :: "Essential health monitoring of the GRMHD evolution: Information about conservative-to-primitive fixes, etc."
-  "essential+iteration output" :: "Outputs health monitoring information, plus a record of which RK iteration. Very useful for backtracing a crash."
-} "essential+iteration output"
+  "yes" :: "Outputs information about conservative-to-primitive fixes, failures, etc."
+  "essential" :: "Deprecated. Change to either yes or no"
+  "essential+iteration output" :: "Deprecated. Change to either yes or no"
+} "yes"
 
 #########################################################
 

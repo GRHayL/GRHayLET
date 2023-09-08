@@ -17,24 +17,6 @@ static inline double get_Gamma_eff_tabulated(
 
 static double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
 
-void reconstruct_v_edges(
-      const cGH *restrict cctkGH,
-      const int flux_dir,
-      const int imin,
-      const int imax,
-      const int jmin,
-      const int jmax,
-      const int kmin,
-      const int kmax,
-      const CCTK_REAL *restrict rho_b,
-      const CCTK_REAL *restrict pressure,
-      const CCTK_REAL *v_flux,
-      const CCTK_REAL *vx,
-      const CCTK_REAL *vy,
-      const CCTK_REAL *vz,
-      CCTK_REAL **vel_r,
-      CCTK_REAL **vel_l);
-
 // We could reduce computational cost by introducing grid functions for the
 // metric face interpolations (used in both loops
 void GRHayLMHD_calculate_MHD_dirn_rhs(
@@ -53,6 +35,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       const CCTK_REAL *restrict gzz,
       const CCTK_REAL *restrict rho_b,
       const CCTK_REAL *restrict pressure,
+      const CCTK_REAL *restrict eps,
       const CCTK_REAL *restrict ent,
       const CCTK_REAL *restrict Ye,
       const CCTK_REAL *restrict temp,
@@ -191,34 +174,66 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
   }
 
   // Count number of additional reconstructed variables
-  const int num_others = 5 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
+  const int num_others = 2 + ghl_params->evolve_entropy + (ghl_eos->eos_type == ghl_eos_tabulated);
 
   // If using the entropy, it should be the first reconstructed variable
   // after the three velocities
-  const int ent_index = 5 + !ghl_params->evolve_entropy;
+  const int ent_index = 2 + !ghl_params->evolve_entropy;
 
   // If not using the entropy, then Ye should be the first reconstructed
   // variable after the three velocities
-  const int Ye_index = 6 - !ghl_params->evolve_entropy;
+  const int Ye_index = 3 - !ghl_params->evolve_entropy;
 
   if( ghl_eos->eos_type == ghl_eos_tabulated )
     get_Gamma_eff = &get_Gamma_eff_tabulated;
 
-#pragma omp parallel for
-  for(int k=0; k<cctkGH->cctk_lsh[2]; k++) {
-    for(int j=0; j<cctkGH->cctk_lsh[1]; j++) {
-      for(int i=0; i<cctkGH->cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-        vel_r[0][index] = poison;
-        vel_r[1][index] = poison;
-        vel_r[2][index] = poison;
+  // This loop fills in all the data for reconstructed velocities. This loop is larger
+  // than the others because we will need to reconstruct a second time.
+  const int vimin = xdir*cctkGH->cctk_nghostzones[0];
+  const int vjmin = ydir*cctkGH->cctk_nghostzones[1];
+  const int vkmin = zdir*cctkGH->cctk_nghostzones[2];
+  const int vimax = cctkGH->cctk_lsh[0] - xdir*(cctkGH->cctk_nghostzones[0] - 1);
+  const int vjmax = cctkGH->cctk_lsh[1] - ydir*(cctkGH->cctk_nghostzones[1] - 1);
+  const int vkmax = cctkGH->cctk_lsh[2] - zdir*(cctkGH->cctk_nghostzones[2] - 1);
 
-        vel_l[0][index] = poison;
-        vel_l[1][index] = poison;
-        vel_l[2][index] = poison;
+#pragma omp parallel for
+  for(int k=vkmin; k<vkmax; k++) {
+    for(int j=vjmin; j<vjmax; j++) {
+      for(int i=vimin; i<vimax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+
+        CCTK_REAL press_stencil[6], v_flux_dir[6];
+        CCTK_REAL var_data[3][6], vars_r[3], vars_l[3];
+
+        for(int ind=0; ind<6; ind++) {
+          // Stencil from -3 to +2 reconstructs to e.g. i-1/2
+          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
+          v_flux_dir[ind] = v_flux[stencil]; // Could be smaller; doesn't use full stencil
+          press_stencil[ind] = pressure[stencil];
+          var_data[0][ind] = vx[stencil];
+          var_data[1][ind] = vy[stencil];
+          var_data[2][ind] = vz[stencil];
+        }
+
+        // Compute Gamma
+        const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
+
+        ghl_ppm_no_rho_P(
+              press_stencil, var_data,
+              3, v_flux_dir, Gamma,
+              vars_r, vars_l);
+
+        vel_r[0][index] = vars_r[0];
+        vel_r[1][index] = vars_r[1];
+        vel_r[2][index] = vars_r[2];
+
+        vel_l[0][index] = vars_l[0];
+        vel_l[1][index] = vars_l[1];
+        vel_l[2][index] = vars_l[2];
       }
     }
   }
+
   // This loop includes 1 ghostzone because the RHS calculation for e.g. the x direction
   // requires (i,j,k) and (i+1,j,k); if cmin/max weren't also needed for A_i, we could
   // technically have the loop only go 1 extra point in the flux_dir direction
@@ -226,12 +241,12 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
   for(int k=kmin; k<kmax+1; k++) {
     for(int j=jmin; j<jmax+1; j++) {
       for(int i=imin; i<imax+1; i++) {
-        const int indm1 = CCTK_GFINDEX3D(cctkGH, i-xdir, j-ydir, k-zdir); /* indexim1=0 when i=0 */
+        const int indm1 = CCTK_GFINDEX3D(cctkGH, i-xdir, j-ydir, k-zdir);
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
         CCTK_REAL rhor, rhol, pressr, pressl, B_r[3], B_l[3];
-        CCTK_REAL others_stencil[7][6], others_r[7], others_l[7];
+        CCTK_REAL others_stencil[4][6], others_r[4], others_l[7];
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -239,11 +254,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
           v_flux_dir[ind]                = v_flux[stencil]; // Could be smaller; doesn't use full stencil
           rho_stencil[ind]               = rho_b[stencil];
           press_stencil[ind]             = pressure[stencil];
-          others_stencil[0][ind]         = vx[stencil];
-          others_stencil[1][ind]         = vy[stencil];
-          others_stencil[2][ind]         = vz[stencil];
-          others_stencil[3][ind]         = B_center[B_recon[1]][stencil];
-          others_stencil[4][ind]         = B_center[B_recon[2]][stencil];
+          others_stencil[0][ind]         = B_center[B_recon[1]][stencil];
+          others_stencil[1][ind]         = B_center[B_recon[2]][stencil];
           others_stencil[ent_index][ind] = ent[stencil];
           others_stencil[Ye_index ][ind] = Ye[stencil];
         }
@@ -256,19 +268,11 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               num_others, v_flux_dir, Gamma,
               &rhor, &rhol, &pressr, &pressl, others_r, others_l);
 
-        vel_r[0][index] = others_r[0];
-        vel_r[1][index] = others_r[1];
-        vel_r[2][index] = others_r[2];
+        B_r[B_recon[1]] = others_r[0];
+        B_r[B_recon[2]] = others_r[1];
 
-        vel_l[0][index] = others_l[0];
-        vel_l[1][index] = others_l[1];
-        vel_l[2][index] = others_l[2];
-
-        B_r[B_recon[1]] = others_r[3];
-        B_r[B_recon[2]] = others_r[4];
-
-        B_l[B_recon[1]] = others_l[3];
-        B_l[B_recon[2]] = others_l[4];
+        B_l[B_recon[1]] = others_l[0];
+        B_l[B_recon[2]] = others_l[1];
 
         ghl_metric_quantities ADM_metric_face;
         GRHayLMHD_interpolate_metric_to_face(
@@ -316,129 +320,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
     }
   }
 
-  /*
-     The following loops fill in the outer ghost zones for the
-     reconstructed velocities. To compute the flux terms for A_RHS, we
-     need to reconstruct the velocities a second time. This means we
-     will need to do another reconstruction stencil in the interior.
-     However, the previous loop only provides the minimum loop size.
-     We could needlessly compute lots of extra math in the previous
-     loop to simplify the code, but instead we loop over the extra
-     ghost zone points here and just reconstruct the velocities.
-
-     Example: consider the x direction. If we reconstruct in x first,
-     then we may want to reconstruct in y or z. Then, the full grid
-     we want is
-        i: loop over interior + 1 one upper ghost zone (due to different centerings)
-        j: loop over all points
-        k: loop over all points
-     We can visualize this with a box
-
-              ------------
-              |          |
-              | -------- |
-              | |xxxxxx| |
-              | |xxxxxx| |
-              | |xxxxxx| |
-           ^  | -------- |
-           |  |          |
-           k  ------------
-           j-->
-
-     where the 'x' positions have already been filled.
-     We can do several loops to fill the remainder:
-     1) loop k @ (0, kmin), j @ (0,lsh[1]), i @ (imin,imax+1)
-        loop shown with w
-     2) loop k @ (kmax+1, lsh[2]), j @ (0,lsh[1]), i @ (imin,imax+1)
-        loop shown with y
-     3) loop k @ (kmin, kmax+1), j @ (0,jmin), i @ (imin,imax+1)
-        loop shown with z
-     4) loop k @ (kmin, kmax+1), j @ (jmax+1,lsh[1]), i @ (imin,imax+1)
-        loop shown with q
-              ------------
-              |yyyyyyyyyy|
-              |z--------q|
-              |z|xxxxxx|q|
-              |z|xxxxxx|q|
-              |z|xxxxxx|q|
-              |z--------q|
-              |wwwwwwwwww|
-              ------------
-  */
-  if(xdir) {
-    reconstruct_v_edges(cctkGH, flux_dir, // w zone
-          imin, imax+1,
-          0, cctkGH->cctk_lsh[1],
-          0, kmin,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // y zone
-          imin, imax+1,
-          0, cctkGH->cctk_lsh[1],
-          kmax+1, cctkGH->cctk_lsh[2],
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // z zone
-          imin, imax+1,
-          0, jmin,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir,  // q zone
-          imin, imax+1,
-          jmax+1, cctkGH->cctk_lsh[1],
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  } else if(ydir) {
-    reconstruct_v_edges(cctkGH, flux_dir, // w zone
-          0, cctkGH->cctk_lsh[0],
-          jmin, jmax+1,
-          0, kmin,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // y zone
-          0, cctkGH->cctk_lsh[0],
-          jmin, jmax+1,
-          kmax+1, cctkGH->cctk_lsh[2],
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // z zone
-          0, imin,
-          jmin, jmax+1,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir,  // q zone
-          imax+1, cctkGH->cctk_lsh[0],
-          jmin, jmax+1,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  } else if(zdir) {
-    reconstruct_v_edges(cctkGH, flux_dir, // w zone
-          0, cctkGH->cctk_lsh[0],
-          0, jmin,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // y zone
-          0, cctkGH->cctk_lsh[0],
-          jmax+1, cctkGH->cctk_lsh[1],
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir, // z zone
-          0, imin,
-          jmin, jmax+1,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-
-    reconstruct_v_edges(cctkGH, flux_dir,  // q zone
-          imax+1, cctkGH->cctk_lsh[0],
-          jmin, jmax+1,
-          kmin, kmax+1,
-          rho_b, pressure, v_flux, vx, vy, vz, vel_r, vel_l);
-  }
-
 #pragma omp parallel for
   for(int k=kmin; k<kmax; k++) {
     for(int j=jmin; j<jmax; j++) {
@@ -453,67 +334,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
         ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
         Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
-      }
-    }
-  }
-}
-
-void reconstruct_v_edges(
-      const cGH *restrict cctkGH,
-      const int flux_dir,
-      const int imin,
-      const int imax,
-      const int jmin,
-      const int jmax,
-      const int kmin,
-      const int kmax,
-      const CCTK_REAL *restrict rho_b,
-      const CCTK_REAL *restrict pressure,
-      const CCTK_REAL *v_flux,
-      const CCTK_REAL *vx,
-      const CCTK_REAL *vy,
-      const CCTK_REAL *vz,
-      CCTK_REAL **vel_r,
-      CCTK_REAL **vel_l) {
-
-  const int xdir = (flux_dir == 0);
-  const int ydir = (flux_dir == 1);
-  const int zdir = (flux_dir == 2);
-
-#pragma omp parallel for
-  for(int k=kmin; k<kmax; k++) {
-    for(int j=jmin; j<jmax; j++) {
-      for(int i=imin; i<imax; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-
-        CCTK_REAL press_stencil[6], v_flux_dir[6];
-        CCTK_REAL var_data[3][6], vars_r[3], vars_l[3];
-
-        for(int ind=0; ind<6; ind++) {
-          // Stencil from -3 to +2 reconstructs to e.g. i-1/2
-          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux_dir[ind] = v_flux[stencil]; // Could be smaller; doesn't use full stencil
-          press_stencil[ind] = pressure[stencil];
-          var_data[0][ind] = vx[stencil];
-          var_data[1][ind] = vy[stencil];
-          var_data[2][ind] = vz[stencil];
-        }
-
-        // Compute Gamma
-        const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
-
-        ghl_ppm_no_rho_P(
-              press_stencil, var_data,
-              3, v_flux_dir, Gamma,
-              vars_r, vars_l);
-
-        vel_r[0][index] = vars_r[0];
-        vel_r[1][index] = vars_r[1];
-        vel_r[2][index] = vars_r[2];
-
-        vel_l[0][index] = vars_l[0];
-        vel_l[1][index] = vars_l[1];
-        vel_l[2][index] = vars_l[2];
       }
     }
   }
