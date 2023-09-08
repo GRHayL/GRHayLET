@@ -97,12 +97,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
                                          const ghl_metric_quantities *restrict ADM_metric_face,
                                          double *cmin, double *cmax);
 
-  void (*calculate_source_terms)(ghl_primitive_quantities *restrict prims,
-                                 const ghl_eos_parameters *restrict eos,
-                                 const ghl_metric_quantities *restrict ADM_metric,
-                                 const ghl_metric_quantities *restrict metric_derivs,
-                                 ghl_conservative_quantities *restrict cons_sources);
-
   void (*calculate_HLLE_fluxes)(ghl_primitive_quantities *restrict prims_r,
                                 ghl_primitive_quantities *restrict prims_l,
                                 const ghl_eos_parameters *restrict eos,
@@ -175,7 +169,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[2] = 2;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
       calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn0;
-      calculate_source_terms = &ghl_calculate_source_terms_dirn0;
       break;
     case 1:
       v_flux = vy;
@@ -184,7 +177,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[2] = 0;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
       calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn1;
-      calculate_source_terms = &ghl_calculate_source_terms_dirn1;
       break;
     case 2:
       v_flux = vz;
@@ -193,7 +185,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       B_recon[2] = 1;
       calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
       calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn2;
-      calculate_source_terms = &ghl_calculate_source_terms_dirn2;
       break;
     default:
       CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
@@ -462,46 +453,6 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
         ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
         Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
-
-        ghl_metric_quantities ADM_metric;
-        ghl_initialize_metric(
-              lapse[index],
-              betax[index], betay[index], betaz[index],
-              gxx[index], gxy[index], gxz[index],
-              gyy[index], gyz[index], gzz[index],
-              &ADM_metric);
-
-        ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho_b[index], pressure[index], poison,
-              vx[index], vy[index], vz[index],
-              B_center[0][index], B_center[1][index], B_center[2][index],
-              ent[index], Ye[index], temp[index],
-              &prims);
-
-        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(
-              ghl_eos, &ADM_metric, &prims);
-
-        ghl_metric_quantities ADM_metric_derivs;
-        GRHayLMHD_compute_metric_derivs(
-              cctkGH, i, j, k,
-              flux_dir, dxi, lapse,
-              betax, betay, betaz,
-              gxx, gxy, gxz,
-              gyy, gyz, gzz,
-              &ADM_metric_derivs);
-
-        ghl_conservative_quantities cons_source;
-        cons_source.tau = 0.0;
-        cons_source.SD[0] = 0.0;
-        cons_source.SD[1] = 0.0;
-        cons_source.SD[2] = 0.0;
-
-        calculate_source_terms(&prims, ghl_eos, &ADM_metric, &ADM_metric_derivs, &cons_source);
-        tau_rhs[index]     += cons_source.tau;
-        Stildex_rhs[index] += cons_source.SD[0];
-        Stildey_rhs[index] += cons_source.SD[1];
-        Stildez_rhs[index] += cons_source.SD[2];
       }
     }
   }

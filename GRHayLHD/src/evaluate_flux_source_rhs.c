@@ -40,13 +40,6 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
         const ghl_metric_quantities *restrict ADM_metric_face,
         double *cmin, double *cmax);
 
-  void (*calculate_source_terms)(
-        ghl_primitive_quantities *restrict prims,
-        const ghl_eos_parameters *restrict eos,
-        const ghl_metric_quantities *restrict ADM_metric,
-        const ghl_metric_quantities *restrict metric_derivs,
-        ghl_conservative_quantities *restrict cons_sources);
-
   void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
@@ -117,19 +110,16 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
         v_flux_dir = vx;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
         calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn0;
-        calculate_source_terms = &ghl_calculate_source_terms_dirn0;
         break;
       case 1:
         v_flux_dir = vy;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
         calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn1;
-        calculate_source_terms = &ghl_calculate_source_terms_dirn1;
         break;
       case 2:
         v_flux_dir = vz;
         calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
         calculate_HLLE_fluxes = calculate_HLLE_fluxes_dirn2;
-        calculate_source_terms = &ghl_calculate_source_terms_dirn2;
         break;
       default:
         CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
@@ -242,65 +232,8 @@ void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
           Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
           ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
           Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
-
-          ghl_metric_quantities ADM_metric;
-          ghl_initialize_metric(alp[index],
-                betax[index], betay[index], betaz[index],
-                gxx[index], gxy[index], gxz[index],
-                gyy[index], gyz[index], gzz[index],
-                &ADM_metric);
-
-          ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[index], press[index], eps[index],
-                vx[index], vy[index], vz[index],
-                0.0, 0.0, 0.0,
-                entropy[index], Y_e[index], temperature[index],
-                &prims);
-
-          const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);
-
-          ghl_metric_quantities ADM_metric_derivs;
-          GRHayLHD_compute_metric_derivs(
-                cctkGH, i, j, k,
-                flux_dir, dxi, alp,
-                betax, betay, betaz,
-                gxx, gxy, gxz,
-                gyy, gyz, gzz,
-                &ADM_metric_derivs);
-
-          ghl_conservative_quantities cons_source;
-          cons_source.tau = 0.0;
-          cons_source.SD[0] = 0.0;
-          cons_source.SD[1] = 0.0;
-          cons_source.SD[2] = 0.0;
-
-          calculate_source_terms(&prims, ghl_eos, &ADM_metric, &ADM_metric_derivs, &cons_source);
-          tau_rhs[index]     += cons_source.tau;
-          Stildex_rhs[index] += cons_source.SD[0];
-          Stildey_rhs[index] += cons_source.SD[1];
-          Stildez_rhs[index] += cons_source.SD[2];
         }
       }
     }
   }
-
-  static int prev_it=-1, substep;
-  if( cctk_iteration != prev_it ) {
-    prev_it = cctk_iteration;
-    substep = 0;
-  }
-  substep++;
-  char filename[256];
-  sprintf(filename, "grhd_rhss_%d_%d.txt", cctk_iteration, substep);
-  FILE *fp = fopen(filename, "w");
-  const int k = cctk_lsh[2]/2;
-  for(int j=jmin; j<jmax; j++) {
-    for(int i=imin; i<imax; i++) {
-      const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-      fprintf(fp, "%d %d %d %e %e %e %e %e %e %e\n", i, j, k, rho_star_rhs[index], tau_rhs[index], Stildex_rhs[index], Stildey_rhs[index], Stildez_rhs[index], ent_star_flux[index], Ye_star_rhs[index]);
-    }
-    fprintf(fp, "\n");
-  }
-  fclose(fp);
 }
