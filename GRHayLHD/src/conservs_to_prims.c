@@ -62,7 +62,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
   double error_Sx_numer = 0;
   double error_Sy_numer = 0;
   double error_Sz_numer = 0;
-  double error_entropy_numer = 0;
+  double error_ent_numer = 0;
   double error_Ye_numer = 0;
 
   double error_rho_denom = 0;
@@ -70,15 +70,15 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
   double error_Sx_denom = 0;
   double error_Sy_denom = 0;
   double error_Sz_denom = 0;
-  double error_entropy_denom = 0;
+  double error_ent_denom = 0;
   double error_Ye_denom = 0;
   int n_iter = 0;
   double dummy1, dummy2, dummy3;
 
 #pragma omp parallel for reduction(+: \
       pointcount, backup0, backup1, backup2, vel_limited_ptcount, rho_star_fix_applied, failures, failures_inhoriz, pointcount_inhoriz, n_iter, \
-      error_rho_numer, error_tau_numer, error_Sx_numer, error_Sy_numer, error_Sz_numer, error_entropy_numer, error_Ye_numer,                    \
-      error_rho_denom, error_tau_denom, error_Sx_denom, error_Sy_denom, error_Sz_denom, error_entropy_denom, error_Ye_denom) schedule(static)
+      error_rho_numer, error_tau_numer, error_Sx_numer, error_Sy_numer, error_Sz_numer, error_ent_numer, error_Ye_numer,                    \
+      error_rho_denom, error_tau_denom, error_Sx_denom, error_Sy_denom, error_Sz_denom, error_ent_denom, error_Ye_denom) schedule(static)
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
@@ -122,13 +122,19 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
 
         //FIXME: might slow down the code. Was formerly a CCTK_WARN
         if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2])) {
-          CCTK_VERROR("NaN found at start of C2P kernel:\n"
-                      "  index %d %d %d, rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
-                      "  lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e\n",
-                      i, j, k, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+          CCTK_VERROR("NaN found at start of C2P kernel!\n"
+                      "position = %e %e %e\n"
+                      "Input variables:\n"
+                      "lapse, shift = %e, %e, %e, %e\n"
+                      "gij = %e, %e, %e, %e, %e, %e\n"
+                      "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
+                      "~DS, ~DY_e: %e, %e\n",
+                      x[index], y[index], z[index],
                       ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                      ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+                      ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
+                      cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                      cons.entropy, cons.Y_e);
         }
 
         /************* Main conservative-to-primitive logic ************/
@@ -155,20 +161,24 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
             if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
               CCTK_VERROR("***********************************************************\n"
                           "NAN found after Con2Prim routine %s!\n"
+                          "position = %e %e %e\n"
                           "Input variables:\n"
-                          "lapse, shift = %e %e %e %e\n"
-                          "gij = %e %e %e %e %e %e\n"
-                          "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
+                          "lapse, shift = %e, %e, %e, %e\n"
+                          "gij = %e, %e, %e, %e, %e, %e\n"
+                          "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
+                          "~DS, ~DY_e: %e, %e\n"
                           "Output primitive variables:\n"
-                          "rho, P, S, Y_e: %e %e %e %e\n"
-                          "v: %e %e %e\n"
+                          "rho, P, S, Y_e, T: %e, %e, %e, %e, %e\n"
+                          "v^i: %e, %e, %e\n"
                           "***********************************************************",
                           ghl_get_con2prim_routine_name(diagnostics.which_routine),
+                          x[index], y[index], z[index],
                           ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                           ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                           ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
-                          prims.rho, prims.press, prims.entropy, prims.Y_e,
+                          cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                          cons.entropy, cons.Y_e,
+                          prims.rho, prims.press, prims.entropy, prims.Y_e, prims.temperature,
                           prims.vU[0], prims.vU[1], prims.vU[2]);
             }
           } else {
@@ -183,15 +193,18 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
               failures_inhoriz++;
               pointcount_inhoriz++;
             }
-            CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
-            CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
-                       "~DS = %e, ~DY_e = %e Bi = %e %e %e\n"
-                       "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                       cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
-                       cons.entropy, cons.Y_e, prims.BU[0], prims.BU[1], prims.BU[2],
+            CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n"
+                       "position = %e %e %e\n"
+                       "lapse, shift = %e, %e, %e, %e\n"
+                       "gij = %e, %e, %e, %e, %e, %e\n"
+                       "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
+                       "~DS, ~DY_e: %e, %e\n",
+                       x[index], y[index], z[index],
                        ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                        ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
+                       cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                       cons.entropy, cons.Y_e);
           }
         } else {
           local_failure_checker += 1;
@@ -229,14 +242,14 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
         error_Sx_numer  += fabs(cons.SD[0] - cons_orig.SD[0]);
         error_Sy_numer  += fabs(cons.SD[1] - cons_orig.SD[1]);
         error_Sz_numer  += fabs(cons.SD[2] - cons_orig.SD[2]);
-        error_entropy_numer  += fabs(cons.entropy - cons_orig.entropy);
+        error_ent_numer += fabs(cons.entropy - cons_orig.entropy);
         error_Ye_numer  += fabs(cons.Y_e - cons_orig.Y_e);
         error_rho_denom += cons_orig.tau;
         error_tau_denom += cons_orig.rho;
         error_Sx_denom  += fabs(cons_orig.SD[0]);
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
-        error_entropy_denom  += cons_orig.entropy;
+        error_ent_denom += cons_orig.entropy;
         error_Ye_denom  += cons_orig.Y_e;
 
         pointcount++;
@@ -256,13 +269,13 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
     }
   }
 
-  const double rho_error     = (error_rho_denom==0) ?     error_rho_numer :     error_rho_numer/error_rho_denom;
-  const double tau_error     = (error_tau_denom==0) ?     error_tau_numer :     error_tau_numer/error_tau_denom;
-  const double Sx_error      = (error_Sx_denom==0) ?      error_Sx_numer :      error_Sx_numer/error_Sx_denom;
-  const double Sy_error      = (error_Sy_denom==0) ?      error_Sy_numer :      error_Sy_numer/error_Sy_denom;
-  const double Sz_error      = (error_Sz_denom==0) ?      error_Sz_numer :      error_Sz_numer/error_Sz_denom;
-  const double entropy_error = (error_entropy_denom==0) ? error_entropy_numer : error_entropy_numer/error_entropy_denom;
-  const double Ye_error      = (error_Ye_denom==0) ?      error_Ye_numer :      error_Ye_numer/error_Ye_denom;
+  const double rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
+  const double tau_error     = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
+  const double Sx_error      = (error_Sx_denom==0) ?  error_Sx_numer :  error_Sx_numer/error_Sx_denom;
+  const double Sy_error      = (error_Sy_denom==0) ?  error_Sy_numer :  error_Sy_numer/error_Sy_denom;
+  const double Sz_error      = (error_Sz_denom==0) ?  error_Sz_numer :  error_Sz_numer/error_Sz_denom;
+  const double entropy_error = (error_ent_denom==0) ? error_ent_numer : error_ent_numer/error_ent_denom;
+  const double Ye_error      = (error_Ye_denom==0) ?  error_Ye_numer :  error_Ye_numer/error_Ye_denom;
   /*
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
@@ -285,7 +298,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
                    (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
                    rho_error, error_rho_denom,
                    tau_error, error_tau_denom,
-                   entropy_error, error_entropy_denom,
+                   entropy_error, error_ent_denom,
                    Sx_error, error_Sx_denom,
                    Sy_error, error_Sy_denom,
                    Sz_error, error_Sz_denom);
@@ -315,7 +328,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
                    (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
                    rho_error, error_rho_denom,
                    tau_error, error_tau_denom,
-                   entropy_error, error_entropy_denom,
+                   entropy_error, error_ent_denom,
                    Ye_error, error_Ye_denom,
                    Sx_error, error_Sx_denom,
                    Sy_error, error_Sy_denom,

@@ -30,7 +30,8 @@ KEYWORD Symmetry "Currently only no symmetry supported, though work has begun in
 # OUTER BOUNDARY CONDITION CHOICE
 KEYWORD Matter_BC "Chosen Matter boundary condition"
 {
-  "outflow" :: "Outflow boundary conditions"
+  "copy"    :: "Copy BCs"
+  "outflow" :: "Copy BCs with additional outflow BC for velocities"
   "frozen"  :: "Frozen boundaries"
 } "outflow"
 
