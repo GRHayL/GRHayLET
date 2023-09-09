@@ -64,6 +64,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
   double error_Sz_numer = 0;
   double error_ent_numer = 0;
   double error_Ye_numer = 0;
+
   double error_rho_denom = 0;
   double error_tau_denom = 0;
   double error_Sx_denom = 0;
@@ -106,7 +107,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               Bx_center[index], By_center[index], Bz_center[index],
-              ent[index], Ye[index], temp[index], &prims);
+              entropy[index], Y_e[index], temperature[index], &prims);
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
@@ -136,6 +137,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
                       cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
                       cons.entropy, cons.Y_e);
         }
+
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
@@ -230,7 +232,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               &rho_b[index], &pressure[index], &eps[index],
               &vx[index], &vy[index], &vz[index],
               &Bx_center[index], &By_center[index], &Bz_center[index],
-              &ent[index], &Ye[index], &temp[index]);
+              &entropy[index], &Y_e[index], &temperature[index]);
         u0[index] = prims.u0;
 
         ghl_return_conservatives(

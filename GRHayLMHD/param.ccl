@@ -55,7 +55,7 @@ KEYWORD EM_BC "EM field boundary condition"
 # Verbosity Level
 KEYWORD verbose "Determines how much evolution information is output" STEERABLE=ALWAYS
 {
-  "no"        :: "Complete silence"
+  "no"  :: "Complete silence"
   "yes" :: "Outputs information about conservative-to-primitive fixes, failures, etc."
   "essential" :: "Deprecated. Change to either yes or no"
   "essential+iteration output" :: "Deprecated. Change to either yes or no"

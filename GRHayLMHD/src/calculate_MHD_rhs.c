@@ -36,9 +36,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
       const CCTK_REAL *restrict rho_b,
       const CCTK_REAL *restrict pressure,
       const CCTK_REAL *restrict eps,
-      const CCTK_REAL *restrict ent,
-      const CCTK_REAL *restrict Ye,
-      const CCTK_REAL *restrict temp,
+      const CCTK_REAL *restrict entropy,
+      const CCTK_REAL *restrict Y_e,
       const CCTK_REAL *vx,
       const CCTK_REAL *vy,
       const CCTK_REAL *vz,
@@ -256,8 +255,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
           press_stencil[ind]             = pressure[stencil];
           others_stencil[0][ind]         = B_center[B_recon[1]][stencil];
           others_stencil[1][ind]         = B_center[B_recon[2]][stencil];
-          others_stencil[ent_index][ind] = ent[stencil];
-          others_stencil[Ye_index ][ind] = Ye[stencil];
+          others_stencil[ent_index][ind] = entropy[stencil];
+          others_stencil[Ye_index ][ind] = Y_e[stencil];
         }
 
         // Compute Gamma
@@ -292,14 +291,14 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               rhor, pressr, poison,
               vel_r[0][index], vel_r[1][index], vel_r[2][index],
               B_r[0], B_r[1], B_r[2],
-              others_r[ent_index], others_r[Ye_index], temp[index],
+              others_r[ent_index], others_r[Ye_index], poison,
               &prims_r);
 
         ghl_initialize_primitives(
               rhol, pressl, poison,
               vel_l[0][index], vel_l[1][index], vel_l[2][index],
               B_l[0], B_l[1], B_l[2],
-              others_l[ent_index], others_l[Ye_index], temp[index],
+              others_l[ent_index], others_l[Ye_index], poison,
               &prims_l);
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);

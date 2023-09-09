@@ -29,7 +29,7 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
               rho_b[index], pressure[index], eps[index],
               vx[index], vy[index], vz[index],
               Bx_center[index], By_center[index], Bz_center[index],
-              ent[index], Ye[index], temp[index], &prims);
+              entropy[index], Y_e[index], temperature[index], &prims);
 
         prims.u0 = u0[index];
 

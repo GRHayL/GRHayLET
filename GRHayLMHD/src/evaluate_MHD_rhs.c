@@ -77,7 +77,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   int flux_dir = 0;
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, ent, Ye, temp, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
@@ -118,7 +118,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, ent, Ye, temp, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
@@ -168,7 +168,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, ent, Ye, temp, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);

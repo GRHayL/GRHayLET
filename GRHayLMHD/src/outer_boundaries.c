@@ -157,7 +157,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_VERROR("ERROR: GRHayLMHD outer BC driver does not support unequal number of ghostzones in different directions!");
+    CCTK_ERROR("ERROR: GRHayLMHD outer BC driver does not support unequal number of ghostzones in different directions!");
   for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
 
     /* XMIN & XMAX */
@@ -176,7 +176,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vtmp, vy[indm1], vz[indm1],
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -185,7 +185,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
@@ -204,7 +204,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vtmp, vy[indp1], vz[indp1],
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indp1], Ye[indp1], temp[indp1], &prims);
+                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -213,7 +213,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
@@ -234,7 +234,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vx[indm1], vtmp, vz[indm1],
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -243,7 +243,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
@@ -262,7 +262,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vtmp, vz[indp1],
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indp1], Ye[indp1], temp[indp1], &prims);
+                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -271,7 +271,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
@@ -292,7 +292,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indm1], pressure[indm1], eps[indm1],
                 vx[indm1], vy[indm1], vtmp,
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indm1], Ye[indm1], temp[indm1], &prims);
+                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -301,7 +301,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
@@ -320,7 +320,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 rho_b[indp1], pressure[indp1], eps[indp1],
                 vx[indp1], vy[indp1], vtmp,
                 Bx_center[index], By_center[index], Bz_center[index],
-                ent[indp1], Ye[indp1], temp[indp1], &prims);
+                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
 
           GRHayLMHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
 
@@ -329,7 +329,7 @@ void GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
                 &rho_b[index], &pressure[index], &eps[index],
                 &vx[index], &vy[index], &vz[index],
                 &Bx_center[index], &By_center[index], &Bz_center[index],
-                &ent[index], &Ye[index], &temp[index]);
+                &entropy[index], &Y_e[index], &temperature[index]);
         }
       }
     }
