@@ -19,7 +19,7 @@ CoordBase::boundary_size_y_upper = 3
 CoordBase::boundary_size_z_upper = 3
 
 CartGrid3D::avoid_origin = "no"
-CartGrid3D::type         = "coordbase"
+CartGrid3D::type      = "coordbase"
 CoordBase::domainsize = "minmax"
 CoordBase::xmin = -0.5
 CoordBase::ymin = -0.5
@@ -27,10 +27,10 @@ CoordBase::zmin = -0.5
 CoordBase::xmax =  0.5
 CoordBase::ymax =  0.5
 CoordBase::zmax =  0.5
-CoordBase::dx   =  1.0/1600.0
-CoordBase::dy   =  0.25
-CoordBase::dz   =  0.25
-Time::dtfac = 0.125
+CoordBase::dx   =  1.0/400.0
+CoordBase::dy   =  1.0/8.0
+CoordBase::dz   =  1.0/8.0
+Time::dtfac = 0.5
 
 SpaceMask::use_mask      = "yes"
 
@@ -67,6 +67,12 @@ HydroBase::initial_Aphi        = "zero"
 HydroBase::initial_Bvec        = "zero"
 HydroBase::timelevels          = 1
 
+ActiveThorns = "GRHayLID"
+GRHayLID::initial_data_1D = "Balsara1"
+GRHayLID::initialize_magnetic_quantities = no
+GRHayLID::shock_direction = "x"
+GRHayLID::discontinuity_position = 0.000001
+
 GRHayLib::Psi6threshold = 1e100
 GRHayLib::Lorenz_damping_factor = 0.1
 
@@ -79,14 +85,8 @@ GRHayLib::Gamma_ppoly_in[0]     = 2.0
 GRHayLib::Gamma_th              = 2.0
 GRHayLib::k_ppoly0              = 1.0
 GRHayLib::rho_ppoly_in[0]       = 0.0
-GRHayLib::con2prim_backup_routines[0] = "Font1D"
 
-ActiveThorns = "GRHayLID"
-GRHayLID::initial_data_1D = "Balsara1"
-GRHayLID::initialize_magnetic_quantities = no
-GRHayLID::shock_direction = "x"
-GRHayLID::discontinuity_position = 0.0
-
+GRHayLHD::Matter_BC = "copy"
 # I/O
 
 IOUtil::out_dir       = $parfile

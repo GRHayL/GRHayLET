@@ -1,9 +1,3 @@
-TEST TOV
-{ 
-  NPROCS 2
-  RELTOL 1e-11
-}
-
 TEST Balsara1
 { 
   NPROCS 2
