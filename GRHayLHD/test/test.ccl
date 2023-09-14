@@ -1,4 +1,4 @@
-TEST Balsara1
+TEST Balsara0
 { 
   NPROCS 2
   RELTOL 1e-12
