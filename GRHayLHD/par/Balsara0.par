@@ -34,8 +34,8 @@ Time::dtfac = 0.5
 
 SpaceMask::use_mask      = "yes"
 
-Cactus::terminate   = "iteration"
-Cactus::cctk_itlast = 10
+Cactus::terminate                  = "time"
+Cactus::cctk_final_time            = 0.4
 
 Carpet::domain_from_coordbase = "yes"
 
@@ -89,6 +89,9 @@ GRHayLHD::Matter_BC = "copy"
 IOUtil::out_dir       = $parfile
 IOUtil::parfile_write = "generate"
 
+IOBasic::outInfo_every = 2
+IOBasic::outInfo_vars  = "Carpet::physical_time_per_hour"
+
 CarpetIOASCII::one_file_per_group = "no"
 CarpetIOASCII::out1D_every        = 10
 CarpetIOASCII::out1D_x            = "yes"
@@ -96,6 +99,7 @@ CarpetIOASCII::out1D_y            = "no"
 CarpetIOASCII::out1D_z            = "no"
 CarpetIOASCII::out1D_d            = "no"
 CarpetIOASCII::out1D_vars         = "
+  ADMBase::lapse
   HydroBase::rho
   HydroBase::press
   GRHayLHD::vx

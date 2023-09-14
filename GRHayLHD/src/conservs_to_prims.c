@@ -286,7 +286,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
     100k: S~ was reset in ghl_apply_conservative_limits
   */
   if(CCTK_Equals(verbose, "yes")) {
-    if(ghl_eos->eos_type == ghl_eos_hybrid) {
+    if(ghl_eos->eos_type == ghl_eos_hybrid || ghl_eos->eos_type == ghl_eos_ideal_fluid) {
       if(ghl_params->evolve_entropy) {
         CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
                    "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e\n"

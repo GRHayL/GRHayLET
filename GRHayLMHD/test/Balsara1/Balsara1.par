@@ -96,7 +96,7 @@ CoordBase::zmin                  = -2
 
 # Parameters of thorn GRHayLib (implementing GRHayLib)
 GRHayLib::con2prim_backup_routines[0] = "Font1D"
-GRHayLib::EOS_type                    = "hybrid"
+GRHayLib::EOS_type                    = "Hybrid"
 GRHayLib::Gamma_ppoly_in[0]           = 2
 GRHayLib::Gamma_th                    = 2
 GRHayLib::k_ppoly0                    = 1

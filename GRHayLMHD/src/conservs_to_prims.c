@@ -196,14 +196,14 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               failures_inhoriz++;
               pointcount_inhoriz++;
             }
-            CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n"
+            CCTK_VINFO("Con2Prim failed with failure code %d! Resetting to atmosphere...\n"
                        "position = %e %e %e\n"
                        "lapse, shift = %e, %e, %e, %e\n"
                        "gij = %e, %e, %e, %e, %e, %e\n"
                        "B^i = %e, %e, %e\n"
                        "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
                        "~DS, ~DY_e: %e, %e\n",
-                       x[index], y[index], z[index],
+                       check, x[index], y[index], z[index],
                        ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                        ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                        ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
@@ -291,7 +291,7 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
     100k: S~ was reset in ghl_apply_conservative_limits
   */
   if(CCTK_Equals(verbose, "yes") || CCTK_Equals(verbose, "essential") || CCTK_Equals(verbose, "essential+iteration output")) {
-    if(ghl_eos->eos_type == ghl_eos_hybrid) {
+    if(ghl_eos->eos_type == ghl_eos_hybrid || ghl_eos->eos_type == ghl_eos_ideal_fluid) {
       if(ghl_params->evolve_entropy) {
         CCTK_VINFO("C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
                    "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e\n"

@@ -46,14 +46,14 @@ if(impose_beta_equilibrium) {
 }
 
 if (compute_entropy) {
-  if (CCTK_EQUALS(EOS_type, "hybrid")) {
+  if (CCTK_EQUALS(EOS_type, "Hybrid")) {
     schedule GRHayLIDX_compute_entropy_hybrid after (HydroBaseX_InitialData impose_beta_equilibrium) before HydroBaseX_PostInitial
     {
       LANG: C
       READS:  HydroBaseX::rho, HydroBaseX::press
       WRITES: HydroBaseX::entropy(everywhere)
     } "Computes entropy from density and pressure using Hybrid EOS"
-  } else if (CCTK_EQUALS(EOS_type, "tabulated")) {
+  } else if (CCTK_EQUALS(EOS_type, "Tabulated")) {
     schedule GRHayLIDX_compute_entropy_tabulated after (HydroBaseX_InitialData impose_beta_equilibrium) before HydroBaseX_PostInitial
     {
       LANG: C

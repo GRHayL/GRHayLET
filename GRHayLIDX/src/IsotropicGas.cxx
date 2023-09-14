@@ -4,8 +4,8 @@ void GRHayLIDX_IsotropicGas(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_IsotropicGas;
   DECLARE_CCTK_PARAMETERS;
 
-  if(!CCTK_EQUALS(EOS_type, "tabulated"))
-    CCTK_VERROR("IsotropicGas initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"tabulated\" in the parfile.");
+  if(!CCTK_EQUALS(EOS_type, "Tabulated"))
+    CCTK_ERROR("IsotropicGas initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"Tabulated\" in the parfile.");
 
   CHECK_PARAMETER(IsotropicGas_rho);
   CHECK_PARAMETER(IsotropicGas_Y_e);

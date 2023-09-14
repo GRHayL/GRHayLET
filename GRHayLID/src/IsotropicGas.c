@@ -13,12 +13,12 @@ void GRHayLID_IsotropicGas(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_IsotropicGas;
   DECLARE_CCTK_PARAMETERS;
 
-  if(!CCTK_EQUALS(EOS_type, "tabulated"))
-    CCTK_VERROR("IsotropicGas initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"tabulated\" in the parfile.");
+  if(!CCTK_EQUALS(EOS_type, "Tabulated"))
+    CCTK_ERROR("IsotropicGas initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"Tabulated\" in the parfile.");
   if(!CCTK_EQUALS(initial_Y_e, "GRHayLID"))
-    CCTK_VERROR("To use IsotropicGas initial data, please add HydroBase::initial_Y_e=\"GRHayLID\" to the parfile.");
+    CCTK_ERROR("To use IsotropicGas initial data, please add HydroBase::initial_Y_e=\"GRHayLID\" to the parfile.");
   if(!CCTK_EQUALS(initial_temperature, "GRHayLID"))
-    CCTK_VERROR("To use IsotropicGas initial data, please add HydroBase::initial_temperature=\"GRHayLID\" to the parfile.");
+    CCTK_ERROR("To use IsotropicGas initial data, please add HydroBase::initial_temperature=\"GRHayLID\" to the parfile.");
 
   CHECK_PARAMETER(IsotropicGas_rho);
   CHECK_PARAMETER(IsotropicGas_Y_e);

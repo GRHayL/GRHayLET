@@ -38,7 +38,7 @@ void GRHayLHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
           //entropy(index), Ye(index), temperature(index),
           &prims);
 
-    const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric, &prims);
+    const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
     ghl_conservative_quantities cons_source;
     cons_source.tau = 0;

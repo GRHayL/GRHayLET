@@ -140,9 +140,12 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
     const double Gamma = get_Gamma_eff(rho(index), press(index));
 
     ghl_ppm(
-          rho_stencil, press_stencil, others_stencil,
+          ghl_params, rho_stencil,
+          press_stencil, others_stencil,
           3, v_flux, Gamma,
-          &rhor, &rhol, &pressr, &pressl, others_r, others_l);
+          &rhor, &rhol,
+          &pressr, &pressl,
+          others_r, others_l);
 
     ghl_metric_quantities ADM_metric_face;
     GRHayLHDX_interpolate_metric_to_face(
@@ -169,8 +172,8 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
           //others_l[ent_index], others_l[Ye_index], poison,
           &prims_l);
 
-    int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
-    speed_limited = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_l);
+    int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
+    speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
     CCTK_REAL cmin, cmax;
     ghl_conservative_quantities cons_fluxes;

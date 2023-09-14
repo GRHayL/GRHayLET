@@ -4,8 +4,8 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_1D_tests_hydro_data;
   DECLARE_CCTK_PARAMETERS;
 
-  if(!CCTK_EQUALS(EOS_type, "hybrid"))
-    CCTK_VERROR("1D test initial data is only defined for hybrid EOS. Please change GRHayLib::EOS_type to \"hybrid\" in the parfile.");
+  if(CCTK_EQUALS(EOS_type, "Tabulated"))
+    CCTK_ERROR("1D test initial data is only defined for hybrid or ideal fluid EOS, and the standard comparison uses the ideal fluid EOS. Please change GRHayLib::EOS_type in the parfile.");
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 

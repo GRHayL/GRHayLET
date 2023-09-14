@@ -126,7 +126,7 @@ HydroBase::initial_Aphi        = "zero"
 HydroBase::initial_Bvec        = "zero"
 HydroBase::timelevels          = 1
 
-GRHayLib::EOS_type              = "hybrid"
+GRHayLib::EOS_type              = "Hybrid"
 GRHayLib::neos                  = 1
 GRHayLib::Gamma_ppoly_in[0]     = 2.0
 GRHayLib::Gamma_th              = 2.0

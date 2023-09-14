@@ -62,7 +62,7 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
         const double Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm_no_rho_P(
-              press_stencil, var_data,
+              ghl_params, press_stencil, var_data,
               num_vars, v_flux_stencil, Gamma,
               vars_r, vars_l);
 

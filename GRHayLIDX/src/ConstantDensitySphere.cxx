@@ -4,8 +4,8 @@ extern "C" void GRHayLIDX_ConstantDensitySphere(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_ConstantDensitySphere;
   DECLARE_CCTK_PARAMETERS;
 
-  if(!CCTK_EQUALS(EOS_type, "tabulated"))
-    CCTK_VERROR("ConstantDensitySphere initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"tabulated\" in the parfile.");
+  if(!CCTK_EQUALS(EOS_type, "Tabulated"))
+    CCTK_ERROR("ConstantDensitySphere initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"Tabulated\" in the parfile.");
 
   CHECK_PARAMETER(ConstantDensitySphere_sphere_radius);
   CHECK_PARAMETER(ConstantDensitySphere_rho_interior);

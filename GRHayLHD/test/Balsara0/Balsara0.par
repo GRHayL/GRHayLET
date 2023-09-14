@@ -68,16 +68,13 @@ CoordBase::zmin                  = -0.5
 GRHayLHD::Matter_BC = "copy"
 
 # Parameters of thorn GRHayLib (implementing GRHayLib)
-GRHayLib::EOS_type              = "hybrid"
-GRHayLib::Gamma_ppoly_in[0]     = 2
-GRHayLib::Gamma_th              = 2
-GRHayLib::k_ppoly0              = 1
+GRHayLib::EOS_type              = "IdealFluid"
+GRHayLib::Gamma                 = 2
 GRHayLib::Lorenz_damping_factor = 0.10000000000000000555
-GRHayLib::neos                  = 1
+GRHayLib::P_atm                 = 1.6714679999999998764e-20
 GRHayLib::Psi6threshold         = 1.0000000000000000159e+100
 GRHayLib::rho_b_atm             = 1.2928527350944400071e-10
 GRHayLib::rho_b_min             = 1.2928527350944400071e-10
-GRHayLib::rho_ppoly_in[0]       = 0
 
 # Parameters of thorn GRHayLID (implementing GRHayLID)
 GRHayLID::discontinuity_position         = 9.9999999999999995475e-07

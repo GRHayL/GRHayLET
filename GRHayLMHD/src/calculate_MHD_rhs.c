@@ -218,7 +218,7 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm_no_rho_P(
-              press_stencil, var_data,
+              ghl_params, press_stencil, var_data,
               3, v_flux_dir, Gamma,
               vars_r, vars_l);
 
@@ -263,9 +263,12 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
         const CCTK_REAL Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
 
         ghl_ppm(
-              rho_stencil, press_stencil, others_stencil,
+              ghl_params, rho_stencil,
+              press_stencil, others_stencil,
               num_others, v_flux_dir, Gamma,
-              &rhor, &rhol, &pressr, &pressl, others_r, others_l);
+              &rhor, &rhol,
+              &pressr, &pressl,
+              others_r, others_l);
 
         B_r[B_recon[1]] = others_r[0];
         B_r[B_recon[2]] = others_r[1];
@@ -301,8 +304,8 @@ void GRHayLMHD_calculate_MHD_dirn_rhs(
               others_l[ent_index], others_l[Ye_index], poison,
               &prims_l);
 
-        int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_r);
-        speed_limited = ghl_limit_v_and_compute_u0(ghl_eos, &ADM_metric_face, &prims_l);
+        int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
+        speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
