@@ -230,7 +230,7 @@ schedule group GRHayLMHD_RHS in MoL_CalcRHS after (bssn_rhs shift_rhs)
 {
 } "Evaluate RHSs GRHD equations"
 
-schedule GRHayLMHD_evaluate_tau_curvature_rhs in GRHayLMHD_RHS
+schedule GRHayLMHD_evaluate_sources_rhs in GRHayLMHD_RHS
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
@@ -240,7 +240,7 @@ schedule GRHayLMHD_evaluate_tau_curvature_rhs in GRHayLMHD_RHS
   WRITES: grmhd_conservatives_rhs, EM_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_tau_curvature_rhs
+schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv

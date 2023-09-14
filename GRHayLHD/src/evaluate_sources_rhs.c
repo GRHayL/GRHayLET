@@ -1,7 +1,7 @@
-#include "GRHayLMHD.h"
+#include "GRHayLHD.h"
 
-void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_evaluate_tau_curvature_rhs;
+void GRHayLHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_evaluate_sources_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctk_nghostzones[0];
@@ -21,10 +21,6 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
         rho_star_rhs[index] = 0.0;
-        phitilde_rhs[index] = 0.0;
-        Ax_rhs[index]       = 0.0;
-        Ay_rhs[index]       = 0.0;
-        Az_rhs[index]       = 0.0;
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
@@ -42,16 +38,16 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
+              rho[index], press[index], eps[index],
               vx[index], vy[index], vz[index],
-              Bx_center[index], By_center[index], Bz_center[index],
+              0.0, 0.0, 0.0,
               entropy[index], Y_e[index], temperature[index],
               &prims);
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
         ghl_metric_quantities ADM_metric_derivs_x;
-        GRHayLMHD_compute_metric_derivs(
+        GRHayLHD_compute_metric_derivs(
               cctkGH, i, j, k,
               0, dxi, alp,
               betax, betay, betaz,
@@ -60,7 +56,7 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
               &ADM_metric_derivs_x);
 
         ghl_metric_quantities ADM_metric_derivs_y;
-        GRHayLMHD_compute_metric_derivs(
+        GRHayLHD_compute_metric_derivs(
               cctkGH, i, j, k,
               1, dyi, alp,
               betax, betay, betaz,
@@ -69,7 +65,7 @@ void GRHayLMHD_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
               &ADM_metric_derivs_y);
 
         ghl_metric_quantities ADM_metric_derivs_z;
-        GRHayLMHD_compute_metric_derivs(
+        GRHayLHD_compute_metric_derivs(
               cctkGH, i, j, k,
               2, dzi, alp,
               betax, betay, betaz,

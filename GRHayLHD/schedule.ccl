@@ -165,7 +165,7 @@ schedule group GRHayLHD_RHS in MoL_CalcRHS after (bssn_rhs shift_rhs)
 {
 } "Evaluate RHSs GRHD equations"
 
-schedule GRHayLHD_evaluate_tau_curvature_rhs in GRHayLHD_RHS after GRHayLHD_enforce_detgtij_eq_1
+schedule GRHayLHD_evaluate_sources_rhs in GRHayLHD_RHS after GRHayLHD_enforce_detgtij_eq_1
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
@@ -175,7 +175,7 @@ schedule GRHayLHD_evaluate_tau_curvature_rhs in GRHayLHD_RHS after GRHayLHD_enfo
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evaluate_tau_curvature_rhs
+schedule GRHayLHD_evaluate_fluxes_rhs in GRHayLHD_RHS after GRHayLHD_evaluate_sources_rhs
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
@@ -186,7 +186,7 @@ schedule GRHayLHD_evaluate_flux_source_rhs in GRHayLHD_RHS after GRHayLHD_evalua
 } "Evaluate RHSs of GRHD equations"
 
 if( CCTK_IsThornActive("NRPyLeakageET") ) {
-  schedule GRHayLHD_convert_for_NRPyLeakage in GRHayLHD_RHS after GRHayLHD_evaluate_flux_source_rhs
+  schedule GRHayLHD_convert_for_NRPyLeakage in GRHayLHD_RHS after GRHayLHD_evaluate_fluxes_rhs
   {
     LANG: C
     READS:  ADMBase::lapse, ADMBase::shift,

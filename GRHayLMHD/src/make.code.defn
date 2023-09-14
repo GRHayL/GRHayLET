@@ -12,7 +12,7 @@ SRCS = A_flux_rhs.c                        \
        convert_GRHayLMHD_to_HydroBase.c    \
        evaluate_MHD_rhs.c                  \
        evaluate_phitilde_and_A_gauge_rhs.c \
-       evaluate_tau_curvature_rhs.c        \
+       evaluate_sources_rhs.c              \
        InitSymBound.c                      \
        interpolate_metric_to_face.c        \
        MoL_registration.c                  \

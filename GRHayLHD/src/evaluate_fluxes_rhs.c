@@ -15,8 +15,8 @@ static inline double get_Gamma_eff_tabulated(
   return 1.0;
 }
 
-void GRHayLHD_evaluate_flux_source_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_evaluate_flux_source_rhs;
+void GRHayLHD_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   /*

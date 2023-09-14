@@ -7,8 +7,8 @@ SRCS = compute_metric_derivs.c         \
        convert_for_NRPyLeakage.c       \
        convert_HydroBase_to_GRHayLHD.c \
        convert_GRHayLHD_to_HydroBase.c \
-       evaluate_flux_source_rhs.c      \
-       evaluate_tau_curvature_rhs.c    \
+       evaluate_fluxes_rhs.c           \
+       evaluate_sources_rhs.c          \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
        MoL_registration.c              \
