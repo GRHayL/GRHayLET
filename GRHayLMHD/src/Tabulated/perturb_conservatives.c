@@ -1,7 +1,7 @@
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_perturb_conservatives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_perturb_conservatives;
+void GRHayLMHD_tabulated_perturb_conservatives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_tabulated_perturb_conservatives;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
@@ -19,6 +19,7 @@ void GRHayLMHD_perturb_conservatives(CCTK_ARGUMENTS) {
         Stildex[index]  *= one_plus_pert(random_pert);
         Stildey[index]  *= one_plus_pert(random_pert);
         Stildez[index]  *= one_plus_pert(random_pert);
+        Ye_star[index] *= one_plus_pert(random_pert);
       }
     }
   }

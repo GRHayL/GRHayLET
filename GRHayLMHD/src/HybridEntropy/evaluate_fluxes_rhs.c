@@ -36,11 +36,40 @@
 
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_evaluate_MHD_rhs;
+extern void GRHayLMHD_hybrid_entropy_calculate_flux_dir_rhs(
+      const cGH *restrict cctkGH,
+      const int flux_dir,
+      const CCTK_REAL **B_center,
+      const CCTK_REAL *restrict B_stagger,
+      CCTK_REAL **vel_r,
+      CCTK_REAL **vel_l,
+      CCTK_REAL *restrict cmin,
+      CCTK_REAL *restrict cmax);
+
+void GRHayLMHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_hybrid_entropy_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  CCTK_REAL dX[3] = { CCTK_DELTA_SPACE(0), CCTK_DELTA_SPACE(1), CCTK_DELTA_SPACE(2) };
+  const int imin = cctk_nghostzones[0];
+  const int jmin = cctk_nghostzones[1];
+  const int kmin = cctk_nghostzones[2];
+  const int imax = cctk_lsh[0] - cctk_nghostzones[0];
+  const int jmax = cctk_lsh[1] - cctk_nghostzones[1];
+  const int kmax = cctk_lsh[2] - cctk_nghostzones[2];
+#pragma omp parallel for
+  for(int k=kmin; k<kmax; k++) {
+    for(int j=jmin; j<jmax; j++) {
+      for(int i=imin; i<imax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
+        rho_star_rhs[index] = 0.0;
+        ent_star_rhs[index] = 0.0;
+        phitilde_rhs[index] = 0.0;
+        Ax_rhs[index]       = 0.0;
+        Ay_rhs[index]       = 0.0;
+        Az_rhs[index]       = 0.0;
+      }
+    }
+  }
 
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
   // Most pointers are passed explicitly. However, we need to programmatically choose gridfunctions
@@ -75,12 +104,9 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
      We also save the v^i reconstructions for the A_i RHS.
   */
   int flux_dir = 0;
-  GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
-                         alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
-                         vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
-                         rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
-                         rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
+  GRHayLMHD_hybrid_entropy_calculate_flux_dir_rhs(
+        cctkGH, flux_dir, B_center, B_stagger[flux_dir],
+        vel_r, vel_l, cmin[flux_dir], cmax[flux_dir]);
 
   /*
      Here we perform reconstructions in preparation for computing the A_i RHS. First, we aim to compute
@@ -116,12 +142,9 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
          \partial_x F = [ F(i,j+1/2,k) - F(i,j-1/2,k) ] / dx
      We also save the v^i reconstructions for the A_i RHS.
   */
-  GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
-                         alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
-                         vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
-                         rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
-                         rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
+  GRHayLMHD_hybrid_entropy_calculate_flux_dir_rhs(
+        cctkGH, flux_dir, B_center, B_stagger[flux_dir],
+        vel_r, vel_l, cmin[flux_dir], cmax[flux_dir]);
 
   /*****************************************
    * COMPUTING RHS OF A_z, BOOKKEEPING NOTE:
@@ -166,12 +189,9 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
        \partial_z F = [ F(i,j,k+1/2) - F(i,j,k-1/2) ] / dx
      We also save the v^i reconstructions for the A_i RHS.
   */
-  GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
-                         alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
-                         vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
-                         rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
-                         rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
+  GRHayLMHD_hybrid_entropy_calculate_flux_dir_rhs(
+        cctkGH, flux_dir, B_center, B_stagger[flux_dir],
+        vel_r, vel_l, cmin[flux_dir], cmax[flux_dir]);
 
   /*****************************************
    * COMPUTING RHS OF A_x, BOOKKEEPING NOTE:
