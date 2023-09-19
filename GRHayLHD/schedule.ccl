@@ -84,7 +84,7 @@ if(Convert_to_HydroBase_every) {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
             grmhd_velocities
-    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
 }
 
@@ -206,6 +206,6 @@ if(Convert_to_HydroBase_every) {
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
             grmhd_velocities
-    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
 }

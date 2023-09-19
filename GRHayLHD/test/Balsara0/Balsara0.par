@@ -83,9 +83,6 @@ GRHayLID::initialize_magnetic_quantities = "no"
 GRHayLID::shock_direction                = "x"
 
 # Parameters of thorn HydroBase (implementing HydroBase)
-HydroBase::initial_Aphi        = "zero"
-HydroBase::initial_Avec        = "zero"
-HydroBase::initial_Bvec        = "zero"
 HydroBase::initial_entropy     = "zero"
 HydroBase::initial_hydro       = "HydroTest1D"
 HydroBase::initial_temperature = "zero"

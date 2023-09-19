@@ -81,10 +81,6 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         if(isnan(alpha_u0*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
 
         w_lorentz[index] = alpha_u0;
-
-        Bvec[index4D0] = 0.0;
-        Bvec[index4D1] = 0.0;
-        Bvec[index4D2] = 0.0;
       }
     }
   }

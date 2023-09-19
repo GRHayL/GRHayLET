@@ -62,9 +62,6 @@ HydroBase::initial_hydro       = "HydroTest1D"
 HydroBase::initial_Y_e         = "one"
 HydroBase::initial_temperature = "zero"
 HydroBase::initial_entropy     = "zero"
-HydroBase::initial_Avec        = "zero"
-HydroBase::initial_Aphi        = "zero"
-HydroBase::initial_Bvec        = "zero"
 HydroBase::timelevels          = 1
 
 ActiveThorns = "GRHayLID"
