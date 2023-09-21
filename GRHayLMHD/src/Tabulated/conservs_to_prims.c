@@ -21,6 +21,129 @@ void GRHayLMHD_tabulated_conserv_to_prims(CCTK_ARGUMENTS) {
     if(ierr!=0) CCTK_VERROR("Error with setting equatorial symmetries in con2prim.");
   }
 
+  ghl_primitive_quantities prims_guess;
+
+  {
+    CCTK_REAL rho_star_avg = 0.0;
+    CCTK_REAL tau_avg      = 0.0;
+    CCTK_REAL Stildex_avg  = 0.0;
+    CCTK_REAL Stildey_avg  = 0.0;
+    CCTK_REAL Stildez_avg  = 0.0;
+    CCTK_REAL Ye_star_avg  = 0.0;
+    CCTK_REAL Bx_avg       = 0.0;
+    CCTK_REAL By_avg       = 0.0;
+    CCTK_REAL Bz_avg       = 0.0;
+    CCTK_REAL alp_avg      = 0.0;
+    CCTK_REAL betax_avg    = 0.0;
+    CCTK_REAL betay_avg    = 0.0;
+    CCTK_REAL betaz_avg    = 0.0;
+    CCTK_REAL gxx_avg      = 0.0;
+    CCTK_REAL gxy_avg      = 0.0;
+    CCTK_REAL gxz_avg      = 0.0;
+    CCTK_REAL gyy_avg      = 0.0;
+    CCTK_REAL gyz_avg      = 0.0;
+    CCTK_REAL gzz_avg      = 0.0;
+
+#pragma omp parallel for reduction(+: rho_star_avg, tau_avg, Ye_star_avg,       \
+                                      Stildex_avg, Stildey_avg, Stildez_avg,    \
+                                      Bx_avg, By_avg, Bz_avg,                   \
+                                      alp_avg, betax_avg, betay_avg, betaz_avg, \
+                                      gxx_avg, gxy_avg, gxz_avg,                \
+                                      gyy_avg, gyz_avg, gzz_avg)
+    for(int k=0;k<cctk_lsh[2];k++) {
+      for(int j=0;j<cctk_lsh[1];j++) {
+        for(int i=0;i<cctk_lsh[0];i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+
+          // Conserved variables
+          rho_star_avg += rho_star[index];
+          tau_avg      += tau     [index];
+          Stildex_avg  += Stildex [index];
+          Stildey_avg  += Stildey [index];
+          Stildez_avg  += Stildez [index];
+          Ye_star_avg  += Ye_star [index];
+
+          // Magnetic fields
+          Bx_avg += Bx_center[index];
+          By_avg += By_center[index];
+          Bz_avg += Bz_center[index];
+
+          // Metric quantities
+          alp_avg   += alp  [index];
+          betax_avg += betax[index];
+          betay_avg += betay[index];
+          betaz_avg += betaz[index];
+          gxx_avg   += gxx  [index];
+          gxy_avg   += gxy  [index];
+          gxz_avg   += gxz  [index];
+          gyy_avg   += gyy  [index];
+          gyz_avg   += gyz  [index];
+          gzz_avg   += gzz  [index];
+        }
+      }
+    }
+
+    // Now compute the averages
+    const CCTK_REAL inv_n_total = 1.0/(imax * jmax * kmax);
+
+    alp_avg   *= inv_n_total;
+    betax_avg *= inv_n_total;
+    betay_avg *= inv_n_total;
+    betaz_avg *= inv_n_total;
+    gxx_avg   *= inv_n_total;
+    gxy_avg   *= inv_n_total;
+    gxz_avg   *= inv_n_total;
+    gyy_avg   *= inv_n_total;
+    gyz_avg   *= inv_n_total;
+    gzz_avg   *= inv_n_total;
+
+    ghl_conservative_quantities cons;
+    cons.rho          = rho_star_avg * inv_n_total;
+    cons.tau          = tau_avg      * inv_n_total;
+    cons.SD[0]        = Stildex_avg  * inv_n_total;
+    cons.SD[1]        = Stildey_avg  * inv_n_total;
+    cons.SD[2]        = Stildez_avg  * inv_n_total;
+    cons.Y_e          = Ye_star_avg  * inv_n_total;
+    prims_guess.BU[0] = Bx_avg       * inv_n_total;
+    prims_guess.BU[1] = By_avg       * inv_n_total;
+    prims_guess.BU[2] = Bz_avg       * inv_n_total;
+
+    // Perform a con2prim
+    ghl_con2prim_diagnostics diagnostics;
+    ghl_initialize_diagnostics(&diagnostics);
+
+    // Read in ADM metric quantities from gridfunctions and
+    // set auxiliary and ADM metric quantities
+    ghl_metric_quantities ADM_metric;
+    ghl_enforce_detgtij_and_initialize_ADM_metric(
+                                                  alp_avg,
+                                                  betax_avg, betay_avg, betaz_avg,
+                                                  gxx_avg, gxy_avg, gxz_avg,
+                                                  gyy_avg, gyz_avg, gzz_avg,
+                                                  &ADM_metric);
+
+    ghl_ADM_aux_quantities metric_aux;
+    ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
+
+    // Read in primitive variables from gridfunctions
+    // The code has only ever been tested using the default GRHayL guess,
+    // so using the previous timelevel as an initial guess would need to
+    // be implemented here.
+    ghl_guess_primitives(ghl_eos, &ADM_metric, &cons, &prims_guess);
+
+    // declare some variables for the C2P routine.
+    ghl_conservative_quantities cons_undens;
+
+    // Set the conserved variables required by the con2prim routine
+    ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
+
+    const int check = ghl_con2prim_multi_method(
+                ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                &cons_undens, &prims_guess, &diagnostics);
+
+    if( check ) CCTK_ERROR("Failed to find primitives for average conservatives");
+  }
+
   // Diagnostic variables.
   int failures = 0;
   int vel_limited_ptcount = 0;
@@ -77,7 +200,7 @@ void GRHayLMHD_tabulated_conserv_to_prims(CCTK_ARGUMENTS) {
         // The code has only ever been tested using the default GRHayL guess,
         // so using the previous timelevel as an initial guess would need to
         // be implemented here.
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = prims_guess;
         prims.BU[0] = Bx_center[index];
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
