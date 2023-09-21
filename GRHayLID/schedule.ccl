@@ -50,14 +50,14 @@ if(impose_beta_equilibrium) {
 
 if (CCTK_EQUALS(initial_entropy, "GRHayLID")) {
   if (CCTK_EQUALS(EOS_type, "Hybrid")) {
-    schedule GRHayLID_compute_entropy_hybrid after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
+    schedule GRHayLID_compute_entropy_hybrid at CCTK_INITIAL after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press
       WRITES: HydroBase::entropy(everywhere)
     } "Computes entropy from density and pressure using Hybrid EOS"
   } else if (CCTK_EQUALS(EOS_type, "Tabulated")) {
-    schedule GRHayLID_compute_entropy_tabulated after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
+    schedule GRHayLID_compute_entropy_tabulated at CCTK_INITIAL after (HydroBase_Initial impose_beta_equilibrium) before HydroBase_Prim2ConInitial
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::Y_e, HydroBase::temperature
