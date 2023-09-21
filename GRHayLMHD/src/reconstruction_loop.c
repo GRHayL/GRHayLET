@@ -1,22 +1,9 @@
 #include "GRHayLMHD.h"
 
-static inline double get_Gamma_eff_hybrid(
-      const double rho_in,
-      const double press_in) {
-  double K, Gamma;
-  ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
-  const double P_cold = K*pow(rho_in, Gamma);
-  return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
-}
-
-static inline double get_Gamma_eff_tabulated(
-      const double rho_in,
-      const double press_in) {
-  return 1.0;
-}
-
 static double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
 
+// This reconstruction function is only used on B_stagger and reconstructed velocities, so it
+// is independent of EOS
 void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
                          const int *restrict var_indices,
                          const double *rho_b,

@@ -25,6 +25,14 @@ enum recon_indices{
 #define B_in  2.0/3.0
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
+double get_Gamma_eff_hybrid(
+      const double rho_in,
+      const double press_in);
+
+double get_Gamma_eff_tabulated(
+      const double rho_in,
+      const double press_in);
+
 void GRHayLMHD_interpolate_metric_to_face(
       const cGH *cctkGH,
       const int i, const int j, const int k,
@@ -71,57 +79,17 @@ void GRHayLMHD_set_symmetry_gzs_staggered(
 
 /******** Helper functions for the RHS calculations *************/
 
-void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
-                         const int *restrict var_indices,
-                         const double *rho_b,
-                         const double *pressure,
-                         const double *v_flux,
-                         const CCTK_REAL **in_prims,
-                         CCTK_REAL **out_prims_r,
-                         CCTK_REAL **out_prims_l);
-
-void GRHayLMHD_calculate_MHD_dirn_rhs(
+void GRHayLMHD_reconstruction_loop(
       const cGH *restrict cctkGH,
       const int flux_dir,
-      const CCTK_REAL *restrict dX,
-      const CCTK_REAL *restrict lapse,
-      const CCTK_REAL *restrict betax,
-      const CCTK_REAL *restrict betay,
-      const CCTK_REAL *restrict betaz,
-      const CCTK_REAL *restrict gxx,
-      const CCTK_REAL *restrict gxy,
-      const CCTK_REAL *restrict gxz,
-      const CCTK_REAL *restrict gyy,
-      const CCTK_REAL *restrict gyz,
-      const CCTK_REAL *restrict gzz,
-      const CCTK_REAL *restrict rho_b,
-      const CCTK_REAL *restrict pressure,
-      const CCTK_REAL *restrict eps,
-      const CCTK_REAL *restrict entropy,
-      const CCTK_REAL *restrict Y_e,
-      const CCTK_REAL *vx,
-      const CCTK_REAL *vy,
-      const CCTK_REAL *vz,
-      const CCTK_REAL **B_center,
-      const CCTK_REAL *restrict B_stagger,
-      CCTK_REAL **vel_r,
-      CCTK_REAL **vel_l,
-      CCTK_REAL *restrict cmin,
-      CCTK_REAL *restrict cmax,
-      CCTK_REAL *restrict rho_star_flux,
-      CCTK_REAL *restrict tau_flux,
-      CCTK_REAL *restrict Stildex_flux,
-      CCTK_REAL *restrict Stildey_flux,
-      CCTK_REAL *restrict Stildez_flux,
-      CCTK_REAL *restrict ent_star_flux,
-      CCTK_REAL *restrict Ye_star_flux,
-      CCTK_REAL *restrict rho_star_rhs,
-      CCTK_REAL *restrict tau_rhs,
-      CCTK_REAL *restrict Stildex_rhs,
-      CCTK_REAL *restrict Stildey_rhs,
-      CCTK_REAL *restrict Stildez_rhs,
-      CCTK_REAL *restrict ent_star_rhs,
-      CCTK_REAL *restrict Ye_star_rhs);
+      const int num_vars,
+      const int *restrict var_indices,
+      const double *rho_b,
+      const double *pressure,
+      const double *v_flux,
+      const CCTK_REAL **in_prims,
+      CCTK_REAL **out_prims_r,
+      CCTK_REAL **out_prims_l);
 
 // The const are commented out because C does not support implicit typecasting of types when
 // they are more than 1 level removed from the top pointer. i.e. I can pass the argument with

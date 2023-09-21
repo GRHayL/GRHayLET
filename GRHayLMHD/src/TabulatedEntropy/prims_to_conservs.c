@@ -1,17 +1,7 @@
-/********************************
- * CONVERT ET ID TO IllinoisGRMHD
- *
- * Written in 2014 by Zachariah B. Etienne
- *
- * Sets metric & MHD variables needed
- * by IllinoisGRMHD, converting from
- * HydroBase and ADMBase.
- ********************************/
-
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_prims_to_conservs;
+void GRHayLMHD_tabulated_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_tabulated_entropy_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
@@ -36,12 +26,17 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
-              vx[index], vy[index], vz[index],
-              Bx_center[index], By_center[index], Bz_center[index],
-              entropy[index], Y_e[index], temperature[index],
-              &prims);
+        prims.rho = rho_b[index];
+        prims.press = pressure[index];
+        prims.vU[0] = vx[index];
+        prims.vU[1] = vy[index];
+        prims.vU[2] = vz[index];
+        prims.BU[0] = Bx_center[index];
+        prims.BU[1] = By_center[index];
+        prims.BU[2] = Bz_center[index];
+        prims.entropy = entropy[index];
+        prims.Y_e = Y_e[index];
+        prims.temperature = temperature[index];
 
         ghl_conservative_quantities cons;
         //This applies inequality fixes on the primitives
@@ -51,18 +46,23 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        ghl_return_primitives(
-              &prims,
-              &rho_b[index], &pressure[index], &eps[index],
-              &vx[index], &vy[index], &vz[index],
-              &Bx_center[index], &By_center[index], &Bz_center[index],
-              &entropy[index], &Y_e[index], &temperature[index]);
+        rho_b[index]    = prims.rho;
+        pressure[index] = prims.press;
+        eps[index]      = prims.eps;
+        vx[index]       = prims.vU[0];
+        vy[index]       = prims.vU[1];
+        vz[index]       = prims.vU[2];
+        entropy[index]  = prims.entropy;
+        Y_e[index]      = prims.Y_e;
+        temperature[index]  = prims.temperature;
 
-        ghl_return_conservatives(
-              &cons,
-              &rho_star[index], &tau[index],
-              &Stildex[index], &Stildey[index], &Stildez[index],
-              &ent_star[index], &Ye_star[index]);
+        rho_star[index] = cons.rho;
+        tau[index]      = cons.tau;
+        Stildex[index]  = cons.SD[0];
+        Stildey[index]  = cons.SD[1];
+        Stildez[index]  = cons.SD[2];
+        ent_star[index] = cons.entropy;
+        Ye_star[index] = cons.Y_e;
       }
     }
   }

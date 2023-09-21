@@ -1,7 +1,7 @@
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_perturb_primitives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_perturb_primitives;
+void GRHayLMHD_tabulated_perturb_primitives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_tabulated_perturb_primitives;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];

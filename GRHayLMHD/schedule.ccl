@@ -8,10 +8,16 @@ STORAGE: HydroBase::entropy[1], HydroBase::Y_e[1], HydroBase::temperature[1]
 # This should be done by HydroBase by setting initial_Bvec, initial_Avec, initial_Aphi
 STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 
-STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
+STORAGE: grmhd_conservatives[3], Ye_star[3], ent_star[3], Ax[3], Ay[3], Az[3], phitilde[3]
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
-STORAGE: grmhd_conservatives_rhs, EM_rhs
-STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, grmhd_flux_temps, failure_checker
+STORAGE: grmhd_conservatives_rhs, Ye_star_rhs, ent_star_rhs, EM_rhs
+STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, failure_checker
+STORAGE: grmhd_flux_temps, Ye_star_flux, ent_star_flux
+
+# To make the core code cleaner, we swap between different EOS variants in the schedule.ccl.
+# First, we start with the EOS-independent scheduling along with comments stating how
+# the EOS-dependent functions slot into the overall scheduling. Then, all the variants
+# are actually scheduled.
 
 #########################################################
 # BASIC SETUP
@@ -37,6 +43,7 @@ schedule group GRHayLMHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLMHD"
 
+# We probably don't need to sync these
 schedule GRHayLMHD_sync in GRHayLMHD_Prim2Con2Prim
 {
   LANG: C
@@ -52,21 +59,11 @@ schedule convert_HydroBase_to_GRHayLMHD in GRHayLMHD_Prim2Con2Prim after GRHayLM
   WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
           Ax(everywhere), Ay(everywhere), Az(everywhere)
   SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
-} "Convert HydroBase initial data (ID) to GRHayLMHD variables and enforce simulation limits on primitives."
+} "Convert HydroBase initial data (ID) to GRHayLMHD variables"
 
-if(perturb_initial_data) {
-  schedule GRHayLMHD_perturb_primitives in GRHayLMHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
-  {
-    LANG: C
-    READS:  HydroBase::eps,
-            HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-            grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
-    WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
-            Ax(everywhere), Ay(everywhere), Az(everywhere),
-            HydroBase::eps,
-            HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
-  } "perturb initial primitive data"
-}
+##
+# if (perturb_initial_data), schedule GRHayLMHD_EOS_perturb_primitives as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+##
 
 # Runs everywhere. Shouldn't need to sync
 schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHD
@@ -81,34 +78,16 @@ schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Prim2Con2Prim afte
   SYNC: grmhd_B_center, grmhd_B_stagger
 } "Compute B and B_stagger from A"
 
-schedule GRHayLMHD_prims_to_conservs in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
-          grmhd_B_center(everywhere),
-          HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-} "Compute conservative variables from primitives"
+##
+# schedule GRHayLMHD_EOS_prims_to_conservs in GRHayLMHD_Prim2Con2Prim as prim2con after GRHayLMHD_compute_B_and_Bstagger_from_A
+##
 
-schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_prims_to_conservs
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_conservatives, grmhd_B_center
-  WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
-          grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-          HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-} "Compute primitive variables from conservatives"
+##
+# schedule GRHayLMHD_EOS_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after prim2con
+##
 
 if(Convert_to_HydroBase_every) {
-  schedule convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_conserv_to_prims
+  schedule convert_GRHayLMHD_to_HydroBase in GRHayLMHD_Prim2Con2Prim after con2prim
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
@@ -127,12 +106,10 @@ schedule GRHayLMHD_set_gz_symmetries in CCTK_POSTPOSTINITIAL after Con2Prim
 {
   LANG: C
   READS:  GRID::coordinates
-  READS:  grmhd_conservatives,
-          grmhd_B_center, grmhd_B_stagger,
-          phitilde, Ax, Ay, Az
+  READS: grmhd_B_center, grmhd_B_stagger, phitilde, Ax, Ay, Az
   #Technically only writes B^i, A_i, and phitilde in symmetry gz's
-  WRITES: grmhd_B_center(everywhere), grmhd_B_stagger(everywhere),
-          phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+  WRITES: grmhd_B_center(boundary), grmhd_B_stagger(boundary),
+          phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Compute post-initialdata quantities"
 
 #########################################################
@@ -146,17 +123,17 @@ schedule group GRHayLMHD_Con2Prim in HydroBase_Con2Prim
 schedule GRHayLMHD_sync in GRHayLMHD_Con2Prim
 {
   LANG: C
-  SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
+  SYNC: grmhd_conservatives, Ye_star, ent_star, Ax, Ay, Az, phitilde
 } "Schedule syncs: evolved GRMHD variables"
 
-schedule GRHayLMHD_outer_boundaries_on_A_mu in GRHayLMHD_Con2Prim after GRHayLMHD_sync
+schedule GRHayLMHD_A_i_outer_boundaries in GRHayLMHD_Con2Prim after GRHayLMHD_sync
 {
   LANG: C
   READS:  phitilde, Ax, Ay, Az
   WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 } "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
 
-schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRHayLMHD_outer_boundaries_on_A_mu
+schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRHayLMHD_A_i_outer_boundaries
 {
   LANG: C
   READS:  GRID::coordinates
@@ -169,42 +146,17 @@ schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRH
   SYNC: grmhd_B_center, grmhd_B_stagger # FIXME: Are both SYNC's necessary?
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
-if(perturb_every_con2prim) {
-  schedule GRHayLMHD_perturb_conservatives in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A before GRHayLMHD_conserv_to_prims
-  {
-    LANG: C
-    READS:  grmhd_conservatives
-    WRITES: grmhd_conservatives(everywhere)
-  } "Perturb conservatives before con2prim"
-}
+##
+# if(perturb_every_con2prim) schedule GRHayLMHD_EOS_perturb_conservatives  in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+##
 
-schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A
-{
-  LANG: C
-  READS:  GRID::coordinates,
-          ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_conservatives, grmhd_B_center
-  WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
-          grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-          HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-} "Compute primitive variables from conservatives"
+##
+# schedule GRHayLMHD_EOS_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+##
 
-schedule GRHayLMHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLMHD_Con2Prim after GRHayLMHD_conserv_to_prims
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
-          grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-          HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-  SYNC:  grmhd_primitives_allbutBi, HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
-} "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero"
+##
+# schedule GRHayLMHD_EOS_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
+##
 
 #########################################################
 # Stress-energy Tensor
@@ -237,24 +189,15 @@ schedule GRHayLMHD_evaluate_sources_rhs in GRHayLMHD_RHS
           HydroBase::eps,
           HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
           grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_conservatives_rhs, EM_rhs
+  WRITES: grmhd_conservatives_rhs, Ye_star_rhs, ent_star_rhs, EM_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
-  READS:  HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_primitives_allbutBi, grmhd_B_center,
-          grmhd_B_stagger, phitilde, Ax, Ay, Az,
-          grmhd_conservatives_rhs(interior), EM_rhs(interior)
-  WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, grmhd_cmin_cmax_temps,
-          grmhd_conservatives_rhs, EM_rhs
-} "Evaluate RHSs for GRMHD equations"
+##
+# schedule GRHayLMHD_EOS_evaluate_fluxes_rhs in GRHayLMHD_RHS as evaluate_fluxes_rhs after GRHayLMHD_evaluate_sources_rhs
+##
 
 if( CCTK_IsThornActive("NRPyLeakageET") ) {
-  schedule GRHayLMHD_convert_for_NRPyLeakage in GRHayLMHD_RHS after GRHayLMHD_evaluate_MHD_rhs
+  schedule GRHayLMHD_convert_for_NRPyLeakage in GRHayLMHD_RHS after evaluate_fluxes_rhs
   {
     LANG: C
     READS:  ADMBase::lapse, ADMBase::shift,
@@ -263,7 +206,7 @@ if( CCTK_IsThornActive("NRPyLeakageET") ) {
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
 
-schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after GRHayLMHD_evaluate_MHD_rhs
+schedule GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHD_RHS after evaluate_fluxes_rhs
 {
   LANG: C
   READS:  ADMBase::lapse, ADMBase::shift, ADMBase::metric,
@@ -285,4 +228,335 @@ if(Convert_to_HydroBase_every) {
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
   } "Convert GRHayLMHD-native variables to HydroBase"
+}
+
+#########################################################
+# Hybrid scheduling
+#########################################################
+
+if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "IdealFluid")) {
+  if (evolve_entropy) {
+    if(perturb_initial_data) {
+      schedule GRHayLMHD_hybrid_entropy_perturb_primitives in GRHayLMHD_Prim2Con2Prim as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+      {
+        LANG: C
+        READS:  HydroBase::eps, HydroBase::entropy,
+                grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
+        WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+                Ax(everywhere), Ay(everywhere), Az(everywhere),
+                HydroBase::eps, HydroBase::entropy
+      } "perturb initial primitive data"
+    }
+    
+    schedule GRHayLMHD_hybrid_entropy_prims_to_conservs in GRHayLMHD_Prim2Con2Prim as prim2con after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::entropy,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
+              ent_star(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+    } "Compute conservative variables from primitives"
+    
+    schedule GRHayLMHD_hybrid_entropy_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after prim2con
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::entropy,
+              grmhd_conservatives, ent_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    if(perturb_every_con2prim) {
+      schedule GRHayLMHD_hybrid_entropy_perturb_conservatives in GRHayLMHD_Con2Prim as perturb_conservatives after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+      {
+        LANG: C
+        READS:  grmhd_conservatives, ent_star
+        WRITES: grmhd_conservatives(everywhere), ent_star(everywhere)
+      } "Perturb conservatives before con2prim"
+    }
+    
+    schedule GRHayLMHD_hybrid_entropy_conserv_to_prims in GRHayLMHD_Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  GRID::coordinates,
+              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::entropy,
+              grmhd_conservatives, ent_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    schedule GRHayLMHD_hybrid_entropy_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+      READS:  HydroBase::eps, HydroBase::entropy,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+      SYNC:  grmhd_primitives_allbutBi, HydroBase::entropy
+    } "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero"
+    
+    schedule GRHayLMHD_hybrid_entropy_evaluate_fluxes_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
+      READS:  HydroBase::eps, HydroBase::entropy,
+              grmhd_primitives_allbutBi, grmhd_B_center,
+              grmhd_B_stagger, phitilde, Ax, Ay, Az,
+              grmhd_conservatives_rhs(interior), ent_star_rhs(interior), EM_rhs(interior)
+      WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, ent_star_flux, grmhd_cmin_cmax_temps,
+              grmhd_conservatives_rhs, ent_star_rhs, EM_rhs
+    } "Evaluate RHS flux terms"
+  } else {
+    if(perturb_initial_data) {
+      schedule GRHayLMHD_hybrid_perturb_primitives in GRHayLMHD_Prim2Con2Prim as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+      {
+        LANG: C
+        READS:  HydroBase::eps,
+                grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
+        WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+                Ax(everywhere), Ay(everywhere), Az(everywhere),
+                HydroBase::eps
+      } "perturb initial primitive data"
+    }
+    
+    schedule GRHayLMHD_hybrid_prims_to_conservs in GRHayLMHD_Prim2Con2Prim as prim2con after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
+              grmhd_B_center(everywhere), HydroBase::eps(everywhere)
+    } "Compute conservative variables from primitives"
+    
+    schedule GRHayLMHD_hybrid_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after prim2con
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, grmhd_conservatives, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    if(perturb_every_con2prim) {
+      schedule GRHayLMHD_hybrid_perturb_conservatives in GRHayLMHD_Con2Prim as perturb_conservatives after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+      {
+        LANG: C
+        READS:  grmhd_conservatives
+        WRITES: grmhd_conservatives(everywhere)
+      } "Perturb conservatives before con2prim"
+    }
+    
+    schedule GRHayLMHD_hybrid_conserv_to_prims in GRHayLMHD_Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  GRID::coordinates,
+              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, grmhd_conservatives, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    schedule GRHayLMHD_hybrid_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+      READS:  HydroBase::eps, grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere)
+      SYNC:  grmhd_primitives_allbutBi
+    } "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero"
+    
+    schedule GRHayLMHD_hybrid_evaluate_fluxes_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
+      READS:  HydroBase::eps, grmhd_primitives_allbutBi, grmhd_B_center,
+              grmhd_B_stagger, phitilde, Ax, Ay, Az,
+              grmhd_conservatives_rhs(interior), EM_rhs(interior)
+      WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, grmhd_cmin_cmax_temps,
+              grmhd_conservatives_rhs, EM_rhs
+    } "Evaluate RHS flux terms"
+  }
+} else if (CCTK_Equals(EOS_type, "Tabulated")) {
+  if (evolve_entropy) {
+    if(perturb_initial_data) {
+      schedule GRHayLMHD_tabulated_entropy_perturb_primitives in GRHayLMHD_Prim2Con2Prim as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+      {
+        LANG: C
+        READS:  HydroBase::eps,
+                HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+                grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
+        WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+                Ax(everywhere), Ay(everywhere), Az(everywhere),
+                HydroBase::eps,
+                HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+      } "perturb initial primitive data"
+    }
+    
+    schedule GRHayLMHD_tabulated_entropy_prims_to_conservs in GRHayLMHD_Prim2Con2Prim as prim2con after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
+              Ye_star(everywhere), ent_star(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute conservative variables from primitives"
+    
+    schedule GRHayLMHD_tabulated_entropy_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after prim2con
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_conservatives, Ye_star, ent_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), Ye_star(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    if(perturb_every_con2prim) {
+      schedule GRHayLMHD_tabulated_entropy_perturb_conservatives in GRHayLMHD_Con2Prim as perturb_conservatives after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+      {
+        LANG: C
+        READS:  grmhd_conservatives, Ye_star, ent_star
+        WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere), ent_star(everywhere)
+      } "Perturb conservatives before con2prim"
+    }
+    
+    schedule GRHayLMHD_tabulated_entropy_conserv_to_prims in GRHayLMHD_Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  GRID::coordinates,
+              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_conservatives, Ye_star, ent_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), Ye_star(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    schedule GRHayLMHD_tabulated_entropy_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+      READS:  HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+      SYNC:  grmhd_primitives_allbutBi, HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+    } "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero"
+    
+    schedule GRHayLMHD_tabulated_entropy_evaluate_fluxes_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
+      READS:  HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center,
+              grmhd_B_stagger, phitilde, Ax, Ay, Az,
+              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior), ent_star_rhs(interior), EM_rhs(interior)
+      WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, Ye_star_flux, ent_star_flux, grmhd_cmin_cmax_temps,
+              grmhd_conservatives_rhs, Ye_star_rhs, ent_star_rhs, EM_rhs
+    } "Evaluate RHS flux terms"
+  } else {
+    if(perturb_initial_data) {
+      schedule GRHayLMHD_tabulated_perturb_primitives in GRHayLMHD_Prim2Con2Prim as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
+      {
+        LANG: C
+        READS:  HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+                grmhd_primitives_allbutBi, phitilde, Ax, Ay, Az
+        WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
+                Ax(everywhere), Ay(everywhere), Az(everywhere),
+                HydroBase::eps, HydroBase::Y_e, HydroBase::temperature
+      } "perturb initial primitive data"
+    }
+    
+    schedule GRHayLMHD_tabulated_prims_to_conservs in GRHayLMHD_Prim2Con2Prim as prim2con after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
+              Ye_star(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute conservative variables from primitives"
+    
+    schedule GRHayLMHD_tabulated_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after prim2con
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_conservatives, Ye_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), Ye_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    if(perturb_every_con2prim) {
+      schedule GRHayLMHD_tabulated_perturb_conservatives in GRHayLMHD_Con2Prim as perturb_conservatives after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+      {
+        LANG: C
+        READS:  grmhd_conservatives, Ye_star
+        WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere)
+      } "Perturb conservatives before con2prim"
+    }
+    
+    schedule GRHayLMHD_tabulated_conserv_to_prims in GRHayLMHD_Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+    {
+      LANG: C
+      READS:  GRID::coordinates,
+              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_conservatives, Ye_star, grmhd_B_center
+      WRITES: u0(everywhere), grmhd_conservatives(everywhere), Ye_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+    } "Compute primitive variables from conservatives"
+    
+    schedule GRHayLMHD_tabulated_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift
+      READS:  HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere), failure_checker(everywhere),
+              grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
+              HydroBase::eps(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+      SYNC:  grmhd_primitives_allbutBi, HydroBase::Y_e, HydroBase::temperature
+    } "Apply outflow-only, flat BCs on {P,rho,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero"
+    
+    schedule GRHayLMHD_tabulated_evaluate_fluxes_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
+      READS:  HydroBase::eps, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_primitives_allbutBi, grmhd_B_center,
+              grmhd_B_stagger, phitilde, Ax, Ay, Az,
+              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior), EM_rhs(interior)
+      WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, Ye_star_flux, grmhd_cmin_cmax_temps,
+              grmhd_conservatives_rhs, Ye_star_rhs, EM_rhs
+    } "Evaluate RHS flux terms"
+  }
 }
