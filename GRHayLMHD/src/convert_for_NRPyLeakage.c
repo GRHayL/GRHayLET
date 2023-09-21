@@ -20,10 +20,10 @@ void GRHayLMHD_convert_for_NRPyLeakage(CCTK_ARGUMENTS) {
         const CCTK_REAL betaxL       = betax[index];
         const CCTK_REAL betayL       = betay[index];
         const CCTK_REAL betazL       = betaz[index];
-        const CCTK_REAL rhoL         = rho_b[index];
-        const CCTK_REAL vxL          = vx[index];
-        const CCTK_REAL vyL          = vy[index];
-        const CCTK_REAL vzL          = vz[index];
+        const CCTK_REAL rhoL         = rho_b_p[index];
+        const CCTK_REAL vxL          = vx_p[index];
+        const CCTK_REAL vyL          = vy_p[index];
+        const CCTK_REAL vzL          = vz_p[index];
 
         // Write to main memory, converting to HydroBase
         rho        [index] = rhoL;

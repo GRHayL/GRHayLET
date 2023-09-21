@@ -83,6 +83,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
+        if( index == 11 ) CCTK_VINFO("%e %e %e %e %e %e %e", rho_b_p[index], pressure_p[index], vx_p[index], vy_p[index], vz_p[index], temperature_p[index], Y_e_p[index]);
+
         double local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
@@ -104,10 +106,10 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
-              vx[index], vy[index], vz[index],
+              rho_b_p[index], pressure_p[index], eps_p[index],
+              vx_p[index], vy_p[index], vz_p[index],
               Bx_center[index], By_center[index], Bz_center[index],
-              entropy[index], Y_e[index], temperature[index], &prims);
+              entropy_p[index], Y_e_p[index], temperature_p[index], &prims);
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
@@ -234,6 +236,8 @@ void GRHayLMHD_conserv_to_prims(CCTK_ARGUMENTS) {
               &Bx_center[index], &By_center[index], &Bz_center[index],
               &entropy[index], &Y_e[index], &temperature[index]);
         u0[index] = prims.u0;
+
+        if( index == 11 ) CCTK_VINFO("%e %e %e %e %e %e %e", rho_b[index], pressure[index], vx[index], vy[index], vz[index], temperature[index], Y_e[index]);
 
         ghl_return_conservatives(
               &cons,

@@ -58,6 +58,20 @@ void GRHayLMHD_prims_to_conservs(CCTK_ARGUMENTS) {
               &Bx_center[index], &By_center[index], &Bz_center[index],
               &entropy[index], &Y_e[index], &temperature[index]);
 
+        ghl_return_primitives(
+              &prims,
+              &rho_b_p[index], &pressure_p[index], &eps_p[index],
+              &vx_p[index], &vy_p[index], &vz_p[index],
+              &Bx_center[index], &By_center[index], &Bz_center[index],
+              &entropy_p[index], &Y_e_p[index], &temperature_p[index]);
+
+        ghl_return_primitives(
+              &prims,
+              &rho_b_p_p[index], &pressure_p_p[index], &eps_p_p[index],
+              &vx_p_p[index], &vy_p_p[index], &vz_p_p[index],
+              &Bx_center[index], &By_center[index], &Bz_center[index],
+              &entropy_p_p[index], &Y_e_p_p[index], &temperature_p_p[index]);
+
         ghl_return_conservatives(
               &cons,
               &rho_star[index], &tau[index],

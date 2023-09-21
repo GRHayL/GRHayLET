@@ -58,7 +58,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   in_prims[VYL       ]=vyl;        out_prims_r[VYL       ]=vylr;        out_prims_l[VYL       ]=vyll;
   in_prims[VZL       ]=vzl;        out_prims_r[VZL       ]=vzlr;        out_prims_l[VZL       ]=vzll;
 
-  const double *ghl_vel[3] = {vx, vy, vz};
+  const double *ghl_vel[3] = {vx_p, vy_p, vz_p};
   const double *B_center[3] = {Bx_center, By_center, Bz_center};
   double *vel_r[3] = {vxr, vyr, vzr};
   double *vel_l[3] = {vxl, vyl, vzl};
@@ -77,7 +77,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   int flux_dir = 0;
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b_p, pressure_p, eps_p, entropy_p, Y_e_p, vx_p, vy_p, vz_p, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
@@ -98,14 +98,14 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[1] = {BY_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, rho_b_p, pressure_p, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   flux_dir=1;
 
   {
     const int var_indices[6] = {VXR, VYR, VXL, VYL, BX_STAGGER, BZ_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b_p, pressure_p, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -118,7 +118,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b_p, pressure_p, eps_p, entropy_p, Y_e_p, vx_p, vy_p, vz_p, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
@@ -155,7 +155,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[6] = {VYR, VZR, VYL, VZL, BX_STAGGER, BY_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b_p, pressure_p, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -168,7 +168,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   GRHayLMHD_calculate_MHD_dirn_rhs(cctkGH, flux_dir, dX,
                          alp,  betax,  betay,  betaz,  gxx,  gxy,  gxz,  gyy,  gyz,  gzz,
-                         rho_b, pressure, eps, entropy, Y_e, vx, vy, vz, B_center, B_stagger[flux_dir],
+                         rho_b_p, pressure_p, eps_p, entropy_p, Y_e_p, vx_p, vy_p, vz_p, B_center, B_stagger[flux_dir],
                          vel_r, vel_l, cmin[flux_dir], cmax[flux_dir],
                          rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, ent_star_flux, Ye_star_flux,
                          rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, ent_star_rhs, Ye_star_rhs);
@@ -202,7 +202,7 @@ void GRHayLMHD_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[5] = {VXR, VZR, VXL, VZL, BZ_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, rho_b_p, pressure_p, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
 

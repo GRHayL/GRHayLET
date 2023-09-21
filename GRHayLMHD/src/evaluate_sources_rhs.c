@@ -42,10 +42,10 @@ void GRHayLMHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
-              vx[index], vy[index], vz[index],
+              rho_b_p[index], pressure_p[index], eps_p[index],
+              vx_p[index], vy_p[index], vz_p[index],
               Bx_center[index], By_center[index], Bz_center[index],
-              entropy[index], Y_e[index], temperature[index],
+              entropy_p[index], Y_e_p[index], temperature_p[index],
               &prims);
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);

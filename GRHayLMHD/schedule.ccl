@@ -9,7 +9,7 @@ STORAGE: HydroBase::entropy[1], HydroBase::Y_e[1], HydroBase::temperature[1]
 STORAGE: HydroBase::Bvec[1], HydroBase::Avec[1], HydroBase::Aphi[1]
 
 STORAGE: grmhd_conservatives[3], Ax[3], Ay[3], Az[3], phitilde[3]
-STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
+STORAGE: grmhd_primitives_allbutBi[3], u0, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, grmhd_flux_temps, failure_checker
 
@@ -90,16 +90,18 @@ schedule GRHayLMHD_prims_to_conservs in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_
           grmhd_primitives_allbutBi, grmhd_B_center
   WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
           grmhd_B_center(everywhere),
-          HydroBase::eps(everywhere),
-          HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+          HydroBase::eps(everywhere), HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+          grmhd_primitives_allbutBi_p(everywhere), grmhd_primitives_allbutBi_p_p(everywhere),
+          HydroBase::eps_p(everywhere), HydroBase::entropy_p(everywhere), HydroBase::Y_e_p(everywhere), HydroBase::temperature_p(everywhere),
+          HydroBase::eps_p_p(everywhere), HydroBase::entropy_p_p(everywhere), HydroBase::Y_e_p_p(everywhere), HydroBase::temperature_p_p(everywhere)
 } "Compute conservative variables from primitives"
 
 schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Prim2Con2Prim after GRHayLMHD_prims_to_conservs
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_primitives_allbutBi_p, HydroBase::eps_p,
+          HydroBase::entropy_p, HydroBase::Y_e_p, HydroBase::temperature_p,
           grmhd_conservatives, grmhd_B_center
   WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
           grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
@@ -183,8 +185,8 @@ schedule GRHayLMHD_conserv_to_prims in GRHayLMHD_Con2Prim after GRHayLMHD_comput
   LANG: C
   READS:  GRID::coordinates,
           ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+          grmhd_primitives_allbutBi_p, HydroBase::eps_p,
+          HydroBase::entropy_p, HydroBase::Y_e_p, HydroBase::temperature_p,
           grmhd_conservatives, grmhd_B_center
   WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
           grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
@@ -234,9 +236,9 @@ schedule GRHayLMHD_evaluate_sources_rhs in GRHayLMHD_RHS
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
-          HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_primitives_allbutBi, grmhd_B_center
+          HydroBase::eps_p,
+          HydroBase::entropy_p, HydroBase::Y_e_p, HydroBase::temperature_p,
+          grmhd_primitives_allbutBi_p, grmhd_B_center
   WRITES: grmhd_conservatives_rhs, EM_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
@@ -244,9 +246,9 @@ schedule GRHayLMHD_evaluate_MHD_rhs in GRHayLMHD_RHS after GRHayL_IGH_evaluate_s
 {
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv
-  READS:  HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-          grmhd_primitives_allbutBi, grmhd_B_center,
+  READS:  HydroBase::eps_p,
+          HydroBase::entropy_p, HydroBase::Y_e_p, HydroBase::temperature_p,
+          grmhd_primitives_allbutBi_p, grmhd_B_center,
           grmhd_B_stagger, phitilde, Ax, Ay, Az,
           grmhd_conservatives_rhs(interior), EM_rhs(interior)
   WRITES: grmhd_primitives_reconstructed_temps, grmhd_flux_temps, grmhd_cmin_cmax_temps,
@@ -258,7 +260,7 @@ if( CCTK_IsThornActive("NRPyLeakageET") ) {
   {
     LANG: C
     READS:  ADMBase::lapse, ADMBase::shift,
-            grmhd_primitives_allbutBi
+            grmhd_primitives_allbutBi_p
     WRITES: HydroBase::rho(everywhere), HydroBase::vel(everywhere)
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
