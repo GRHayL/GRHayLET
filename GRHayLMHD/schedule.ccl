@@ -234,7 +234,7 @@ if(Convert_to_HydroBase_every) {
 # Hybrid scheduling
 #########################################################
 
-if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "IdealFluid")) {
+if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
   if (evolve_entropy) {
     if(perturb_initial_data) {
       schedule GRHayLMHD_hybrid_entropy_perturb_primitives in GRHayLMHD_Prim2Con2Prim as perturb_primitives after convert_HydroBase_to_GRHayLMHD before GRHayLMHD_compute_B_and_Bstagger_from_A
