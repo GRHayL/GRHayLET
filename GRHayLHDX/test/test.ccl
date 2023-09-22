@@ -4,7 +4,7 @@ TEST TOV
   RELTOL 1e-11
 }
 
-TEST Balsara1
+TEST Balsara0
 { 
   NPROCS 2
   RELTOL 1e-12
