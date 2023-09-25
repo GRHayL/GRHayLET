@@ -76,7 +76,7 @@ if(Convert_to_HydroBase_every)
   {
     LANG: C
     READS:  ccc_spacetime, grmhd_velocities
-    WRITES: HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+    WRITES: HydroBaseX::vel(everywhere)
   } "Convert GRHayLHDX-native variables to HydroBaseX"
 }
 
@@ -206,6 +206,6 @@ if(Convert_to_HydroBase_every)
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ccc_spacetime, grmhd_velocities
-    WRITES: HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
+    WRITES: HydroBaseX::vel(everywhere)
   } "Convert GRHayLHDX-native variables to HydroBaseX"
 }
