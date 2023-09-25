@@ -143,7 +143,7 @@ schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS #af
    WRITES: ccc_curv(everywhere)
 } "Interpolate extrinsic curvature to cell centers"
 
-schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_compute_ccc_centered_extrinsic_curvature
+schedule GRHayLHDX_evaluate_sources_rhs in GRHayLHDX_RHS after GRHayLHDX_compute_ccc_centered_extrinsic_curvature
 {
   LANG: C
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
@@ -155,7 +155,7 @@ schedule GRHayLHDX_evaluate_tau_curvature_rhs in GRHayLHDX_RHS after GRHayLHDX_c
 # We have to split computation of the flux from the 
 # computation of the RHS because the OMP is outside the
 # actual scheduled function call, and it wouldn't be thread-safe.
-schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_curvature_rhs
+schedule GRHayLHDX_evaluate_fluxes in GRHayLHDX_RHS after GRHayLHDX_evaluate_sources_rhs
 {
   LANG: C
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
@@ -164,7 +164,7 @@ schedule GRHayLHDX_evaluate_flux in GRHayLHDX_RHS after GRHayLHDX_evaluate_tau_c
   WRITES: flux_x, flux_y, flux_z
 } "Compute GRHD fluxes"
 
-schedule GRHayLHDX_evaluate_flux_source_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_flux
+schedule GRHayLHDX_evaluate_fluxes_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes
 {
   LANG: C
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,

@@ -16,8 +16,8 @@ static inline double get_Gamma_eff_tabulated(
 }
 
 template <int flux_dir, int tabulated_eos, int evolve_entropy>
-void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_flux;
+void GRHayLHDX_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_fluxes;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;
@@ -190,29 +190,29 @@ void GRHayLHDX_evaluate_flux_dir(CCTK_ARGUMENTS) {
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 
-extern "C" void GRHayLHDX_evaluate_flux(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_flux;
+extern "C" void GRHayLHDX_evaluate_fluxes(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_fluxes;
   DECLARE_CCTK_PARAMETERS;
 
-  if(ghl_eos->eos_type==ghl_eos_hybrid) {
+  if(ghl_eos->eos_type==ghl_eos_hybrid || ghl_eos->eos_type==ghl_eos_simple) {
     if(ghl_params->evolve_entropy) {
-      GRHayLHDX_evaluate_flux_dir<0, 0, 1>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<1, 0, 1>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<2, 0, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<0, 0, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<1, 0, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<2, 0, 1>(cctkGH);
     } else {
-      GRHayLHDX_evaluate_flux_dir<0, 0, 0>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<1, 0, 0>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<2, 0, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<0, 0, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<1, 0, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<2, 0, 0>(cctkGH);
     }
   } else if(ghl_eos->eos_type==ghl_eos_tabulated) {
     if(ghl_params->evolve_entropy) {
-      GRHayLHDX_evaluate_flux_dir<0, 1, 1>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<1, 1, 1>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<2, 1, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<0, 1, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<1, 1, 1>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<2, 1, 1>(cctkGH);
     } else {
-      GRHayLHDX_evaluate_flux_dir<0, 1, 0>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<1, 1, 0>(cctkGH);
-      GRHayLHDX_evaluate_flux_dir<2, 1, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<0, 1, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<1, 1, 0>(cctkGH);
+      GRHayLHDX_evaluate_fluxes_dir<2, 1, 0>(cctkGH);
     }
   }
 }

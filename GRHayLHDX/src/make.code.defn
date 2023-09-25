@@ -8,9 +8,9 @@ SRCS = conservs_to_prims.cxx                         \
        compute_Tmunu.cxx                             \
        convert_HydroBase_to_GRHayLHDX.cxx            \
        convert_GRHayLHDX_to_HydroBase.cxx            \
-       evaluate_flux_source_rhs.cxx                  \
-       evaluate_flux.cxx                             \
-       evaluate_tau_curvature_rhs.cxx                \
+       evaluate_fluxes_rhs.cxx                       \
+       evaluate_fluxes.cxx                           \
+       evaluate_sources_rhs.cxx                      \
        interpolate_metric_to_face.cxx                \
        perturb_conservatives.cxx                     \
        perturb_primitives.cxx                        \

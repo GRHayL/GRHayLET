@@ -42,9 +42,5 @@ extern "C" void convert_GRHayLHDX_to_HydroBase(CCTK_ARGUMENTS) {
     velx(index) = lapseL_inv*(vx(index) + ccc_betax(index));
     vely(index) = lapseL_inv*(vy(index) + ccc_betay(index));
     velz(index) = lapseL_inv*(vz(index) + ccc_betaz(index));
-
-    Bvecx(index) = 0.0;
-    Bvecy(index) = 0.0;
-    Bvecz(index) = 0.0;
   }); // ccc loop everywhere
 }

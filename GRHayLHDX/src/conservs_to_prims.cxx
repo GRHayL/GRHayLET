@@ -93,19 +93,23 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
 
     //FIXME: might slow down the code. Was formerly a CCTK_WARN
     if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2])) {
-      CCTK_VERROR("NaN found at start of C2P kernel:\n"
-                  "  position %e %e %e, rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
-                  "  lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e\n",
-                  p.x, p.y, p.z, cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+      CCTK_VERROR("NaN found at start of C2P kernel!\n"
+                  "position = %e %e %e\n"
+                  "Input variables:\n"
+                  "lapse, shift = %e, %e, %e, %e\n"
+                  "gij = %e, %e, %e, %e, %e, %e\n"
+                  "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
+                  p.x, p.y, p.z,
                   ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                   ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                  ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+                  ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
+                  cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2]);
     }
 
     /************* Main conservative-to-primitive logic ************/
     if(cons.rho>0.0) {
       // Apply the tau floor
-      if( ghl_eos->eos_type == ghl_eos_hybrid )
+      if(ghl_eos->eos_type == ghl_eos_hybrid)
         ghl_apply_conservative_limits(
               ghl_params, ghl_eos, &ADM_metric,
               &prims, &cons, &diagnostics);
@@ -125,21 +129,24 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
         //Check for NAN!
         if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
           CCTK_VERROR("***********************************************************\n"
-                      "NAN found after Con2Prim with routine index %d!\n"
+                      "NAN found after Con2Prim routine %s!\n"
+                      "position = %e %e %e\n"
                       "Input variables:\n"
                       "lapse, shift = %e %e %e %e\n"
                       "gij = %e %e %e %e %e %e\n"
-                      "rho_*, ~tau, ~S_{i}, ~DS, ~DY_e: %e, %e, %e, %e, %e, %e, %e\n"
+                      "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
                       "Undensitized conserved variables:\n"
                       "D, tau, S_{i}: %e %e %e %e %e\n"
                       "Output primitive variables:\n"
                       "rho, P: %e %e\n"
                       "v: %e %e %e\n"
                       "***********************************************************",
-                      diagnostics.which_routine, ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
+                      ghl_get_con2prim_routine_name(diagnostics.which_routine),
+                      p.x, p.y, p.z,
+                      ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                      cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2], cons.entropy, cons.Y_e,
+                      cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
                       cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
                       prims.rho, prims.press,
                       prims.vU[0], prims.vU[1], prims.vU[2]);
@@ -156,15 +163,16 @@ extern "C" void GRHayLHDX_conservs_to_prims(CCTK_ARGUMENTS) {
           //failures_inhoriz++;
           //pointcount_inhoriz++;
         }
-        CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n");
-        CCTK_VINFO("rho_* = %e, ~tau = %e, ~S_i = %e %e %e\n"
-                   "~DS = %e, ~DY_e = %e\n"
-                   "lapse = %e, shift = %e %e %e, gij = %e %e %e %e %e %e, Psi6 = %e",
-                   cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2],
-                   cons.entropy, cons.Y_e,
+        CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n"
+                   "position = %e %e %e\n"
+                   "lapse, shift = %e, %e, %e, %e\n"
+                   "gij = %e, %e, %e, %e, %e, %e\n"
+                   "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
+                   p.x, p.y, p.z,
                    ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                    ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                   ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2], ADM_metric.sqrt_detgamma);
+                   ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
+                   cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2]);
       }
     } else {
       local_failure_checker += 1;

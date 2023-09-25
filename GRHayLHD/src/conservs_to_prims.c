@@ -140,7 +140,7 @@ void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
+          if(ghl_eos->eos_type == ghl_eos_hybrid)
             ghl_apply_conservative_limits(
                 ghl_params, ghl_eos, &ADM_metric,
                 &prims, &cons, &diagnostics);
