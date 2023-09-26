@@ -7,6 +7,8 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
   if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
+  const double mag_factor = rescale_magnetics ? sqrt(4.0*M_PI) : 1;
+
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
@@ -66,29 +68,28 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         const double gyzL = gyz[index];
         const double gzzL = gzz[index];
 
-        const double one_minus_one_over_alpha_u0_squared = (gxxL* SQR(utU[0]) +
-                                                            2.0*gxyL*(utU[0])*(utU[1]) +
-                                                            2.0*gxzL*(utU[0])*(utU[2]) +
-                                                            gyyL* SQR(utU[1]) +
-                                                            2.0*gyzL*(utU[1])*(utU[2]) +
-                                                            gzzL* SQR(utU[2]) )*SQR(lapseL_inv);
+        const double one_minus_invW_squared = (gxxL* SQR(utU[0]) +
+                                               2.0*gxyL*(utU[0])*(utU[1]) +
+                                               2.0*gxzL*(utU[0])*(utU[2]) +
+                                               gyyL* SQR(utU[1]) +
+                                               2.0*gyzL*(utU[1])*(utU[2]) +
+                                               gzzL* SQR(utU[2]) )*SQR(lapseL_inv);
         /*** Check for superluminal velocity ***/
         //FIXME: Instead of >1.0, should be one_minus_one_over_alpha_u0_squared > ONE_MINUS_ONE_OVER_GAMMA_SPEED_LIMIT_SQUARED, for consistency with conserv_to_prims routines
 
-        if(one_minus_one_over_alpha_u0_squared > 1.0) {
+        if(one_minus_invW_squared > 1.0) {
           CCTK_VINFO("convert_from_GRHayLMHD_to_HydroBase WARNING: Found superluminal velocity. This should have been caught by GRHayLMHD.");
         }
 
-        // A = 1.0-one_minus_one_over_alpha_u0_squared = 1-(1-1/(al u0)^2) = 1/(al u0)^2
-        // 1/sqrt(A) = al u0
-        const double alpha_u0 = 1.0/sqrt(1.0-one_minus_one_over_alpha_u0_squared);
-        if(isnan(alpha_u0*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e",alpha_u0,lapseL_inv,one_minus_one_over_alpha_u0_squared);
+        const double W = 1.0/sqrt(1.0-one_minus_invW_squared);
+        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e", W, lapseL_inv, one_minus_invW_squared);
 
-        w_lorentz[index] = alpha_u0;
+        // u0 = W/alpha
+        w_lorentz[index] = W;
 
-        Bvec[index4D0] = Bx_center[index];
-        Bvec[index4D1] = By_center[index];
-        Bvec[index4D2] = Bz_center[index];
+        Bvec[index4D0] = Bx_center[index]*mag_factor;
+        Bvec[index4D1] = By_center[index]*mag_factor;
+        Bvec[index4D2] = Bz_center[index]*mag_factor;
       }
     }
   }

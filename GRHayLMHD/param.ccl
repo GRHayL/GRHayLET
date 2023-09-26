@@ -21,9 +21,9 @@ CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEER
 {
 } "yes"
 
-CCTK_BOOLEAN rescale_initial_A "Rescale initial A_i data by sqrt(4pi)"
+CCTK_BOOLEAN rescale_magnetics "Rescale magnetic data to match original IllinoisGRMHD definitions"
 {
-} "no"
+} "yes"
 
 #########################################################
 

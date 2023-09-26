@@ -14,7 +14,7 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLMHD;
   DECLARE_CCTK_PARAMETERS;
 
-  const double mag_factor = rescale_initial_A ? sqrt(4.0*M_PI) : 1;
+  const double mag_factor = rescale_magnetics ? 1.0/sqrt(4.0*M_PI) : 1;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
