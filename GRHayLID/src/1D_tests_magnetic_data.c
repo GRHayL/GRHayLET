@@ -62,8 +62,6 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     Bz_r = Bxtmp; Bx_r = Bytmp; By_r = Bztmp;
   }
 
-  CCTK_REAL dx[3] = { CCTK_DELTA_SPACE(0), CCTK_DELTA_SPACE(1), CCTK_DELTA_SPACE(2) };
-
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
