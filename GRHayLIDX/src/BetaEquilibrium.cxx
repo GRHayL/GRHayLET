@@ -7,17 +7,16 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLIDX_BetaEquilibrium;
   DECLARE_CCTK_PARAMETERS;
 
-  if( ghl_eos->eos_type != ghl_eos_tabulated )
+  if(ghl_eos->eos_type != ghl_eos_tabulated)
     CCTK_ERROR("GRHayL can only impose beta-equilibrium if tabulated EOS is used");
 
-  if( beq_temperature < ghl_eos->table_T_min || beq_temperature > ghl_eos->table_T_max )
+  if(beq_temperature < ghl_eos->table_T_min || beq_temperature > ghl_eos->table_T_max)
     CCTK_VERROR("Parameter beq_temperature (%g) exceeds table bounds [%g, %g]",
                 beq_temperature, ghl_eos->table_T_min, ghl_eos->table_T_max);
 
   CHECK_PARAMETER(beq_temperature);
 
-  double *Ye_of_lr;
-  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(ghl_eos, beq_temperature, &Ye_of_lr);
+  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -33,11 +32,9 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
       eps        (index) = ghl_eos->eps_atm;
       Ye         (index) = ghl_eos->Y_e_atm;
       temperature(index) = ghl_eos->T_atm;
-    }
-    else {
+    } else {
       const double tempL = beq_temperature;
-      const double YeL   = ghl_tabulated_get_Ye_from_rho(
-                              ghl_eos->N_rho, ghl_eos->table_logrho, Ye_of_lr, rhoL);
+      const double YeL   = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL);
 
       double pressL, epsL;
       ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
@@ -49,6 +46,6 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
     }
   });
 
-  free(Ye_of_lr);
+  ghl_tabulated_free_beq_quantities(ghl_eos);
   CCTK_INFO("Finished imposing neutrino free beta-equilibrium");
 }

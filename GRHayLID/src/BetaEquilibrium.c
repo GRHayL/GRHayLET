@@ -7,10 +7,10 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_BetaEquilibrium;
   DECLARE_CCTK_PARAMETERS;
 
-  if( ghl_eos->eos_type != ghl_eos_tabulated )
+  if(ghl_eos->eos_type != ghl_eos_tabulated)
     CCTK_ERROR("GRHayL can only impose beta-equilibrium if tabulated EOS is used");
 
-  if( beq_temperature < ghl_eos->table_T_min || beq_temperature > ghl_eos->table_T_max )
+  if(beq_temperature < ghl_eos->table_T_min || beq_temperature > ghl_eos->table_T_max)
     CCTK_VERROR("Parameter beq_temperature (%g) exceeds table bounds [%g, %g]",
                 beq_temperature, ghl_eos->table_T_min, ghl_eos->table_T_max);
 
@@ -30,8 +30,7 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
           eps        [index] = ghl_eos->eps_atm;
           Y_e        [index] = ghl_eos->Y_e_atm;
           temperature[index] = ghl_eos->T_atm;
-        }
-        else {
+        } else {
           const double tempL = beq_temperature;
           const double YeL   = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL);
 
