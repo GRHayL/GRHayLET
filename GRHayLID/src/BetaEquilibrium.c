@@ -16,8 +16,7 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
 
   CHECK_PARAMETER(beq_temperature);
 
-  double *Ye_of_lr;
-  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(ghl_eos, beq_temperature, &Ye_of_lr);
+  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
 
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
@@ -34,8 +33,7 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
         }
         else {
           const double tempL = beq_temperature;
-          const double YeL   = ghl_tabulated_get_Ye_from_rho(
-                                  ghl_eos->N_rho, ghl_eos->table_logrho, Ye_of_lr, rhoL);
+          const double YeL   = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL);
 
           double pressL, epsL;
           ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
@@ -48,6 +46,6 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
       }
     }
   }
-  free(Ye_of_lr);
+  ghl_tabulated_free_beq_quantities(ghl_eos);
   CCTK_INFO("Finished imposing neutrino free beta-equilibrium");
 }
