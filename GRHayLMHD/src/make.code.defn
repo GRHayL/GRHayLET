@@ -12,7 +12,6 @@ SRCS = A_flux_rhs.c                        \
        convert_for_NRPyLeakage.c           \
        convert_HydroBase_to_GRHayLMHD.c    \
        convert_GRHayLMHD_to_HydroBase.c    \
-       evaluate_sources_rhs.c              \
        evaluate_phitilde_and_A_gauge_rhs.c \
        get_Gamma_eff.c                     \
        InitSymBound.c                      \

@@ -4,6 +4,7 @@
 SRCS = calculate_fluxes_rhs.c   \
        conservs_to_prims.c      \
        evaluate_fluxes_rhs.c    \
+       evaluate_sources_rhs.c   \
        hydro_outer_boundaries.c \
        perturb_conservatives.c  \
        perturb_primitives.c     \

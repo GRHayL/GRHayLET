@@ -183,6 +183,7 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         prims_r.BU[2] = B_r[2];
         prims_r.entropy = others_r[2];
         prims_r.Y_e = others_r[3];
+        prims_r.temperature = temperature[index];
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
 
         prims_l.rho   = rhol;
@@ -195,6 +196,7 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         prims_l.BU[2] = B_l[2];
         prims_l.entropy = others_l[2];
         prims_l.Y_e = others_l[3];
+        prims_l.temperature = temperature[index];
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
         ghl_conservative_quantities cons_fluxes;
