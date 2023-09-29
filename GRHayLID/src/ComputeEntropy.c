@@ -26,6 +26,7 @@ void GRHayLID_compute_entropy_tabulated(CCTK_ARGUMENTS) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
         double P_local, eps_local, S_local;
+	ghl_tabulated_enforce_bounds_rho_Ye_T(ghl_eos, &rho[index], &Y_e[index], &temperature[index]);
         ghl_tabulated_compute_P_eps_S_from_T(
               ghl_eos, rho[index], Y_e[index], temperature[index],
               &P_local, &eps_local, &S_local);

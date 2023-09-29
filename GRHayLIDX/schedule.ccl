@@ -58,7 +58,7 @@ if (compute_entropy) {
     {
       LANG: C
       READS:  HydroBaseX::rho, HydroBaseX::Ye, HydroBaseX::temperature
-      WRITES: HydroBaseX::entropy(everywhere)
+      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere), HydroBaseX::entropy(everywhere)
     } "Computes entropy from density, Y_e, and temperature using Tabulated EOS"
   }
 }
