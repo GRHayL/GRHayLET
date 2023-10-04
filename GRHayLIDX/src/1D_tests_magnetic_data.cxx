@@ -60,7 +60,7 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
-  grid.loop_all_device<1, 1, 1>(
+  grid.loop_all<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
@@ -83,7 +83,7 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     }
   });
 
-  grid.loop_all_device<1, 0, 0>(
+  grid.loop_all<1, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 
@@ -100,7 +100,7 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     }
   });
 
-  grid.loop_all_device<0, 1, 0>(
+  grid.loop_all<0, 1, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 
@@ -117,7 +117,7 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     }
   });
 
-  grid.loop_all_device<0, 0, 1>(
+  grid.loop_all<0, 0, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
 

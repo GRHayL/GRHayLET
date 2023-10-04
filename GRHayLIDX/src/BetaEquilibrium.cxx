@@ -20,7 +20,7 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
-  grid.loop_all_device<1, 1, 1>(
+  grid.loop_all<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);

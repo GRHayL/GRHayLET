@@ -89,7 +89,7 @@ extern "C" void GRHayLIDX_1D_tests_hydro_data(CCTK_ARGUMENTS) {
     vx_r = vr[0]; vy_r = vr[1]; vz_r = vr[2];
   }
 
-  grid.loop_all_device<1, 1, 1>(
+  grid.loop_all<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
