@@ -164,6 +164,8 @@ IOUtil::parfile_write           = "generate"
 
 #---------CarpetIOASCII---------
 ActiveThorns = "CarpetIOASCII"
+CarpetIOASCII::compact_format         = yes
+CarpetIOASCII::output_ghost_points    = no
 CarpetIOASCII::output_symmetry_points = no
 CarpetIOASCII::out3D_ghosts           = no
 CarpetIOASCII::out3D_outer_ghosts     = no

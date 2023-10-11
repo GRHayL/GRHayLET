@@ -86,13 +86,18 @@ GRHayLHD::Matter_BC = "copy"
 IOUtil::out_dir       = $parfile
 IOUtil::parfile_write = "generate"
 
-CarpetIOASCII::one_file_per_group = "no"
-CarpetIOASCII::out1D_every        = 10
-CarpetIOASCII::out1D_x            = "yes"
-CarpetIOASCII::out1D_y            = "no"
-CarpetIOASCII::out1D_z            = "no"
-CarpetIOASCII::out1D_d            = "no"
-CarpetIOASCII::out1D_vars         = "
+CarpetIOASCII::compact_format         = yes
+CarpetIOASCII::output_ghost_points    = no
+CarpetIOASCII::output_symmetry_points = no
+CarpetIOASCII::out3D_ghosts           = no
+CarpetIOASCII::out3D_outer_ghosts     = no
+CarpetIOASCII::out1D_every            = 10
+CarpetIOASCII::one_file_per_group     = "no"
+CarpetIOASCII::out1D_x                = "yes"
+CarpetIOASCII::out1D_y                = "no"
+CarpetIOASCII::out1D_z                = "no"
+CarpetIOASCII::out1D_d                = "no"
+CarpetIOASCII::out1D_vars             = "
   HydroBase::rho
   HydroBase::press
   GRHayLHD::vx
