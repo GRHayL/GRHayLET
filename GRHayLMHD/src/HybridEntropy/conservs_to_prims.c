@@ -142,11 +142,6 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        if(i==0 && j==0 && k==0) {
-          needs_average[index] = 1;
-          n_avg++;
-          continue;
-        }
         double local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
