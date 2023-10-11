@@ -12,7 +12,7 @@ STORAGE: grmhd_conservatives[3], Ye_star[3], ent_star[3], Ax[3], Ay[3], Az[3], p
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_B_center, grmhd_B_stagger
 STORAGE: grmhd_conservatives_rhs, Ye_star_rhs, ent_star_rhs, EM_rhs
 STORAGE: grmhd_primitives_reconstructed_temps, grmhd_cmin_cmax_temps, failure_checker
-STORAGE: grmhd_flux_temps, Ye_star_flux, ent_star_flux
+STORAGE: grmhd_flux_temps, Ye_star_flux, ent_star_flux, needs_average
 
 # To make the core code cleaner, we swap between different EOS variants in the schedule.ccl.
 # First, we start with the EOS-independent scheduling along with comments stating how
@@ -142,16 +142,15 @@ schedule GRHayLMHD_compute_B_and_Bstagger_from_A in GRHayLMHD_Con2Prim after GRH
   #Technically only writes Ai and phitilde in symmetry gz's
   WRITES: phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere),
           grmhd_B_center(everywhere), grmhd_B_stagger(everywhere)
-  # This is strictly a processor sync, as prolongation is disabled for all primitives & B^i's.
   SYNC: grmhd_B_center, grmhd_B_stagger # FIXME: Are both SYNC's necessary?
 } "Compute B and B_stagger from A SYNC: grmhd_primitives_Bi,grmhd_primitives_Bi_stagger"
 
 ##
-# if(perturb_every_con2prim) schedule GRHayLMHD_EOS_perturb_conservatives  in GRHayLMHD_Con2Prim after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
+# if(perturb_every_con2prim) schedule GRHayLMHD_EOS_perturb_conservatives in GRHayLMHD_Con2Prim as perturb_conservatives after GRHayLMHD_compute_B_and_Bstagger_from_A before con2prim
 ##
 
 ##
-# schedule GRHayLMHD_EOS_conserv_to_prims in GRHayLMHD_Prim2Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
+# schedule GRHayLMHD_EOS_conserv_to_prims in GRHayLMHD_Con2Prim as con2prim after GRHayLMHD_compute_B_and_Bstagger_from_A
 ##
 
 ##
@@ -261,7 +260,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_conservatives, ent_star, grmhd_B_center
       WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
               grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere), needs_average(everywhere)
     } "Compute primitive variables from conservatives"
     
     if(perturb_every_con2prim) {
@@ -282,7 +281,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_conservatives, ent_star, grmhd_B_center
       WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
               grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere), needs_average(everywhere)
     } "Compute primitive variables from conservatives"
     
     schedule GRHayLMHD_hybrid_entropy_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim
@@ -346,7 +345,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::eps, grmhd_conservatives, grmhd_B_center
       WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
               grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-              HydroBase::eps(everywhere)
+              HydroBase::eps(everywhere), needs_average(everywhere)
     } "Compute primitive variables from conservatives"
     
     if(perturb_every_con2prim) {
@@ -366,7 +365,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::eps, grmhd_conservatives, grmhd_B_center
       WRITES: u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere),
               grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-              HydroBase::eps(everywhere)
+              HydroBase::eps(everywhere), needs_average(everywhere)
     } "Compute primitive variables from conservatives"
     
     schedule GRHayLMHD_hybrid_hydro_outer_boundaries in GRHayLMHD_Con2Prim as hydro_outer_boundaries after con2prim

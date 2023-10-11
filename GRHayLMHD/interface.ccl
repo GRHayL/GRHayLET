@@ -120,6 +120,8 @@ CCTK_REAL grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="non
 # Diagnostic gridfunctions
 CCTK_REAL failure_checker type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
 
+CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
+
 ###########################################################################
 
 #########################################
