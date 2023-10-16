@@ -175,17 +175,4 @@ CarpetIOASCII::out1D_every = 2
 CarpetIOASCII::out1D_vars  = "
   HydroBase::rho
   HydroBase::press
-  Baikal::HGF
-  Baikal::MU0GF
-  Baikal::MU1GF
-  Baikal::MU2GF
 "
-
-#---------CarpetIOScalar---------
-#ActiveThorns = "CarpetIOScalar"
-#CarpetIOScalar::one_file_per_group   = "no"
-#CarpetIOScalar::outScalar_every      = 2
-#CarpetIOScalar::outScalar_reductions = "maximum"
-#CarpetIOScalar::outScalar_vars       = "
-#  HydroBase::rho
-#"
