@@ -46,7 +46,7 @@ if(perturb_initial_data) {
 }
 
 # Runs everywhere. Shouldn't need to sync
-schedule GRHayLHDX_prims_to_conservs in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
+schedule GRHayLHDX_prims_to_conservs in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX
 {
   LANG: C
   READS:  ccc_spacetime
@@ -97,7 +97,7 @@ schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Con2Pr
 } "Interpolate spacetime quantities to cell centers"
 
 if(perturb_every_con2prim) {
-  schedule GRHayLHDX_perturb_conservatives in GRHayLHDX_Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities before GRHayLHD_conservs_to_prims
+  schedule GRHayLHDX_perturb_conservatives in GRHayLHDX_Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities before GRHayLHDX_conservs_to_prims
   {
     LANG: C
     READS:  grmhd_conservatives
@@ -109,9 +109,9 @@ schedule GRHayLHDX_conservs_to_prims in GRHayLHDX_Con2Prim after GRHayLHDX_compu
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives
-  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps #,
-          #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-  WRITES: u0(everywhere), grmhd_velocities(everywhere),
+  WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+          #HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+          u0(everywhere), grmhd_velocities(everywhere),
           grmhd_conservatives(everywhere), failure_checker(everywhere)
 } "Compute primitive variables from conservatives"
 
@@ -170,7 +170,7 @@ schedule GRHayLHDX_evaluate_fluxes_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
           #HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
           ccc_spacetime, grmhd_velocities,
-          flux_x, flux_y, flux_z,
+          flux_x(interior), flux_y(interior), flux_z(interior),
           grmhd_conservatives_rhs(interior)
   WRITES: grmhd_conservatives_rhs
 } "Evaluate RHSs of GRHD equations"
