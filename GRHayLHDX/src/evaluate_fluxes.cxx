@@ -111,7 +111,7 @@ void GRHayLHDX_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
 
   grid.loop_int<facetype[0], facetype[1], facetype[2]>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index indm2(ccc_layout, p.I - 2*p.DI[flux_dir]);
     const Loop::GF3D2index indm1(ccc_layout, p.I - p.DI[flux_dir]);
     const Loop::GF3D2index index(ccc_layout, p.I);

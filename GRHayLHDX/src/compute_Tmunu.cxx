@@ -12,7 +12,7 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
 
   grid.loop_all<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(ccc_layout, p.I);
 
     ghl_metric_quantities ADM_metric;
@@ -47,7 +47,7 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
           &ccc_Tyz(index), &ccc_Tzz(index));
   }); // ccc loop everywhere
 
-  grid.loop_int<0, 0, 0>(
+  grid.loop_int_device<0, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(vvv_layout, p.I);

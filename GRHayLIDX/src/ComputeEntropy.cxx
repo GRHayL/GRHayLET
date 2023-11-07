@@ -8,7 +8,7 @@ void GRHayLIDX_compute_entropy_hybrid(CCTK_ARGUMENTS) {
 
   grid.loop_all<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
     entropy(index) = ghl_hybrid_compute_entropy_function(ghl_eos, rho(index), press(index));
   });
@@ -22,7 +22,7 @@ void GRHayLIDX_compute_entropy_tabulated(CCTK_ARGUMENTS) {
 
   grid.loop_all<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
     double P_local, eps_local, S_local;

@@ -10,7 +10,7 @@ ActiveThorns = "
  
 ActiveThorns = "GRHayLib GRHayLHDX"
 
-Cactus::presync_mode = "presync-only"
+Cactus::presync_mode = "mixed-error"
 
 # grid parameters
 CarpetX::ghost_size = 3
@@ -37,9 +37,6 @@ Cactus::cctk_itlast = 10
 
 CarpetX::max_num_levels = 1
 CarpetX::regrid_every = 100000
-CarpetX::blocking_factor_x = 1
-CarpetX::blocking_factor_y = 1
-CarpetX::blocking_factor_z = 1
 CarpetX::regrid_error_threshold = 0.01
 
 CarpetX::prolongation_type = "ddf"

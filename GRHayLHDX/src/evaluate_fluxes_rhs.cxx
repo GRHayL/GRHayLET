@@ -42,7 +42,7 @@ void GRHayLHDX_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
 
   const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
 
-  grid.loop_int<1, 1, 1>(
+  grid.loop_int_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index indm2(ccc_layout, p.I - 2*p.DI[flux_dir]);

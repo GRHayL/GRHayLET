@@ -19,7 +19,7 @@ extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
 
   grid.loop_all<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
     ghl_metric_quantities ADM_metric;

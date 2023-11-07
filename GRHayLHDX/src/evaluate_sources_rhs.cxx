@@ -12,7 +12,7 @@ void GRHayLHDX_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
   grid.loop_int<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
     rho_star_rhs(index) = 0.0;

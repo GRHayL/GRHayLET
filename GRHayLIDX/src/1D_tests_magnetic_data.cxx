@@ -60,77 +60,126 @@ extern "C" void GRHayLIDX_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
-  grid.loop_all<1, 1, 1>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    const Loop::GF3D2index index(layout, p.I);
+  //This would probably be cleaner if CCTK_EQUALS was available on device
 
-    double step = p.x;
-    if(CCTK_EQUALS(shock_direction, "y")) {
-      step = p.y;
-    } else if(CCTK_EQUALS(shock_direction, "z")) {
-      step = p.z;
-    }
+  if(CCTK_EQUALS(shock_direction, "x")) {
+    grid.loop_all_device<1, 1, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      const Loop::GF3D2index index(layout, p.I);
+      if(p.x <= discontinuity_position) {
+        Bvecx(index) = Bx_l;
+        Bvecy(index) = By_l;
+        Bvecz(index) = Bz_l;
+      } else {
+        Bvecx(index) = Bx_r;
+        Bvecy(index) = By_r;
+        Bvecz(index) = Bz_r;
+      }
+    });
 
-    if(step <= discontinuity_position) {
-      Bvecx(index) = Bx_l;
-      Bvecy(index) = By_l;
-      Bvecz(index) = Bz_l;
-    } else {
-      Bvecx(index) = Bx_r;
-      Bvecy(index) = By_r;
-      Bvecz(index) = Bz_r;
-    }
-  });
-
-  grid.loop_all<1, 0, 0>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-
-    if(CCTK_EQUALS(shock_direction, "x")) {
+    grid.loop_all_device<1, 0, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
       if(p.x <= discontinuity_position) {
         Avecx(p.I) = By_l * (p.z) - Bz_l * (p.y);
       } else {
         Avecx(p.I) = By_r * (p.z) - Bz_r * (p.y);
       }
-    } else if(CCTK_EQUALS(shock_direction, "y")) {
-      Avecx(p.I) = By_r * (p.z);
-    } else if(CCTK_EQUALS(shock_direction, "z")) {
-      Avecx(p.I) = 0.0;
-    }
-  });
+    });
 
-  grid.loop_all<0, 1, 0>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-
-    if(CCTK_EQUALS(shock_direction, "x")) {
+    grid.loop_all_device<0, 1, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
       Avecy(p.I) = 0.0;
-    } else if(CCTK_EQUALS(shock_direction, "y")) {
+    });
+
+    grid.loop_all_device<0, 0, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      Avecz(p.I) = Bx_r * (p.y);
+    });
+
+  } else if(CCTK_EQUALS(shock_direction, "y")) {
+
+    grid.loop_all_device<1, 1, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      const Loop::GF3D2index index(layout, p.I);
+
+      if(p.y <= discontinuity_position) {
+        Bvecx(index) = Bx_l;
+        Bvecy(index) = By_l;
+        Bvecz(index) = Bz_l;
+      } else {
+        Bvecx(index) = Bx_r;
+        Bvecy(index) = By_r;
+        Bvecz(index) = Bz_r;
+      }
+    });
+  
+    grid.loop_all_device<1, 0, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      Avecx(p.I) = By_r * (p.z);
+    });
+  
+    grid.loop_all_device<0, 1, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+  
       if(p.y <= discontinuity_position) {
         Avecy(p.I) = Bz_l * (p.x) - Bx_l * (p.z);
       } else {
         Avecy(p.I) = Bz_r * (p.x) - Bx_r * (p.z);
       }
-    } else if(CCTK_EQUALS(shock_direction, "z")) {
-      Avecy(p.I) = Bz_r * (p.x);
-    }
-  });
-
-  grid.loop_all<0, 0, 1>(
-      grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-
-    if(CCTK_EQUALS(shock_direction, "x")) {
-      Avecz(p.I) = Bx_r * (p.y);
-    } else if(CCTK_EQUALS(shock_direction, "y")) {
+    });
+  
+    grid.loop_all_device<0, 0, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
       Avecz(p.I) = 0.0;
-    } else if(CCTK_EQUALS(shock_direction, "z")) {
+    });
+
+  } else {
+
+    grid.loop_all_device<1, 1, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      const Loop::GF3D2index index(layout, p.I);
+
+      if(p.z <= discontinuity_position) {
+        Bvecx(index) = Bx_l;
+        Bvecy(index) = By_l;
+        Bvecz(index) = Bz_l;
+      } else {
+        Bvecx(index) = Bx_r;
+        Bvecy(index) = By_r;
+        Bvecz(index) = Bz_r;
+      }
+    });
+
+    grid.loop_all_device<1, 0, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      Avecx(p.I) = 0.0;
+    });
+
+    grid.loop_all_device<0, 1, 0>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      Avecy(p.I) = Bz_r * (p.x);
+    });
+
+    grid.loop_all_device<0, 0, 1>(
+        grid.nghostzones,
+        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+
       if(p.z <= discontinuity_position) {
         Avecz(p.I) = Bx_l * (p.y) - By_l * (p.x);
       } else {
         Avecz(p.I) = Bx_r * (p.y) - By_r * (p.x);
       }
-    }
-  });
+    });
+  }
 }

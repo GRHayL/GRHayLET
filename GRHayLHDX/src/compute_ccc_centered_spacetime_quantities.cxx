@@ -7,7 +7,7 @@ extern "C" void GRHayLHDX_compute_ccc_centered_spacetime_quantities(CCTK_ARGUMEN
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
   const Loop::GF3D2layout layout(cctkGH, indextype);
 
-  grid.loop_all<1, 1, 1>(
+  grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
@@ -91,15 +91,6 @@ extern "C" void GRHayLHDX_compute_ccc_centered_spacetime_quantities(CCTK_ARGUMEN
     gtyyL = gtyyL * gtijdet_Fm1o3;
     gtyzL = gtyzL * gtijdet_Fm1o3;
     gtzzL = gtzzL * gtijdet_Fm1o3;
-
-    if(gtijdet<0.0)
-      CCTK_VWARN(CCTK_WARN_ALERT,
-                 "WARNING: det[3-metric]<0.0 at coordinate %e %e %e | cctk_lsh: %d %d %d. "
-                 "Hopefully this is occurring in gz's! gtij_phys = %.2e %.2e %.2e %.2e %.2e %.2e "
-                 "gtij_new = %.2e %.2e %.2e %.2e %.2e %.2e | gijdet = %.2e | gtijdet = %.2e",
-                 p.x, p.y, p.z, cctkGH->cctk_lsh[0], cctkGH->cctk_lsh[1], cctkGH->cctk_lsh[2],
-                 gxx_physL, gxy_physL, gxz_physL, gyy_physL, gyz_physL, gzz_physL,
-                 gtxxL, gtxyL, gtxzL, gtyyL, gtyzL, gtzzL, -gijdet, gtijdet);
 
     /*******************************************
      * Set the ADM gridfunctions to new values *
