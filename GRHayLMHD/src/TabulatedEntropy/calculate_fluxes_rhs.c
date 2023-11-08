@@ -164,8 +164,7 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
 
         // B_stagger is densitized, but B_center is not.
-        prims_r.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
-        prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
 
         prims_r.vU[0] = vel_r[0][index];
         prims_r.vU[1] = vel_r[1][index];
@@ -175,11 +174,19 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        prims_r.temperature = temperature[index];
-        prims_l.temperature = temperature[index];
+        prims_r.temperature = prims_l.temperature = temperature[index];
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
+
+        // We must now compute eps and T
+        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
+        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+                                           &prims_r.eps, &prims_r.temperature);
+
+        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
+        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+                                           &prims_l.eps, &prims_l.temperature);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
