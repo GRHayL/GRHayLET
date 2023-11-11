@@ -34,7 +34,8 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     READS:  Grid::coordinates
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }
 
