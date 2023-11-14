@@ -1,7 +1,5 @@
 #include "GRHayLMHD.h"
 
-static double (*get_Gamma_eff)(const double, const double) = &get_Gamma_eff_hybrid;
-
 // This reconstruction function is only used on B_stagger and reconstructed velocities, so it
 // is independent of EOS
 void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
@@ -24,9 +22,6 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
   const int kmin = cctkGH->cctk_nghostzones[2];
   const int kmax = (cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2]) + 1;
 
-  if( ghl_eos->eos_type == ghl_eos_tabulated )
-    get_Gamma_eff = &get_Gamma_eff_tabulated;
-
 #pragma omp parallel for
   for(int k=kmin; k<kmax; k++) {
     for(int j=jmin; j<jmax; j++) {
@@ -45,15 +40,11 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
           }
         }
 
-        // Compute Gamma
-        const double Gamma = get_Gamma_eff(rho_b[index], pressure[index]);
-
-        ghl_ppm_no_rho_P(
-              ghl_params, press_stencil, var_data,
-              num_vars, v_flux_stencil, Gamma,
-              vars_r, vars_l);
+        double ftilde[2];
+        ghl_compute_ftilde(ghl_params, press_stencil, v_flux_stencil, ftilde);
 
         for(int var=0; var<num_vars; var++) {
+          ghl_ppm_reconstruction(ftilde, var_data[var], &vars_r[var], &vars_l[var]);
           out_prims_r[var_indices[var]][index] = vars_r[var];
           out_prims_l[var_indices[var]][index] = vars_l[var];
         }

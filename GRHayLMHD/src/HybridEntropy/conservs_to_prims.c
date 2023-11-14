@@ -76,11 +76,11 @@ static inline int GRHayLMHD_local_avg(
   // If weight=4, then the central point isn't part of the average
   num_avg += (weight != 4);
 
-  cons->rho   /= num_avg;
-  cons->tau   /= num_avg;
-  cons->SD[0] /= num_avg;
-  cons->SD[1] /= num_avg;
-  cons->SD[2] /= num_avg;
+  cons->rho     /= num_avg;
+  cons->tau     /= num_avg;
+  cons->SD[0]   /= num_avg;
+  cons->SD[1]   /= num_avg;
+  cons->SD[2]   /= num_avg;
   cons->entropy /= num_avg;
 
   return 0;
@@ -181,7 +181,7 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
         // Here we save the original values of conservative variables in cons_orig for debugging purposes.
         cons_orig = cons;
 
-        if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*prims.BU[0]*prims.BU[1]*prims.BU[2])) {
+        if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*cons.entropy*prims.BU[0]*prims.BU[1]*prims.BU[2])) {
           needs_average[index] = 1;
           n_avg++;
           continue;
@@ -302,8 +302,6 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
         const int j = j_vals[iter];
         const int k = k_vals[iter];
         const int index = ind_vals[iter];
-
-        double local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
@@ -438,9 +436,6 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
     } // while n_avg
     if(n_avg != 0) {
       for(int iter=0; iter<n_avg; iter++) {
-        const int i = i_vals[iter];
-        const int j = j_vals[iter];
-        const int k = k_vals[iter];
         const int index = ind_vals[iter];
         //--------------------------------------------------
         //----------- Primitive recovery failed ------------
@@ -553,9 +548,9 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
 
   const double rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
   const double tau_error     = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
-  const double Sx_error      = (error_Sx_denom==0) ?  error_Sx_numer :  error_Sx_numer/error_Sx_denom;
-  const double Sy_error      = (error_Sy_denom==0) ?  error_Sy_numer :  error_Sy_numer/error_Sy_denom;
-  const double Sz_error      = (error_Sz_denom==0) ?  error_Sz_numer :  error_Sz_numer/error_Sz_denom;
+  const double Sx_error      = (error_Sx_denom==0)  ? error_Sx_numer  : error_Sx_numer/error_Sx_denom;
+  const double Sy_error      = (error_Sy_denom==0)  ? error_Sy_numer  : error_Sy_numer/error_Sy_denom;
+  const double Sz_error      = (error_Sz_denom==0)  ? error_Sz_numer  : error_Sz_numer/error_Sz_denom;
   const double entropy_error = (error_ent_denom==0) ? error_ent_numer : error_ent_numer/error_ent_denom;
   /*
     Failure checker decoder:
