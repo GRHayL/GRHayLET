@@ -27,24 +27,35 @@ cctk_real u0 type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoin
 # Evolved variables
 cctk_real grmhd_conservatives type = GF Timelevels=3
 {
-  rho_star, tau, Stildex, Stildey, Stildez, Ye_star, ent_star # Note that Stildei = \tilde{S}_i.
+  rho_star, tau, Stildex, Stildey, Stildez
 } "Evolved mhd variables"
+
+CCTK_REAL Ye_star type = GF Timelevels=3 "Evolved electron fraction variable"
+CCTK_REAL ent_star type = GF Timelevels=3 "Evolved entropy variable"
 
 #########################################################
 
 # RHS variables for MoL timestepping
 cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
-} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
+  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs
+} "Right-hand side for grmhd_conservatives variables"
+
+# We split these to better control read/write access
+CCTK_REAL Ye_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for Ye_star"
+CCTK_REAL ent_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for ent_star"
 
 #########################################################
 
 #Temporary variables for flux computation
 cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, Ye_star_flux, ent_star_flux
+  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux
 } "Temporary variables for storing the flux terms of tilde{S}_i."
+
+# We split these to better control read/write access
+CCTK_REAL Ye_star_flux type = GF TAGS='prolongation="none" Checkpoint="no"' "Flux variable for Ye_star"
+CCTK_REAL ent_star_flux type = GF TAGS='prolongation="none" Checkpoint="no"' "Flux variable for ent_star"
 
 #########################################################
 

@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_perturb_primitives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_perturb_primitives;
+void GRHayLHD_tabulated_perturb_primitives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_perturb_primitives;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
@@ -19,7 +19,6 @@ void GRHayLHD_perturb_primitives(CCTK_ARGUMENTS) {
         vx         [index] *= one_plus_pert(random_pert);
         vy         [index] *= one_plus_pert(random_pert);
         vz         [index] *= one_plus_pert(random_pert);
-        entropy    [index] *= one_plus_pert(random_pert);
         Y_e        [index] *= one_plus_pert(random_pert);
         temperature[index] *= one_plus_pert(random_pert);
       }

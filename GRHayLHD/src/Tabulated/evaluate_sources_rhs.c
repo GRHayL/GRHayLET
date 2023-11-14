@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_evaluate_sources_rhs;
+void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_evaluate_sources_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctk_nghostzones[0];
@@ -20,7 +20,9 @@ void GRHayLHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
       for(int i=imin; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
+        // These variables have no source terms
         rho_star_rhs[index] = 0.0;
+        Ye_star_rhs[index]  = 0.0;
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
@@ -37,12 +39,14 @@ void GRHayLHD_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &curv);
 
         ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho[index], press[index], eps[index],
-              vx[index], vy[index], vz[index],
-              0.0, 0.0, 0.0,
-              entropy[index], Y_e[index], temperature[index],
-              &prims);
+        prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+        prims.rho   = rho[index];
+        prims.press = press[index];
+        prims.vU[0] = vx[index];
+        prims.vU[1] = vy[index];
+        prims.vU[2] = vz[index];
+        prims.Y_e   = Y_e[index];
+        prims.temperature = temperature[index];
 
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 

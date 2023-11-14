@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_compute_Tmunu;
+void GRHayLHD_tabulated_entropy_compute_Tmunu(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
 #pragma omp parallel for
@@ -25,14 +25,17 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho[index], press[index], eps[index],
-              vx[index], vy[index], vz[index],
-              0.0, 0.0, 0.0,
-              entropy[index], Y_e[index], temperature[index],
-              &prims);
-
-        prims.u0 = u0[index];
+        prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+        prims.rho   = rho[index];
+        prims.press = press[index];
+        prims.eps   = eps[index];
+        prims.vU[0] = vx[index];
+        prims.vU[1] = vy[index];
+        prims.vU[2] = vz[index];
+        prims.u0    = u0[index];
+        prims.entropy = entropy[index];
+        prims.Y_e   = Y_e[index];
+        prims.temperature = temperature[index];
 
         ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);

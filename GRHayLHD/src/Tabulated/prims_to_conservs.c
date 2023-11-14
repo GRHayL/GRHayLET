@@ -1,17 +1,7 @@
-/********************************
- * CONVERT ET ID TO IllinoisGRMHD
- *
- * Written in 2014 by Zachariah B. Etienne
- *
- * Sets metric & MHD variables needed
- * by IllinoisGRMHD, converting from
- * HydroBase and ADMBase.
- ********************************/
-
 #include "GRHayLHD.h"
 
-void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_prims_to_conservs;
+void GRHayLHD_tabulated_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   double dummy1, dummy2, dummy3;
@@ -39,12 +29,15 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho[index], press[index], eps[index],
-              vx[index], vy[index], vz[index],
-              0.0, 0.0, 0.0,
-              entropy[index], Y_e[index], temperature[index],
-              &prims);
+        prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+        prims.rho         = rho[index];
+        prims.press       = press[index];
+        prims.vU[0]       = vx[index];
+        prims.vU[1]       = vy[index];
+        prims.vU[2]       = vz[index];
+        prims.Y_e         = Y_e[index];
+        prims.temperature = temperature[index];
+
 
         ghl_conservative_quantities cons;
         //This applies inequality fixes on the conservatives
@@ -54,18 +47,21 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        ghl_return_primitives(
-              &prims,
-              &rho[index], &press[index], &eps[index],
-              &vx[index], &vy[index], &vz[index],
-              &dummy1, &dummy2, &dummy3,
-              &entropy[index], &Y_e[index], &temperature[index]);
+        rho[index]         = prims.rho;
+        press[index]       = prims.press;
+        eps[index]         = prims.eps;
+        vx[index]          = prims.vU[0];
+        vy[index]          = prims.vU[1];
+        vz[index]          = prims.vU[2];
+        Y_e[index]         = prims.Y_e;
+        temperature[index] = prims.temperature;
 
-        ghl_return_conservatives(
-              &cons,
-              &rho_star[index], &tau[index],
-              &Stildex[index], &Stildey[index], &Stildez[index],
-              &ent_star[index], &Ye_star[index]);
+        rho_star[index] = cons.rho;
+        tau[index]      = cons.tau;
+        Stildex[index]  = cons.SD[0];
+        Stildey[index]  = cons.SD[1];
+        Stildez[index]  = cons.SD[2];
+        Ye_star[index]  = cons.Y_e;
       }
     }
   }

@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_perturb_conservatives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_perturb_conservatives;
+void GRHayLHD_tabulated_entropy_perturb_conservatives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_perturb_conservatives;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
@@ -19,6 +19,8 @@ void GRHayLHD_perturb_conservatives(CCTK_ARGUMENTS) {
         Stildex[index]  *= one_plus_pert(random_pert);
         Stildey[index]  *= one_plus_pert(random_pert);
         Stildez[index]  *= one_plus_pert(random_pert);
+        ent_star[index] *= one_plus_pert(random_pert);
+        Ye_star[index]  *= one_plus_pert(random_pert);
       }
     }
   }
