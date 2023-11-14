@@ -11,7 +11,7 @@
 
 #include "GRHayLHD.h"
 
-void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
+static void GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -20,8 +20,8 @@ void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, c
  * amplified in con2prim, sometimes leading to unphysical
  * primitives & unnecessary fixes.
  *******************************************************/
-void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz;
+void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_entropy_outer_boundaries;
   DECLARE_CCTK_PARAMETERS;
 
   if(CCTK_EQUALS(Matter_BC,"frozen")) return;
@@ -32,8 +32,6 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
   // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
   if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
-
-  double dummy1, dummy2, dummy3;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
     CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal number of ghostzones in different directions!");
@@ -51,20 +49,15 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indm1], press[indm1], eps[indm1],
-                vtmp, vy[indm1], vz[indm1],
-                0.0, 0.0, 0.0,
-                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
+          prims.vU[0]   = vtmp;
+          prims.vU[1]   = vy[indm1];
+          prims.vU[2]   = vz[indm1];
+          prims.entropy = entropy[indm1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -79,20 +72,15 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indp1], press[indp1], eps[indp1],
-                vtmp, vy[indp1], vz[indp1],
-                0.0, 0.0, 0.0,
-                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
+          prims.vU[0]   = vtmp;
+          prims.vU[1]   = vy[indp1];
+          prims.vU[2]   = vz[indp1];
+          prims.entropy = entropy[indp1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -109,20 +97,15 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indm1], press[indm1], eps[indm1],
-                vx[indm1], vtmp, vz[indm1],
-                0.0, 0.0, 0.0,
-                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
+          prims.vU[0]   = vx[indm1];
+          prims.vU[1]   = vtmp;
+          prims.vU[2]   = vz[indm1];
+          prims.entropy = entropy[indm1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -137,20 +120,15 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indp1], press[indp1], eps[indp1],
-                vx[indp1], vtmp, vz[indp1],
-                0.0, 0.0, 0.0,
-                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho         = rho[indp1];
+          prims.press       = press[indp1];
+          prims.vU[0]       = vx[indp1];
+          prims.vU[1]       = vtmp;
+          prims.vU[2]       = vz[indp1];
+          prims.entropy     = entropy[indp1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -167,20 +145,15 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indm1], press[indm1], eps[indm1],
-                vx[indm1], vy[indm1], vtmp,
-                0.0, 0.0, 0.0,
-                entropy[indm1], Y_e[indm1], temperature[indm1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
+          prims.vU[0]   = vx[indm1];
+          prims.vU[1]   = vy[indm1];
+          prims.vU[2]   = vtmp;
+          prims.entropy = entropy[indm1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -195,30 +168,25 @@ void GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz(CCTK_ARGUMENTS) {
 
           const double vtmp = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
           ghl_primitive_quantities prims;
-          ghl_initialize_primitives(
-                rho[indp1], press[indp1], eps[indp1],
-                vx[indp1], vy[indp1], vtmp,
-                0.0, 0.0, 0.0,
-                entropy[indp1], Y_e[indp1], temperature[indp1], &prims);
+          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
+          prims.vU[0]   = vx[indp1];
+          prims.vU[1]   = vy[indp1];
+          prims.vU[2]   = vtmp;
+          prims.entropy = entropy[indp1];
 
-          GRHayLHD_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-
-          ghl_return_primitives(
-                &prims,
-                &rho[index], &press[index], &eps[index],
-                &vx[index], &vy[index], &vz[index],
-                &dummy1, &dummy2, &dummy3,
-                &entropy[index], &Y_e[index], &temperature[index]);
+          GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
   }
 }
 
-void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
+void GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
-  // instead of explicitly passing all these variables.
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_outer_boundaries_on_P_rho_vx_vy_vz;
+  // instead of explicitly passing all these grid functions.
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_entropy_outer_boundaries;
 
   ghl_metric_quantities ADM_metric;
   ghl_enforce_detgtij_and_initialize_ADM_metric(
@@ -238,9 +206,17 @@ void GRHayLHD_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, c
   ghl_compute_conservs(
         &ADM_metric, &metric_aux, prims, &cons);
 
-  ghl_return_conservatives(
-        &cons,
-        &rho_star[index], &tau[index],
-        &Stildex[index], &Stildey[index], &Stildez[index],
-        &ent_star[index], &Ye_star[index]);
+  rho[index]     = prims->rho;
+  press[index]   = prims->press;
+  vx[index]      = prims->vU[0];
+  vy[index]      = prims->vU[1];
+  vz[index]      = prims->vU[2];
+  entropy[index] = prims->entropy;
+
+  rho_star[index] = cons.rho;
+  tau[index]      = cons.tau;
+  Stildex[index]  = cons.SD[0];
+  Stildey[index]  = cons.SD[1];
+  Stildez[index]  = cons.SD[2];
+  ent_star[index] = cons.entropy;
 }
