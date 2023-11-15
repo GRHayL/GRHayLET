@@ -85,33 +85,33 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         CCTK_REAL press_stencil[6], v_flux_dir[6];
-        CCTK_REAL var_data[3][6], vars_r[3], vars_l[3];
+        CCTK_REAL vx_data[6], vy_data[6], vz_data[6];
+        CCTK_REAL vxr, vxl, vyr, vyl, vzr, vzl;
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
           const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
           v_flux_dir[ind] = v_flux[stencil]; // Could be smaller; doesn't use full stencil
           press_stencil[ind] = pressure[stencil];
-          var_data[0][ind] = vx[stencil];
-          var_data[1][ind] = vy[stencil];
-          var_data[2][ind] = vz[stencil];
+          vx_data[ind] = vx[stencil];
+          vy_data[ind] = vy[stencil];
+          vz_data[ind] = vz[stencil];
         }
 
-        // Compute Gamma
-        const CCTK_REAL Gamma = get_Gamma_eff_tabulated(rho_b[index], pressure[index]);
+        double ftilde[2];
+        ghl_compute_ftilde(ghl_params, press_stencil, v_flux_dir, ftilde);
 
-        ghl_ppm_no_rho_P(
-              ghl_params, press_stencil, var_data,
-              3, v_flux_dir, Gamma,
-              vars_r, vars_l);
+        ghl_ppm_reconstruction(ftilde, vx_data, &vxr, &vxl);
+        ghl_ppm_reconstruction(ftilde, vy_data, &vyr, &vyl);
+        ghl_ppm_reconstruction(ftilde, vz_data, &vzr, &vzl);
 
-        vel_r[0][index] = vars_r[0];
-        vel_r[1][index] = vars_r[1];
-        vel_r[2][index] = vars_r[2];
+        vel_r[0][index] = vxr;
+        vel_r[1][index] = vyr;
+        vel_r[2][index] = vzr;
 
-        vel_l[0][index] = vars_l[0];
-        vel_l[1][index] = vars_l[1];
-        vel_l[2][index] = vars_l[2];
+        vel_l[0][index] = vxl;
+        vel_l[1][index] = vyl;
+        vel_l[2][index] = vzl;
       }
     }
   }
@@ -126,38 +126,6 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
         const int indm1 = CCTK_GFINDEX3D(cctkGH, i-xdir, j-ydir, k-zdir);
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
-        CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
-        CCTK_REAL rhor, rhol, pressr, pressl, B_r[3], B_l[3];
-        CCTK_REAL others_stencil[3][6], others_r[3], others_l[3];
-
-        for(int ind=0; ind<6; ind++) {
-          // Stencil from -3 to +2 reconstructs to e.g. i-1/2
-          const int stencil      = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux_dir[ind]        = v_flux[stencil]; // Could be smaller; doesn't use full stencil
-          rho_stencil[ind]       = rho_b[stencil];
-          press_stencil[ind]     = pressure[stencil];
-          others_stencil[0][ind] = B_center[B_recon[1]][stencil];
-          others_stencil[1][ind] = B_center[B_recon[2]][stencil];
-          others_stencil[2][ind] = Y_e[stencil];
-        }
-
-        // Compute Gamma
-        const CCTK_REAL Gamma = get_Gamma_eff_tabulated(rho_b[index], pressure[index]);
-
-        ghl_ppm(
-              ghl_params, rho_stencil,
-              press_stencil, others_stencil,
-              3, v_flux_dir, Gamma,
-              &rhor, &rhol,
-              &pressr, &pressl,
-              others_r, others_l);
-
-        B_r[B_recon[1]] = others_r[0];
-        B_r[B_recon[2]] = others_r[1];
-
-        B_l[B_recon[1]] = others_l[0];
-        B_l[B_recon[2]] = others_l[1];
-
         ghl_metric_quantities ADM_metric_face;
         GRHayLMHD_interpolate_metric_to_face(
               cctkGH, i, j, k,
@@ -167,33 +135,47 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
               gyy, gyz, gzz,
               &ADM_metric_face);
 
-        // B_stagger is densitized, but B_center is not.
-        B_r[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
-        B_l[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
-
+        CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
+        CCTK_REAL B1_stencil[6], B2_stencil[6], Ye_stencil[6];
         ghl_primitive_quantities prims_r, prims_l;
-        prims_r.rho   = rhor;
-        prims_r.press = pressr;
+
+        for(int ind=0; ind<6; ind++) {
+          // Stencil from -3 to +2 reconstructs to e.g. i-1/2
+          const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
+          v_flux_dir[ind]    = v_flux[stencil]; // Could be smaller; doesn't use full stencil
+          rho_stencil[ind]   = rho_b[stencil];
+          press_stencil[ind] = pressure[stencil];
+          B1_stencil[ind]    = B_center[B_recon[1]][stencil];
+          B2_stencil[ind]    = B_center[B_recon[2]][stencil];
+          Ye_stencil[ind]    = Y_e[stencil];
+        }
+
+        double ftilde[2];
+        ghl_compute_ftilde(ghl_params, press_stencil, v_flux_dir, ftilde);
+
+        const CCTK_REAL Gamma = get_Gamma_eff_tabulated(rho_b[index], pressure[index]);
+        ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
+
+        ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
+        ghl_ppm_reconstruction(ftilde, B1_stencil, &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
+        ghl_ppm_reconstruction(ftilde, B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
+        ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
+
+        // B_stagger is densitized, but B_center is not.
+        prims_r.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+
         prims_r.vU[0] = vel_r[0][index];
         prims_r.vU[1] = vel_r[1][index];
         prims_r.vU[2] = vel_r[2][index];
-        prims_r.BU[0] = B_r[0];
-        prims_r.BU[1] = B_r[1];
-        prims_r.BU[2] = B_r[2];
-        prims_r.Y_e = others_r[2];
-        prims_r.temperature = temperature[index];
-        int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
 
-        prims_l.rho   = rhol;
-        prims_l.press = pressl;
         prims_l.vU[0] = vel_l[0][index];
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
-        prims_l.BU[0] = B_l[0];
-        prims_l.BU[1] = B_l[1];
-        prims_l.BU[2] = B_l[2];
-        prims_l.Y_e = others_l[2];
-        prims_l.temperature = temperature[index];
+
+        prims_r.temperature = prims_l.temperature = temperature[index];
+
+        int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
         ghl_conservative_quantities cons_fluxes;

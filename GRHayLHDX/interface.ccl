@@ -53,35 +53,50 @@ CCTK_REAL u0 type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation=
 # Evolved variables
 CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="GRHayLHDX::grmhd_conservatives_rhs GRHayLHDX::flux_x GRHayLHDX::flux_y GRHayLHDX::flux_z"'
 {
-  # Note that Stildei = \tilde{S}_i.
-  rho_star, tau, Stildex, Stildey, Stildez #, ent_star, Ye_star
+  rho_star, tau, Stildex, Stildey, Stildez
 } "Evolved mhd variables"
+
+CCTK_REAL ent_star type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="ent_star_rhs" dependents="GRHayLHDX::ent_star_rhs GRHayLHDX::ent_flux_x GRHayLHDX::ent_flux_y GRHayLHDX::ent_flux_z"' "conservative entropy variable W S"
+
+CCTK_REAL Ye_star type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="Ye_star_rhs" dependents="GRHayLHDX::Ye_star_rhs GRHayLHDX::Ye_flux_x GRHayLHDX::Ye_flux_y GRHayLHDX::Ye_flux_z"' "conservative electron fraction variable W rho Y_e"
 
 #########################################################
 
 # RHS variables for MoL timestepping
 CCTK_REAL grmhd_conservatives_rhs type = GF CENTERING={ccc} TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs #, ent_star_rhs, Ye_star_rhs
-} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
+  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs
+} "RHS for partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations"
+
+CCTK_REAL ent_star_rhs type = GF CENTERING={ccc} TAGS='prolongation="none" Checkpoint="no"' "RHS for partial_t \tilde{S} equation"
+
+CCTK_REAL Ye_star_rhs type = GF CENTERING={ccc} TAGS='prolongation="none" Checkpoint="no"' "RHS for partial_t \tilde{Y}_e equation"
 
 #########################################################
 
 #Temporary variables for flux computation
 CCTK_REAL flux_x TYPE=gf CENTERING={vcc} TAGS='prolongation="none" checkpoint="no"'
 {
-  rho_star_flux_x, tau_flux_x, Sx_flux_x, Sy_flux_x, Sz_flux_x #, ent_flux_x, Ye_flux_x
+  rho_star_flux_x, tau_flux_x, Sx_flux_x, Sy_flux_x, Sz_flux_x
 } "Fluxes in x direction"
 
 CCTK_REAL flux_y TYPE=gf CENTERING={cvc} TAGS='prolongation="none" checkpoint="no"'
 {
-  rho_star_flux_y, tau_flux_y, Sx_flux_y, Sy_flux_y, Sz_flux_y #, ent_flux_y, Ye_flux_y
+  rho_star_flux_y, tau_flux_y, Sx_flux_y, Sy_flux_y, Sz_flux_y
 } "Fluxes in y direction"
 
 CCTK_REAL flux_z TYPE=gf CENTERING={ccv} TAGS='prolongation="none" checkpoint="no"'
 {
-  rho_star_flux_z, tau_flux_z, Sx_flux_z, Sy_flux_z, Sz_flux_z #, ent_flux_z, Ye_flux_z
+  rho_star_flux_z, tau_flux_z, Sx_flux_z, Sy_flux_z, Sz_flux_z
 } "Fluxes in z direction"
+
+CCTK_REAL ent_flux_x TYPE=gf CENTERING={vcc} TAGS='prolongation="none" checkpoint="no"' "Entropy flux in x direction"
+CCTK_REAL ent_flux_y TYPE=gf CENTERING={cvc} TAGS='prolongation="none" checkpoint="no"' "Entropy flux in y direction"
+CCTK_REAL ent_flux_z TYPE=gf CENTERING={ccv} TAGS='prolongation="none" checkpoint="no"' "Entropy flux in z direction"
+
+CCTK_REAL Ye_flux_x TYPE=gf CENTERING={vcc} TAGS='prolongation="none" checkpoint="no"' "Electron fraction flux in x direction"
+CCTK_REAL Ye_flux_y TYPE=gf CENTERING={cvc} TAGS='prolongation="none" checkpoint="no"' "Electron fraction flux in y direction"
+CCTK_REAL Ye_flux_z TYPE=gf CENTERING={ccv} TAGS='prolongation="none" checkpoint="no"' "Electron fraction flux in z direction"
 
 #########################################################
 

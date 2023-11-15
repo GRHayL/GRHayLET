@@ -27,14 +27,14 @@ extern "C" void GRHayLHDX_compute_Tmunu(CCTK_ARGUMENTS) {
     ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
     ghl_primitive_quantities prims;
-    ghl_initialize_primitives(
-          rho(index), press(index), eps(index),
-          vx(index), vy(index), vz(index),
-          0.0, 0.0, 0.0,
-          0.0, 0.0, 0.0,
-          //entropy(index), Ye(index), temperature(index),
-          &prims);
-    prims.u0 = u0(index);
+    prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+    prims.rho   = rho(index);
+    prims.press = press(index);
+    prims.eps   = eps(index);
+    prims.vU[0] = vx(index);
+    prims.vU[1] = vy(index);
+    prims.vU[2] = vz(index);
+    prims.u0    = u0(index);
 
     ghl_stress_energy Tmunu;
     ghl_compute_TDNmunu(
