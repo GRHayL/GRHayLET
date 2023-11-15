@@ -6,8 +6,8 @@
    *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
    */
 template <int flux_dir>
-void GRHayLHDX_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_fluxes_rhs;
+void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout ccc_layout(cctkGH, {1, 1, 1});
@@ -34,11 +34,8 @@ void GRHayLHDX_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
   Loop::GF3D2<const CCTK_REAL> Sz_flux = flux_dir==0 ? Sz_flux_x :
                                          flux_dir==1 ? Sz_flux_y : Sz_flux_z;
 
-  //Loop::GF3D2<const CCTK_REAL> ent_flux = flux_dir==0 ? ent_flux_x :
-  //                                        flux_dir==1 ? ent_flux_y : ent_flux_z;
-
-  //Loop::GF3D2<const CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
-  //                                       flux_dir==1 ? Ye_flux_y : Ye_flux_z;
+  Loop::GF3D2<const CCTK_REAL> Ye_flux = flux_dir==0 ? Ye_flux_x :
+                                         flux_dir==1 ? Ye_flux_y : Ye_flux_z;
 
   const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
 
@@ -59,16 +56,15 @@ void GRHayLHDX_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
     Stildex_rhs(index)  += dxi*(Sx_flux(ind_flux)       - Sx_flux(ind_flp1));
     Stildey_rhs(index)  += dxi*(Sy_flux(ind_flux)       - Sy_flux(ind_flp1));
     Stildez_rhs(index)  += dxi*(Sz_flux(ind_flux)       - Sz_flux(ind_flp1));
-    //ent_star_rhs(index) += dxi*(ent_flux(ind_flux)      - ent_flux(ind_flp1));
-    //Ye_star_rhs (index) += dxi*(Ye_flux (ind_flux)      - Ye_flux(ind_flp1));
+    Ye_star_rhs (index) += dxi*(Ye_flux (ind_flux)      - Ye_flux(ind_flp1));
   }); // ccc loop interior
 }
 
-extern "C" void GRHayLHDX_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_fluxes_rhs;
+extern "C" void GRHayLHDX_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  GRHayLHDX_evaluate_fluxes_rhs_dir<0>(cctkGH);
-  GRHayLHDX_evaluate_fluxes_rhs_dir<1>(cctkGH);
-  GRHayLHDX_evaluate_fluxes_rhs_dir<2>(cctkGH);
+  GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir<0>(cctkGH);
+  GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir<1>(cctkGH);
+  GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir<2>(cctkGH);
 }

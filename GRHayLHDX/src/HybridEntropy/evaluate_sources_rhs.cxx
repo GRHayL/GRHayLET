@@ -1,7 +1,7 @@
 #include "GRHayLHDX.h"
 
-void GRHayLHDX_evaluate_sources_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_evaluate_sources_rhs;
+void GRHayLHDX_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_hybrid_entropy_evaluate_sources_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);
@@ -18,11 +18,12 @@ void GRHayLHDX_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     rho_star_rhs(index) = 0.0;
 
     ghl_metric_quantities ADM_metric;
-    ghl_initialize_metric(ccc_lapse(index),
-                      ccc_betax(index), ccc_betay(index), ccc_betaz(index),
-                      ccc_gxx(index), ccc_gxy(index), ccc_gxz(index),
-                      ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
-                      &ADM_metric);
+    ghl_initialize_metric(
+          ccc_lapse(index),
+          ccc_betax(index), ccc_betay(index), ccc_betaz(index),
+          ccc_gxx(index), ccc_gxy(index), ccc_gxz(index),
+          ccc_gyy(index), ccc_gyz(index), ccc_gzz(index),
+          &ADM_metric);
 
     ghl_extrinsic_curvature curv;
     ghl_initialize_extrinsic_curvature(
@@ -31,13 +32,13 @@ void GRHayLHDX_evaluate_sources_rhs(CCTK_ARGUMENTS) {
           &curv);
 
     ghl_primitive_quantities prims;
-    ghl_initialize_primitives(
-          rho(index), press(index), eps(index),
-          vx(index), vy(index), vz(index),
-          0.0, 0.0, 0.0,
-          0.0, 0.0, 0.0,
-          //entropy(index), Ye(index), temperature(index),
-          &prims);
+    prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+    prims.rho   = rho(index);
+    prims.press = press(index);
+    prims.vU[0] = vx(index);
+    prims.vU[1] = vy(index);
+    prims.vU[2] = vz(index);
+    prims.entropy = entropy(index);
 
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 

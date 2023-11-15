@@ -2,7 +2,7 @@
 
 shares: GRHayLib
 USES KEYWORD EOS_type
-USES CCTK_BOOLEAN evolve_entropy as extern_evolve_entropy
+USES CCTK_BOOLEAN evolve_entropy
 
 #########################################################
 

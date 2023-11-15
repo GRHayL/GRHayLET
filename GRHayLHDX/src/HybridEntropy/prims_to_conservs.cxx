@@ -10,8 +10,8 @@
 
 #include "GRHayLHDX.h"
 
-extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_prims_to_conservs;
+extern "C" void GRHayLHDX_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_hybrid_entropy_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
@@ -34,13 +34,13 @@ extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
     ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
     ghl_primitive_quantities prims;
-    ghl_initialize_primitives(
-          rho(index), press(index), eps(index),
-          vx(index), vy(index), vz(index),
-          0.0, 0.0, 0.0,
-          0.0, 0.0, 0.0,
-          //entropy(index), Ye(index), temperature(index),
-          &prims);
+    prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+    prims.rho     = rho(index);
+    prims.press   = press(index);
+    prims.vU[0]   = vx(index);
+    prims.vU[1]   = vy(index);
+    prims.vU[2]   = vz(index);
+    prims.entropy = entropy(index);
 
     ghl_conservative_quantities cons;
     //This applies inequality fixes on the conservatives
@@ -50,21 +50,19 @@ extern "C" void GRHayLHDX_prims_to_conservs(CCTK_ARGUMENTS) {
     ghl_compute_conservs(
           &ADM_metric, &metric_aux, &prims, &cons);
 
-    CCTK_REAL dummy1, dummy2, dummy3;
-    CCTK_REAL dummy4, dummy5, dummy6;
-    ghl_return_primitives(
-          &prims,
-          &rho(index), &press(index), &eps(index),
-          &vx(index), &vy(index), &vz(index),
-          &dummy1, &dummy2, &dummy3,
-          &dummy4, &dummy5, &dummy6);
-          //&entropy(index), &Ye(index), &temperature(index));
+    rho(index)     = prims.rho;
+    press(index)   = prims.press;
+    eps(index)     = prims.eps;
+    vx(index)      = prims.vU[0];
+    vy(index)      = prims.vU[1];
+    vz(index)      = prims.vU[2];
+    entropy(index) = prims.entropy;
 
-    ghl_return_conservatives(
-          &cons,
-          &rho_star(index), &tau(index),
-          &Stildex(index), &Stildey(index), &Stildez(index),
-          &dummy1, &dummy2);
-          //&ent_star(index), &Ye_star(index));
+    rho_star(index) = cons.rho;
+    tau(index)      = cons.tau;
+    Stildex(index)  = cons.SD[0];
+    Stildey(index)  = cons.SD[1];
+    Stildez(index)  = cons.SD[2];
+    ent_star(index) = cons.entropy;
   }); // ccc loop everywhere
 }

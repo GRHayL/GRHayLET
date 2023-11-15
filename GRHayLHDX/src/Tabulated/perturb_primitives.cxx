@@ -1,7 +1,7 @@
 #include "GRHayLHDX.h"
 
-extern "C" void GRHayLHDX_perturb_primitives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_perturb_primitives;
+extern "C" void GRHayLHDX_tabulated_perturb_primitives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_perturb_primitives;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
@@ -16,8 +16,7 @@ extern "C" void GRHayLHDX_perturb_primitives(CCTK_ARGUMENTS) {
     vx         (index) *= one_plus_pert(random_pert);
     vy         (index) *= one_plus_pert(random_pert);
     vz         (index) *= one_plus_pert(random_pert);
-    //entropy    (index) *= one_plus_pert(random_pert);
-    //Ye         (index) *= one_plus_pert(random_pert);
-    //temperature(index) *= one_plus_pert(random_pert);
+    Ye         (index) *= one_plus_pert(random_pert);
+    temperature(index) *= one_plus_pert(random_pert);
   }); // ccc loop everywhere
 }
