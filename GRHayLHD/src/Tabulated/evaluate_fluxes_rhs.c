@@ -114,6 +114,8 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           prims_r.BU[0] = prims_r.BU[1] = prims_r.BU[2] = 0.0;
           prims_l.BU[0] = prims_l.BU[1] = prims_l.BU[2] = 0.0;
 
+          prims_r.temperature = prims_l.temperature = temperature[index];
+
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
           speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 

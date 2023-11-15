@@ -173,8 +173,7 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        prims_r.temperature = temperature[index];
-        prims_l.temperature = temperature[index];
+        prims_r.temperature = prims_l.temperature = temperature[index];
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
