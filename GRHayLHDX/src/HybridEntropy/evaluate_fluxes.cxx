@@ -1,11 +1,11 @@
 #include "GRHayLHDX.h"
 
-static inline double get_Gamma_eff(
-      const double rho_in,
-      const double press_in) {
-  double K, Gamma;
+static inline CCTK_REAL get_Gamma_eff(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in) {
+  CCTK_REAL K, Gamma;
   ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
-  const double P_cold = K*pow(rho_in, Gamma);
+  const CCTK_REAL P_cold = K*pow(rho_in, Gamma);
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
@@ -101,10 +101,10 @@ void GRHayLHDX_hybrid_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
       ent_stencil[ind]   = entropy(stencil);
     }
 
-    double ftilde[2];
+    CCTK_REAL ftilde[2];
     ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-    const double Gamma = get_Gamma_eff(rho(index), press(index));
+    const CCTK_REAL Gamma = get_Gamma_eff(rho(index), press(index));
     ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
     ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);

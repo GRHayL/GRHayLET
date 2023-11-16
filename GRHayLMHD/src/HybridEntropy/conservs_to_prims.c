@@ -190,10 +190,9 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
-            ghl_apply_conservative_limits(
-                ghl_params, ghl_eos, &ADM_metric,
-                &prims, &cons, &diagnostics);
+          ghl_apply_conservative_limits(
+              ghl_params, ghl_eos, &ADM_metric,
+              &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
@@ -349,10 +348,9 @@ void GRHayLMHD_hybrid_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
-            ghl_apply_conservative_limits(
-                ghl_params, ghl_eos, &ADM_metric,
-                &prims, &cons, &diagnostics);
+          ghl_apply_conservative_limits(
+              ghl_params, ghl_eos, &ADM_metric,
+              &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;

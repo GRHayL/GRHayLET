@@ -42,10 +42,8 @@ extern "C" void GRHayLHDX_hybrid_prims_to_conservs(CCTK_ARGUMENTS) {
     prims.vU[2] = vz(index);
 
     ghl_conservative_quantities cons;
-    //This applies inequality fixes on the conservatives
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
           ghl_params, ghl_eos, &ADM_metric, &prims);
-    //This computes the conservatives from the new primitives
     ghl_compute_conservs(
           &ADM_metric, &metric_aux, &prims, &cons);
 
