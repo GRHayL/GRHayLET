@@ -9,11 +9,6 @@ static inline double get_Gamma_eff(
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
-/*
- *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
- *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
- *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
-*/
 void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
