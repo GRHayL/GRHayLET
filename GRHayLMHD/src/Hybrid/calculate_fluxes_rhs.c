@@ -19,19 +19,21 @@ void GRHayLMHD_hybrid_calculate_flux_dir_rhs(
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
   // Function pointer to allow for loop over fluxes and sources
-  void (*calculate_characteristic_speed)(ghl_primitive_quantities *restrict prims_r,
-                                         ghl_primitive_quantities *restrict prims_l,
-                                         const ghl_eos_parameters *restrict eos,
-                                         const ghl_metric_quantities *restrict ADM_metric_face,
-                                         double *cmin, double *cmax);
+  void (*calculate_characteristic_speed)(
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
+        const ghl_eos_parameters *restrict eos,
+        const ghl_metric_quantities *restrict ADM_metric_face,
+        double *cmin, double *cmax);
 
-  void (*calculate_HLLE_fluxes)(ghl_primitive_quantities *restrict prims_r,
-                                ghl_primitive_quantities *restrict prims_l,
-                                const ghl_eos_parameters *restrict eos,
-                                const ghl_metric_quantities *restrict ADM_metric_face,
-                                const double cmin,
-                                const double cmax,
-                                ghl_conservative_quantities *restrict cons_fluxes);
+  void (*calculate_HLLE_fluxes)(
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
+        const ghl_eos_parameters *restrict eos,
+        const ghl_metric_quantities *restrict ADM_metric_face,
+        const double cmin,
+        const double cmax,
+        ghl_conservative_quantities *restrict cons_fluxes);
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
@@ -160,8 +162,7 @@ void GRHayLMHD_hybrid_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
 
         // B_stagger is densitized, but B_center is not.
-        prims_r.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
-        prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
 
         prims_r.vU[0] = vel_r[0][index];
         prims_r.vU[1] = vel_r[1][index];

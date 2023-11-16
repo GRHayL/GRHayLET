@@ -26,21 +26,19 @@ void GRHayLMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        prims.rho = rho_b[index];
-        prims.press = pressure[index];
-        prims.vU[0] = vx[index];
-        prims.vU[1] = vy[index];
-        prims.vU[2] = vz[index];
-        prims.BU[0] = Bx_center[index];
-        prims.BU[1] = By_center[index];
-        prims.BU[2] = Bz_center[index];
+        prims.rho     = rho_b[index];
+        prims.press   = pressure[index];
+        prims.vU[0]   = vx[index];
+        prims.vU[1]   = vy[index];
+        prims.vU[2]   = vz[index];
+        prims.BU[0]   = Bx_center[index];
+        prims.BU[1]   = By_center[index];
+        prims.BU[2]   = Bz_center[index];
         prims.entropy = entropy[index];
 
         ghl_conservative_quantities cons;
-        //This applies inequality fixes on the primitives
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
               ghl_params, ghl_eos, &ADM_metric, &prims);
-        //This computes the conservatives and stress-energy tensor from the new primitives
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 

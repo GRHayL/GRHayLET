@@ -82,9 +82,8 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         }
 
         const double W = 1.0/sqrt(1.0-one_minus_invW_squared);
-        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e", W, lapseL_inv, one_minus_invW_squared);
+        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n", W, lapseL_inv, one_minus_invW_squared);
 
-        // u0 = W/alpha
         w_lorentz[index] = W;
 
         Bvec[index4D0] = Bx_center[index]*mag_factor;
