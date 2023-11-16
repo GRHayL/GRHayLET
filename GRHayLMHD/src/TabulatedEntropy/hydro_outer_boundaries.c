@@ -55,6 +55,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = vz[indm1];
           prims.entropy = entropy[indm1];
           prims.Y_e = Y_e[indm1];
+          prims.temperature = temperature[indm1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -68,6 +69,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
@@ -88,6 +90,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = vz[indp1];
           prims.entropy = entropy[indp1];
           prims.Y_e = Y_e[indp1];
+          prims.temperature = temperature[indp1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -101,6 +104,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
@@ -123,6 +127,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = vz[indm1];
           prims.entropy = entropy[indm1];
           prims.Y_e = Y_e[indm1];
+          prims.temperature = temperature[indm1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -136,6 +141,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
@@ -156,6 +162,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = vz[indp1];
           prims.entropy = entropy[indp1];
           prims.Y_e = Y_e[indp1];
+          prims.temperature = temperature[indp1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -169,6 +176,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
@@ -191,6 +199,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
           prims.entropy = entropy[indm1];
           prims.Y_e = Y_e[indm1];
+          prims.temperature = temperature[indm1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -204,6 +213,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
@@ -224,6 +234,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.vU[2] = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
           prims.entropy = entropy[indp1];
           prims.Y_e = Y_e[indp1];
+          prims.temperature = temperature[indp1];
           prims.BU[0] = Bx_center[index];
           prims.BU[1] = By_center[index];
           prims.BU[2] = Bz_center[index];
@@ -237,6 +248,7 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           entropy[index] = prims.entropy;
           Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
         }
       }
     }
