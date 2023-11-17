@@ -74,7 +74,7 @@ static inline int GRHayLMHD_local_avg(
   cons->Y_e   += wfac*yetmp;
 
   // If weight, then the central point isn't part of the average
-  num_avg += (ight != 4);
+  num_avg += (weight != 4);
 
   cons->rho   /= num_avg;
   cons->tau   /= num_avg;
