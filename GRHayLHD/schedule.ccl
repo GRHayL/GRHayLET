@@ -43,8 +43,7 @@ schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
 {
   LANG: C
-  READS:  ADMBase::lapse, ADMBase::shift
-  READS:  HydroBase::vel
+  READS:  ADMBase::lapse, ADMBase::shift, HydroBase::vel
   WRITES: grmhd_velocities(everywhere)
   SYNC: grmhd_velocities
 } "Convert HydroBase initial data (ID) to GRHayLHD variables"
