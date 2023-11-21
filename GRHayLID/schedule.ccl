@@ -34,7 +34,8 @@ if (CCTK_Equals(initial_hydro, "HydroTest1D")) {
     READS:  Grid::coordinates
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), HydroBase::vel(everywhere),
-            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+            HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+            HydroBase::vel(everywhere)
   } "Set initial hydrodynamic data for 1D test"
 }
 
@@ -61,7 +62,8 @@ if (CCTK_EQUALS(initial_entropy, "GRHayLID")) {
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::Y_e, HydroBase::temperature
-      WRITES: HydroBase::rho(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere), HydroBase::entropy(everywhere)
+      WRITES: HydroBase::rho(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
+              HydroBase::press(everywhere), HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
     } "Computes entropy from density, Y_e, and temperature using Tabulated EOS"
   }
 }

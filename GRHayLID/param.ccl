@@ -125,6 +125,21 @@ CCTK_REAL ConstantDensitySphere_T_interior "Interior temperature in MeV"
   -1  :: "Forbidden value"
 } -1
 
+CCTK_REAL ConstantDensitySphere_vx_interior "Interior x-velocity"
+{
+  *:* :: "Anything goes"
+} 0
+
+CCTK_REAL ConstantDensitySphere_vy_interior "Interior y-velocity"
+{
+  *:* :: "Anything goes"
+} 0
+
+CCTK_REAL ConstantDensitySphere_vz_interior "Interior z-velocity"
+{
+  *:* :: "Anything goes"
+} 0
+
 CCTK_REAL ConstantDensitySphere_rho_exterior "Exterior density in geometrized units"
 {
   0:* :: "Non-negative values"

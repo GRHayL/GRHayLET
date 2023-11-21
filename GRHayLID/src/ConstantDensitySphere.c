@@ -14,10 +14,10 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
 
   if(!CCTK_EQUALS(EOS_type, "Tabulated"))
     CCTK_ERROR("ConstantDensitySphere initial data is only defined for tabulated EOS. Please change GRHayLib::EOS_type to \"Tabulated\" in the parfile.");
-  if(!CCTK_EQUALS(initial_Y_e, "ConstantDensitySphere"))
-    CCTK_ERROR("To use ConstantDensitySphere initial data, please add initial_Y_e=\"ConstantDensitySphere\" to the parfile.");
-  if(!CCTK_EQUALS(initial_temperature, "ConstantDensitySphere"))
-    CCTK_ERROR("To use ConstantDensitySphere initial data, please add initial_temperature=\"ConstantDensitySphere\" to the parfile.");
+  if(!CCTK_EQUALS(initial_Y_e, "GRHayLID"))
+    CCTK_ERROR("To use ConstantDensitySphere initial data, please add initial_Y_e=\"GRHayLID\" to the parfile.");
+  if(!CCTK_EQUALS(initial_temperature, "GRHayLID"))
+    CCTK_ERROR("To use ConstantDensitySphere initial data, please add initial_temperature=\"GRHayLID\" to the parfile.");
 
   CHECK_PARAMETER(ConstantDensitySphere_sphere_radius);
   CHECK_PARAMETER(ConstantDensitySphere_rho_interior);
@@ -65,6 +65,9 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
           rho        [index] = ConstantDensitySphere_rho_exterior;
           Y_e        [index] = ConstantDensitySphere_Y_e_exterior;
           temperature[index] = ConstantDensitySphere_T_exterior;
+          vel        [ind4x] = 0;
+          vel        [ind4y] = 0;
+          vel        [ind4z] = 0;
           press      [index] = P_exterior;
           eps        [index] = eps_exterior;
         }
@@ -73,6 +76,9 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
           rho        [index] = ConstantDensitySphere_rho_interior;
           Y_e        [index] = ConstantDensitySphere_Y_e_interior;
           temperature[index] = ConstantDensitySphere_T_interior;
+          vel        [ind4x] = ConstantDensitySphere_vx_interior;
+          vel        [ind4y] = ConstantDensitySphere_vy_interior;
+          vel        [ind4z] = ConstantDensitySphere_vz_interior;
           press      [index] = P_interior;
           eps        [index] = eps_interior;
         }

@@ -1,16 +1,11 @@
 #include "GRHayLHD.h"
 
-static inline double get_Gamma_eff(
-      const double rho_in,
-      const double press_in) {
+static inline CCTK_REAL get_Gamma_eff(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in) {
   return 1.0;
 }
 
-/*
- *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
- *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
- *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
-*/
 void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
@@ -82,9 +77,9 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_face);
 
-          double rho_stencil[6], press_stencil[6], v_flux[6];
-          double vx_stencil[6], vy_stencil[6], vz_stencil[6];
-          double Ye_stencil[6];
+          CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
+          CCTK_REAL vx_stencil[6], vy_stencil[6], vz_stencil[6];
+          CCTK_REAL Ye_stencil[6];
           ghl_primitive_quantities prims_r, prims_l;
 
           for(int ind=0; ind<6; ind++) {
@@ -99,10 +94,10 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
             Ye_stencil[ind]    = Y_e[stencil];
           }
 
-          double ftilde[2];
+          CCTK_REAL ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-          const double Gamma = get_Gamma_eff(rho[index], press[index]);
+          const CCTK_REAL Gamma = get_Gamma_eff(rho[index], press[index]);
           ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
           ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
@@ -119,7 +114,16 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
           speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
-          double cmin, cmax;
+          // We must now compute eps and T
+          ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
+          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+                                             &prims_r.eps, &prims_r.temperature);
+  
+          ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
+          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+                                             &prims_l.eps, &prims_l.temperature);
+
+          CCTK_REAL cmin, cmax;
           ghl_conservative_quantities cons_fluxes;
           calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);

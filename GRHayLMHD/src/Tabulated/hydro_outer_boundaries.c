@@ -5,7 +5,7 @@
  * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
  * ( 2) Compute B^i from A_i everywhere, synchronize B^i
  * ( 3) Call con2prim to get primitives on interior pts
- * ( 4) Apply outer BCs on {P,rho_b,vx,vy,vz}.
+ * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
  * ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
 
@@ -14,7 +14,7 @@
 void GRHayLMHD_tabulated_conservs_outer_boundaries(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
 /*******************************************************
- * Apply outer boundary conditions on {P,rho_b,vx,vy,vz}
+ * Apply outer boundary conditions on {P,rho,vx,vy,vz}
  * It is better to apply BCs on primitives than conservs,
  * because small errors in conservs can be greatly
  * amplified in con2prim, sometimes leading to unphysical
@@ -48,24 +48,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indm1];
-          prims.press = pressure[indm1];
-          prims.vU[0] = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
-          prims.vU[1] = vy[indm1];
-          prims.vU[2] = vz[indm1];
-          prims.Y_e = Y_e[indm1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indm1];
+          prims.press       = pressure[indm1];
+          prims.vU[0]       = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
+          prims.vU[1]       = vy[indm1];
+          prims.vU[2]       = vz[indm1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indm1];
+          prims.temperature = temperature[indm1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -79,24 +73,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indp1];
-          prims.press = pressure[indp1];
-          prims.vU[0] = (do_outflow && vx[indp1] < 0.0) ? 0 : vx[indp1];
-          prims.vU[1] = vy[indp1];
-          prims.vU[2] = vz[indp1];
-          prims.Y_e = Y_e[indp1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indp1];
+          prims.press       = pressure[indp1];
+          prims.vU[0]       = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
+          prims.vU[1]       = vy[indp1];
+          prims.vU[2]       = vz[indp1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indp1];
+          prims.temperature = temperature[indp1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -112,24 +100,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indm1];
-          prims.press = pressure[indm1];
-          prims.vU[0] = vx[indm1];
-          prims.vU[1] = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
-          prims.vU[2] = vz[indm1];
-          prims.Y_e = Y_e[indm1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indm1];
+          prims.press       = pressure[indm1];
+          prims.vU[0]       = vx[indm1];
+          prims.vU[1]       = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
+          prims.vU[2]       = vz[indm1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indm1];
+          prims.temperature = temperature[indm1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -143,24 +125,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indp1];
-          prims.press = pressure[indp1];
-          prims.vU[0] = vx[indp1];
-          prims.vU[1] = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
-          prims.vU[2] = vz[indp1];
-          prims.Y_e = Y_e[indp1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indp1];
+          prims.press       = pressure[indp1];
+          prims.vU[0]       = vx[indp1];
+          prims.vU[1]       = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
+          prims.vU[2]       = vz[indp1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indp1];
+          prims.temperature = temperature[indp1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -176,24 +152,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indm1];
-          prims.press = pressure[indm1];
-          prims.vU[0] = vx[indm1];
-          prims.vU[1] = vy[indm1];
-          prims.vU[2] = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
-          prims.Y_e = Y_e[indm1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indm1];
+          prims.press       = pressure[indm1];
+          prims.vU[0]       = vx[indm1];
+          prims.vU[1]       = vy[indm1];
+          prims.vU[2]       = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indm1];
+          prims.temperature = temperature[indm1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -207,24 +177,18 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
           ghl_primitive_quantities prims;
-          prims.rho = rho_b[indp1];
-          prims.press = pressure[indp1];
-          prims.vU[0] = vx[indp1];
-          prims.vU[1] = vy[indp1];
-          prims.vU[2] = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
-          prims.Y_e = Y_e[indp1];
-          prims.BU[0] = Bx_center[index];
-          prims.BU[1] = By_center[index];
-          prims.BU[2] = Bz_center[index];
+          prims.rho         = rho_b[indp1];
+          prims.press       = pressure[indp1];
+          prims.vU[0]       = vx[indp1];
+          prims.vU[1]       = vy[indp1];
+          prims.vU[2]       = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
+          prims.BU[0]       = Bx_center[index];
+          prims.BU[1]       = By_center[index];
+          prims.BU[2]       = Bz_center[index];
+          prims.Y_e         = Y_e[indp1];
+          prims.temperature = temperature[indp1];
 
           GRHayLMHD_tabulated_conservs_outer_boundaries(cctkGH, index, &prims);
-
-          rho_b[index] = prims.rho;
-          pressure[index] = prims.press;
-          vx[index] = prims.vU[0];
-          vy[index] = prims.vU[1];
-          vz[index] = prims.vU[2];
-          Y_e[index] = prims.Y_e;
         }
       }
     }
@@ -233,7 +197,7 @@ void GRHayLMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
 
 void GRHayLMHD_tabulated_conservs_outer_boundaries(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
-  // instead of explicitly passing all these variables.
+  // instead of explicitly passing all these grid functions.
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_tabulated_hydro_outer_boundaries;
 
   ghl_metric_quantities ADM_metric;
@@ -253,6 +217,14 @@ void GRHayLMHD_tabulated_conservs_outer_boundaries(const cGH* cctkGH, const int 
 
   ghl_compute_conservs(
         &ADM_metric, &metric_aux, prims, &cons);
+
+  rho_b[index]       = prims->rho;
+  pressure[index]    = prims->press;
+  vx[index]          = prims->vU[0];
+  vy[index]          = prims->vU[1];
+  vz[index]          = prims->vU[2];
+  Y_e[index]         = prims->Y_e;
+  temperature[index] = prims->temperature;
 
   rho_star[index] = cons.rho;
   tau[index]      = cons.tau;

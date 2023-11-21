@@ -13,7 +13,7 @@ void GRHayLMHD_hybrid_perturb_primitives(CCTK_ARGUMENTS) {
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
-        const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
         rho_b[index]    *= one_plus_pert(random_pert);
         pressure[index] *= one_plus_pert(random_pert);
         vx[index]       *= one_plus_pert(random_pert);

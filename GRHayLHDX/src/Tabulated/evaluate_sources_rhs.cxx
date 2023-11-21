@@ -15,7 +15,9 @@ void GRHayLHDX_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
       [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
+    // These variables have no source terms
     rho_star_rhs(index) = 0.0;
+    Ye_star_rhs(index)  = 0.0;
 
     ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(

@@ -20,6 +20,10 @@ void GRHayLMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
       for(int i=imin; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
 
+        // These variables have no source terms
+        rho_star_rhs[index] = 0.0;
+        ent_star_rhs[index] = 0.0;
+
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
               alp[index],

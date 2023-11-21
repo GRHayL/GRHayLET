@@ -166,7 +166,6 @@ schedule GRHayLMHD_compute_Tmunu in AddToTmunu
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
           HydroBase::eps,
-          HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
           grmhd_primitives_allbutBi, u0, grmhd_B_center
   WRITES: TmunuBase::stress_energy_scalar(everywhere),
           TmunuBase::stress_energy_vector(everywhere),

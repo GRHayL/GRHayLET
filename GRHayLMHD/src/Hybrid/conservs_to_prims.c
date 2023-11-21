@@ -182,10 +182,9 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
-            ghl_apply_conservative_limits(
-                ghl_params, ghl_eos, &ADM_metric,
-                &prims, &cons, &diagnostics);
+          ghl_apply_conservative_limits(
+              ghl_params, ghl_eos, &ADM_metric,
+              &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
@@ -336,10 +335,9 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
           // Apply the tau floor
-          if( ghl_eos->eos_type == ghl_eos_hybrid )
-            ghl_apply_conservative_limits(
-                ghl_params, ghl_eos, &ADM_metric,
-                &prims, &cons, &diagnostics);
+          ghl_apply_conservative_limits(
+              ghl_params, ghl_eos, &ADM_metric,
+              &prims, &cons, &diagnostics);
 
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
@@ -445,13 +443,11 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         prims.BU[2] = Bz_center[index];
 
         ghl_conservative_quantities cons, cons_orig;
-        cons.rho   = rho_star[index];
-        cons.tau   = tau[index];
-        cons.SD[0] = Stildex[index];
-        cons.SD[1] = Stildey[index];
-        cons.SD[2] = Stildez[index];
-
-        cons_orig = cons;
+        cons_orig.rho   = rho_star[index];
+        cons_orig.tau   = tau[index];
+        cons_orig.SD[0] = Stildex[index];
+        cons_orig.SD[1] = Stildey[index];
+        cons_orig.SD[2] = Stildez[index];
 
         ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
