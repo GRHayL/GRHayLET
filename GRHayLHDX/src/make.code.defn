@@ -1,7 +1,7 @@
 # Main make.code.defn file for thorn GRHayL
 
 # Subdirectories containing source files
-SUBDIRS = Hybrid HybridEntropy Tabulated TabulatedEntropy
+SUBDIRS = Hybrid HybridEntropy #Tabulated TabulatedEntropy
 
 # Source files in this directory
 SRCS = compute_metric_derivs.cxx                     \
