@@ -183,6 +183,7 @@ void GRHayLMHD_tabulated_entropy_conserv_to_prims(CCTK_ARGUMENTS) {
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
 
+            avg_weight++;
             if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*prims.entropy*prims.Y_e*prims.temperature) )
               check = 1;
           }
