@@ -86,7 +86,7 @@ schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 schedule GRHayLHD_empty_function in GRHayLHD_Con2Prim as GRHayLHD_sync_conservatives
 {
   LANG: C
-  SYNC: grmhd_conservatives
+  SYNC: grmhd_conservatives, Ye_star, ent_star
 } "Sync conservative variable ghost zones for c2p routine"
 
 if(perturb_every_con2prim) {
