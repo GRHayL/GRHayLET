@@ -8,7 +8,7 @@ STORAGE: u0, grmhd_conservatives_rhs
 STORAGE: grmhd_flux_temps, failure_checker
 
 if (CCTK_Equals(EOS_type, "Tabulated")) {
-  STORAGE: Ye_star[3], Ye_star_rhs, ent_star_flux
+  STORAGE: Ye_star[3], Ye_star_rhs, Ye_star_flux
 }
 
 if (evolve_entropy) {
