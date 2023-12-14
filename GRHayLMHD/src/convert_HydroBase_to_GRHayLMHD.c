@@ -14,7 +14,7 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLMHD;
   DECLARE_CCTK_PARAMETERS;
 
-  const double mag_factor = rescale_magnetics ? 1.0/sqrt(4.0*M_PI) : 1;
+  const CCTK_REAL mag_factor = rescale_magnetics ? 1.0/sqrt(4.0*M_PI) : 1;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
@@ -32,9 +32,9 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         rho_b[index] = rho[index];
         pressure[index] = press[index];
 
-        const double ETvx = vel[ind0];
-        const double ETvy = vel[ind1];
-        const double ETvz = vel[ind2];
+        const CCTK_REAL ETvx = vel[ind0];
+        const CCTK_REAL ETvy = vel[ind1];
+        const CCTK_REAL ETvz = vel[ind2];
 
         Ax[index] = mag_factor*Avec[ind0];
         Ay[index] = mag_factor*Avec[ind1];

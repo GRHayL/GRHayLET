@@ -1,8 +1,8 @@
 #include "GRHayLHDX.h"
 
-static inline double get_Gamma_eff(
-      const double rho_in,
-      const double press_in) {
+static inline CCTK_REAL get_Gamma_eff(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in) {
   return 1.0;
 }
 
@@ -102,10 +102,10 @@ void GRHayLHDX_tabulated_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
       Ye_stencil[ind]    = Ye(stencil);
     }
 
-    double ftilde[2];
+    CCTK_REAL ftilde[2];
     ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-    const double Gamma = get_Gamma_eff(rho(index), press(index));
+    const CCTK_REAL Gamma = get_Gamma_eff(rho(index), press(index));
     ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
     ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);

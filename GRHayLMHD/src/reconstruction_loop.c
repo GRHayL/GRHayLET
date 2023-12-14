@@ -4,12 +4,12 @@
 // is independent of EOS
 void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
                          const int *restrict var_indices,
-                         const double *rho_b,
-                         const double *pressure,
-                         const double *v_flux,
-                         const double **in_prims,
-                         double **out_prims_r,
-                         double **out_prims_l) {
+                         const CCTK_REAL *rho_b,
+                         const CCTK_REAL *pressure,
+                         const CCTK_REAL *v_flux,
+                         const CCTK_REAL **in_prims,
+                         CCTK_REAL **out_prims_r,
+                         CCTK_REAL **out_prims_l) {
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
@@ -27,8 +27,8 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
     for(int j=jmin; j<jmax; j++) {
       for(int i=imin; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-        double press_stencil[6], v_flux_stencil[6];
-        double var_data[num_vars][6], vars_r[num_vars], vars_l[num_vars];
+        CCTK_REAL press_stencil[6], v_flux_stencil[6];
+        CCTK_REAL var_data[num_vars][6], vars_r[num_vars], vars_l[num_vars];
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -40,7 +40,7 @@ void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_di
           }
         }
 
-        double ftilde[2];
+        CCTK_REAL ftilde[2];
         ghl_compute_ftilde(ghl_params, press_stencil, v_flux_stencil, ftilde);
 
         for(int var=0; var<num_vars; var++) {

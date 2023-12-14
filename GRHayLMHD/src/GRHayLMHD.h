@@ -11,7 +11,7 @@ enum recon_indices{
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};
 
 // This is used to perturb data for testing
-#define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
+#define one_plus_pert(perturb) (1 + (perturb*(CCTK_REAL)rand() / RAND_MAX))
 
 // The inner two points of the interpolation function use
 // the value of A_in, and the outer two points use A_out.
@@ -25,13 +25,13 @@ enum recon_indices{
 #define B_in  2.0/3.0
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
-double get_Gamma_eff_hybrid(
-      const double rho_in,
-      const double press_in);
+CCTK_REAL get_Gamma_eff_hybrid(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in);
 
-double get_Gamma_eff_tabulated(
-      const double rho_in,
-      const double press_in);
+CCTK_REAL get_Gamma_eff_tabulated(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in);
 
 void GRHayLMHD_interpolate_metric_to_face(
       const cGH *cctkGH,
@@ -84,9 +84,9 @@ void GRHayLMHD_reconstruction_loop(
       const int flux_dir,
       const int num_vars,
       const int *restrict var_indices,
-      const double *rho_b,
-      const double *pressure,
-      const double *v_flux,
+      const CCTK_REAL *rho_b,
+      const CCTK_REAL *pressure,
+      const CCTK_REAL *v_flux,
       const CCTK_REAL **in_prims,
       CCTK_REAL **out_prims_r,
       CCTK_REAL **out_prims_l);

@@ -14,8 +14,8 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
   //int backup0 = 0;
   //int backup1 = 0;
   //int backup2 = 0;
-  //double error_int_numer = 0;
-  //double error_int_denom = 0;
+  //CCTK_REAL error_int_numer = 0;
+  //CCTK_REAL error_int_denom = 0;
   //int n_iter = 0;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
@@ -30,7 +30,7 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
       [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
-    double local_failure_checker = 0;
+    CCTK_REAL local_failure_checker = 0;
 
     ghl_con2prim_diagnostics diagnostics;
     ghl_initialize_diagnostics(&diagnostics);
@@ -231,7 +231,7 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
                backup0, backup1, backup2,
                vel_limited_ptcount, rho_star_fix_applied,
                failures, failures_inhoriz, pointcount_inhoriz,
-               (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+               (CCTK_REAL)n_iter/( (CCTK_REAL)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
                rho_error, error_rho_denom,
                tau_error, error_tau_denom,
                Ye_error, error_Ye_denom,

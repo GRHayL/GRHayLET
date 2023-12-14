@@ -29,9 +29,9 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
   // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
   if(cctk_iteration==0 || std::ilogb(cctk_levfac[0])!=0) return;
 
-  const double poison = 0.0/0.0;
-  double dummy1, dummy2, dummy3;
-  double dummy4, dummy5, dummy6;
+  const CCTK_REAL poison = 0.0/0.0;
+  CCTK_REAL dummy1, dummy2, dummy3;
+  CCTK_REAL dummy4, dummy5, dummy6;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
     CCTK_VERROR("ERROR: GRHayLHDX outer BC driver does not support unequal number of ghostzones in different directions!");
@@ -47,7 +47,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
-          const double vtmp = vx[indm1] < 0.0 ? 0 : vx[indm1];
+          const CCTK_REAL vtmp = vx[indm1] < 0.0 ? 0 : vx[indm1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
@@ -75,7 +75,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
-          const double vtmp = vx[indp1] > 0.0 ? 0 : vx[indp1];
+          const CCTK_REAL vtmp = vx[indp1] > 0.0 ? 0 : vx[indp1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
@@ -105,7 +105,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
-          const double vtmp = vy[indm1] < 0.0 ? 0 : vy[indm1];
+          const CCTK_REAL vtmp = vy[indm1] < 0.0 ? 0 : vy[indm1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
@@ -133,7 +133,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
-          const double vtmp = vy[indp1] > 0.0 ? 0 : vy[indp1];
+          const CCTK_REAL vtmp = vy[indp1] > 0.0 ? 0 : vy[indp1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
@@ -163,7 +163,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
-          const double vtmp = vz[indm1] < 0.0 ? 0 : vz[indm1];
+          const CCTK_REAL vtmp = vz[indm1] < 0.0 ? 0 : vz[indm1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indm1], pressure[indm1], eps[indm1],
@@ -191,7 +191,7 @@ void GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
-          const double vtmp = vz[indp1] > 0.0 ? 0 : vz[indp1];
+          const CCTK_REAL vtmp = vz[indp1] > 0.0 ? 0 : vz[indp1];
           ghl_primitive_quantities prims;
           ghl_initialize_primitives(
                 rho_b[indp1], pressure[indp1], eps[indp1],
@@ -218,7 +218,7 @@ void GRHayLHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, 
   // instead of explicitly passing all these variables.
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_outer_boundaries_on_P_rho_b_vx_vy_vz;
 
-  double dummy1, dummy2;
+  CCTK_REAL dummy1, dummy2;
   int speed_limited = 0;
 
   ghl_metric_quantities ADM_metric;

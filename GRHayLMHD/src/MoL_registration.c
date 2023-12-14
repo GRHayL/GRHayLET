@@ -45,18 +45,18 @@ void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS)
   if(ghl_params->evolve_entropy) {
     var = CCTK_GroupIndex("GRHayLMHD::ent_star");
     rhs = CCTK_GroupIndex("GRHayLMHD::ent_star_rhs");
-    ierr += MoLRegisterEvolvedGroup(var, rhs);\
+    ierr += MoLRegisterEvolved(var, rhs);\
   }
 
   if(ghl_eos->eos_type == ghl_eos_tabulated) {
     var = CCTK_GroupIndex("GRHayLMHD::Ye_star");
     rhs = CCTK_GroupIndex("GRHayLMHD::Ye_star_rhs");
-    ierr += MoLRegisterEvolvedGroup(var, rhs);
+    ierr += MoLRegisterEvolved(var, rhs);
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");
   //***********************************************
-
+  //SC: GiRaFFE doesn't do this. Is this really needed?
   //***********************************************
   // Next register ADMBase variables needed by
   //    GRHayLMHD as SaveAndRestore, so that

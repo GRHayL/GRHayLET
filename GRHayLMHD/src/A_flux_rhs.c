@@ -3,11 +3,11 @@
 void GRHayLMHD_A_flux_rhs(
       const cGH *restrict cctkGH,
       const int flux_dir,
-      /*const*/ double **in_prims_r,
-      /*const*/ double **in_prims_l,
-      /*const*/ double **cmin,
-      /*const*/ double **cmax,
-      double *restrict A_rhs) {
+      /*const*/ CCTK_REAL **in_prims_r,
+      /*const*/ CCTK_REAL **in_prims_l,
+      /*const*/ CCTK_REAL **cmin,
+      /*const*/ CCTK_REAL **cmax,
+      CCTK_REAL *restrict A_rhs) {
 
   const int xdir = (flux_dir==0);
   const int ydir = (flux_dir==1);

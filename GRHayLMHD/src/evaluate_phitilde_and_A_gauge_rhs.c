@@ -8,14 +8,14 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
   // We need A^i, but only have A_i. So we use the BSSN metric gtupij.
   // The reconstruction variables are temporary variables and the data in them can be safely overwritten,
   // saving some memory.
-  double *betax_interp = vxr;
-  double *betay_interp = vyr;
-  double *betaz_interp = vzr;
-  double *alpha_interp = vxrr;
-  double *alpha_Phi_minus_betaj_A_j_interp = vxll;
-  double *sqrtg_Ax_interp = vxl;
-  double *sqrtg_Ay_interp = vyl;
-  double *sqrtg_Az_interp = vzl;
+  CCTK_REAL *betax_interp = vxr;
+  CCTK_REAL *betay_interp = vyr;
+  CCTK_REAL *betaz_interp = vzr;
+  CCTK_REAL *alpha_interp = vxrr;
+  CCTK_REAL *alpha_Phi_minus_betaj_A_j_interp = vxll;
+  CCTK_REAL *sqrtg_Ax_interp = vxl;
+  CCTK_REAL *sqrtg_Ay_interp = vyl;
+  CCTK_REAL *sqrtg_Az_interp = vzl;
 
   /* Compute \partial_t psi6phi = -\partial_i (  \alpha psi^6 A^i - psi6phi \beta^i)
    *    (Eq 13 of http://arxiv.org/pdf/1110.4633.pdf), using Lorenz gauge.
@@ -58,9 +58,9 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
         //    [ RHS1x(i+1,j+1/2,k+1/2) - RHS1x(i,j+1/2,k+1/2) ]/dX.
         // First bring gtup's, psi, and alpha to (i,j+1/2,k+1/2):
         ghl_metric_quantities metric_stencil[2][2][2];
-        double Ax_stencil[3][3][3];
-        double Ay_stencil[3][3][3];
-        double Az_stencil[3][3][3];
+        CCTK_REAL Ax_stencil[3][3][3];
+        CCTK_REAL Ay_stencil[3][3][3];
+        CCTK_REAL Az_stencil[3][3][3];
         induction_interp_vars interp_vars;
 
         // Read in variable at interpolation stencil points from main memory.
@@ -129,8 +129,8 @@ void GRHayLMHD_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
         Ay_rhs[index] += dxi[1]*(alpha_Phi_minus_betaj_A_j_interp[CCTK_GFINDEX3D(cctkGH,i,j-1,k)] - alpha_Phi_minus_betaj_A_j_interp[index]);
         Az_rhs[index] += dxi[2]*(alpha_Phi_minus_betaj_A_j_interp[CCTK_GFINDEX3D(cctkGH,i,j,k-1)] - alpha_Phi_minus_betaj_A_j_interp[index]);
 
-        double betax_stencil[5], betay_stencil[5], betaz_stencil[5];
-        double phitilde_stencil[3][5], sqrtg_Ai_stencil[3][2];
+        CCTK_REAL betax_stencil[5], betay_stencil[5], betaz_stencil[5];
+        CCTK_REAL phitilde_stencil[3][5], sqrtg_Ai_stencil[3][2];
 
         sqrtg_Ai_stencil[0][0] = sqrtg_Ax_interp[index];
         sqrtg_Ai_stencil[1][0] = sqrtg_Ay_interp[index];

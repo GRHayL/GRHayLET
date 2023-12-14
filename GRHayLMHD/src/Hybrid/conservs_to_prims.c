@@ -22,7 +22,7 @@ static inline int GRHayLMHD_local_avg(
   const int min_neighbors = 1;
 
   const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-  const double wfac = weight/4.0;
+  const CCTK_REAL wfac = weight/4.0;
 
   const int iavg_min = MAX(0, i-1);
   const int javg_min = MAX(0, j-1);
@@ -32,14 +32,14 @@ static inline int GRHayLMHD_local_avg(
   const int kavg_max = MIN(cctkGH->cctk_lsh[2], k+2);
   int num_avg = 0;
 
-  const double cfac = 1.0 - wfac;
+  const CCTK_REAL cfac = 1.0 - wfac;
   cons->rho   = cfac*rho_star[index];
   cons->tau   = cfac*tau[index];
   cons->SD[0] = cfac*Stildex[index];
   cons->SD[1] = cfac*Stildey[index];
   cons->SD[2] = cfac*Stildez[index];
 
-  double rhotmp, tautmp, Sxtmp, Sytmp, Sztmp;
+  CCTK_REAL rhotmp, tautmp, Sxtmp, Sytmp, Sztmp;
   rhotmp = tautmp = Sxtmp = Sytmp = Sztmp = 0;
 
   for(int kavg=kavg_min; kavg<kavg_max; kavg++) {
@@ -105,29 +105,28 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
   int failures = 0;
   int vel_limited_ptcount = 0;
   int rho_star_fix_applied = 0;
-  int pointcount = 0;
   int navg_total = 0;
   int failures_inhoriz = 0;
   int pointcount_inhoriz = 0;
   int backup0 = 0;
   int backup1 = 0;
   int backup2 = 0;
-  double error_rho_numer = 0;
-  double error_tau_numer = 0;
-  double error_Sx_numer = 0;
-  double error_Sy_numer = 0;
-  double error_Sz_numer = 0;
+  CCTK_REAL error_rho_numer = 0;
+  CCTK_REAL error_tau_numer = 0;
+  CCTK_REAL error_Sx_numer = 0;
+  CCTK_REAL error_Sy_numer = 0;
+  CCTK_REAL error_Sz_numer = 0;
 
-  double error_rho_denom = 0;
-  double error_tau_denom = 0;
-  double error_Sx_denom = 0;
-  double error_Sy_denom = 0;
-  double error_Sz_denom = 0;
+  CCTK_REAL error_rho_denom = 0;
+  CCTK_REAL error_tau_denom = 0;
+  CCTK_REAL error_Sx_denom = 0;
+  CCTK_REAL error_Sy_denom = 0;
+  CCTK_REAL error_Sz_denom = 0;
   int n_iter = 0;
   int n_avg = 0;
 
 #pragma omp parallel for reduction(+: \
-      pointcount, backup0, backup1, backup2, vel_limited_ptcount, rho_star_fix_applied, failures, n_iter, \
+      backup0, backup1, backup2, vel_limited_ptcount, rho_star_fix_applied, failures, n_iter, \
       error_rho_numer, error_tau_numer, error_Sx_numer, error_Sy_numer, error_Sz_numer, n_avg, \
       error_rho_denom, error_tau_denom, error_Sx_denom, error_Sy_denom, error_Sz_denom) schedule(static)
   for(int k=0; k<kmax; k++) {
@@ -135,7 +134,7 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        double local_failure_checker = 0;
+        CCTK_REAL local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
@@ -247,7 +246,6 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
 
-        pointcount++;
         if(diagnostics.speed_limited) {
           local_failure_checker += 10;
           vel_limited_ptcount++;
@@ -401,7 +399,6 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
 
-        pointcount++;
         if(diagnostics.speed_limited) {
           failure_checker[index] += 10;
           vel_limited_ptcount++;
@@ -506,7 +503,6 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
 
-        pointcount++;
         if(diagnostics.speed_limited) {
           failure_checker[index] += 10;
           vel_limited_ptcount++;
@@ -522,11 +518,12 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
     }
   } // if n_avg
 
-  const double rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
-  const double tau_error     = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
-  const double Sx_error      = (error_Sx_denom==0)  ? error_Sx_numer  : error_Sx_numer/error_Sx_denom;
-  const double Sy_error      = (error_Sy_denom==0)  ? error_Sy_numer  : error_Sy_numer/error_Sy_denom;
-  const double Sz_error      = (error_Sz_denom==0)  ? error_Sz_numer  : error_Sz_numer/error_Sz_denom;
+  const CCTK_REAL rho_error = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
+  const CCTK_REAL tau_error = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
+  const CCTK_REAL Sx_error  = (error_Sx_denom==0)  ? error_Sx_numer  : error_Sx_numer/error_Sx_denom;
+  const CCTK_REAL Sy_error  = (error_Sy_denom==0)  ? error_Sy_numer  : error_Sy_numer/error_Sy_denom;
+  const CCTK_REAL Sz_error  = (error_Sz_denom==0)  ? error_Sz_numer  : error_Sz_numer/error_Sz_denom;
+  const int pointcount = cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2];
   /*
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
@@ -544,7 +541,7 @@ void GRHayLMHD_hybrid_conserv_to_prims(CCTK_ARGUMENTS) {
                backup0, backup1, backup2,
                vel_limited_ptcount, rho_star_fix_applied,
                navg_total, failures, failures_inhoriz, pointcount_inhoriz,
-               (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+               (CCTK_REAL)n_iter/( (CCTK_REAL)(pointcount) ),
                rho_error, error_rho_denom,
                tau_error, error_tau_denom,
                Sx_error, error_Sx_denom,

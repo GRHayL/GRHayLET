@@ -4,20 +4,19 @@ void GRHayLMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_compute_B_and_Bstagger_from_A;
   DECLARE_CCTK_PARAMETERS;
 
-  CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);
-  CCTK_REAL dyi = 1.0/CCTK_DELTA_SPACE(1);
-  CCTK_REAL dzi = 1.0/CCTK_DELTA_SPACE(2);
+  const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);
+  const CCTK_REAL dyi = 1.0/CCTK_DELTA_SPACE(1);
+  const CCTK_REAL dzi = 1.0/CCTK_DELTA_SPACE(2);
 
 //TODO: Do we have to do this every time? IDK how symmetries work in ET
-  const double gridfunc_syms_Ax[3]      = {-1, 1,  Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Ax,      gridfunc_syms_Ax, 0, 1, 1);
-  const double gridfunc_syms_Ay[3]      = { 1,-1,  Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Ay,      gridfunc_syms_Ay, 1, 0, 1);
-  const double gridfunc_syms_Az[3]      = { 1, 1, -Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Az,      gridfunc_syms_Az, 1, 1, 0);
-  const double gridfunc_syms_phitilde[3] = { 1, 1, 1};
+  const CCTK_REAL gridfunc_syms_Ax[3]       = {-1,  1,  Sym_Bz};
+  const CCTK_REAL gridfunc_syms_Ay[3]       = { 1, -1,  Sym_Bz};
+  const CCTK_REAL gridfunc_syms_Az[3]       = { 1,  1, -Sym_Bz};
+  const CCTK_REAL gridfunc_syms_phitilde[3] = { 1,  1,  1};
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Ax,       gridfunc_syms_Ax,       0, 1, 1);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Ay,       gridfunc_syms_Ay,       1, 0, 1);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, Az,       gridfunc_syms_Az,       1, 1, 0);
   GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z, phitilde, gridfunc_syms_phitilde, 1, 1, 1);
-
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
@@ -102,7 +101,7 @@ void GRHayLMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
 
         // Unlike B_stagger, B_center is undensitized. Therefore, we
         // need to divide by psi^6 = \sqrt{gamma}
-        const double sqrt_detgamma = sqrt(fabs(
+        const CCTK_REAL sqrt_detgamma = sqrt(fabs(
                 gxx[actual_index] * (gyy[actual_index]*gzz[actual_index] - gyz[actual_index]*gyz[actual_index])
               + gxy[actual_index] * (gyz[actual_index]*gxz[actual_index] - gxy[actual_index]*gzz[actual_index])
               + gxz[actual_index] * (gxy[actual_index]*gyz[actual_index] - gyy[actual_index]*gxz[actual_index])));
@@ -142,13 +141,13 @@ void GRHayLMHD_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
   }
 
   // Finish up by setting symmetry ghostzones on Bx, By, Bz, and their staggered variants.
-  const double gridfunc_syms_Bx[3] = {-1,  1, -Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  Bx_center,  gridfunc_syms_Bx, 0, 0, 0);
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  Bx_stagger, gridfunc_syms_Bx, 1, 0, 0);
-  const double gridfunc_syms_By[3] = { 1, -1, -Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  By_center,  gridfunc_syms_By, 0, 0, 0);
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  By_stagger, gridfunc_syms_By, 0, 1, 0);
-  const double gridfunc_syms_Bz[3] = { 1,  1,  Sym_Bz};
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  Bz_center,  gridfunc_syms_Bz, 0, 0, 0);
-  GRHayLMHD_set_symmetry_gzs_staggered( cctkGH, x, y, z,  Bz_stagger, gridfunc_syms_Bz, 0, 0, 1);
+  const CCTK_REAL gridfunc_syms_Bx[3] = {-1,  1, -Sym_Bz};
+  const CCTK_REAL gridfunc_syms_By[3] = { 1, -1, -Sym_Bz};
+  const CCTK_REAL gridfunc_syms_Bz[3] = { 1,  1,  Sym_Bz};
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  Bx_center,  gridfunc_syms_Bx, 0, 0, 0);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  Bx_stagger, gridfunc_syms_Bx, 1, 0, 0);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  By_center,  gridfunc_syms_By, 0, 0, 0);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  By_stagger, gridfunc_syms_By, 0, 1, 0);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  Bz_center,  gridfunc_syms_Bz, 0, 0, 0);
+  GRHayLMHD_set_symmetry_gzs_staggered(cctkGH, x, y, z,  Bz_stagger, gridfunc_syms_Bz, 0, 0, 1);
 }

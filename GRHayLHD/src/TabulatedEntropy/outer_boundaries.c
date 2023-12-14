@@ -47,7 +47,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
-          const double vtmp = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
+          const CCTK_REAL vtmp = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
@@ -72,7 +72,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
-          const double vtmp = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
+          const CCTK_REAL vtmp = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];
@@ -99,7 +99,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
-          const double vtmp = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
+          const CCTK_REAL vtmp = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
@@ -124,7 +124,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
-          const double vtmp = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
+          const CCTK_REAL vtmp = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];
@@ -151,7 +151,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
-          const double vtmp = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
+          const CCTK_REAL vtmp = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
@@ -176,7 +176,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
-          const double vtmp = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
+          const CCTK_REAL vtmp = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];

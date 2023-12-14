@@ -7,7 +7,7 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
   if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
-  const double mag_factor = rescale_magnetics ? sqrt(4.0*M_PI) : 1;
+  const CCTK_REAL mag_factor = rescale_magnetics ? sqrt(4.0*M_PI) : 1;
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
@@ -43,9 +43,9 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         //     = \Gamma/u^0 ( U^i - \beta^i / \alpha ) <- \Gamma = \alpha u^0
         //     = \alpha ( U^i - \beta^i / \alpha )
         //     = \alpha U^i - \beta^i
-        const double lapseL = alp[index];
-        const double lapseL_inv = 1.0/lapseL;
-        const double utU[3] = {vx[index] + betax[index],
+        const CCTK_REAL lapseL = alp[index];
+        const CCTK_REAL lapseL_inv = 1.0/lapseL;
+        const CCTK_REAL utU[3] = {vx[index] + betax[index],
                                vy[index] + betay[index],
                                vz[index] + betaz[index]};
 
@@ -61,14 +61,14 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         //   = 1/(u^0 \alpha)^2 u_j u_l \gamma^{jl}  <- Since \gamma_{ij} \gamma^{ik} = \delta^k_j
         //   = 1/(u^0 \alpha)^2 ( (u^0 \alpha)^2 - 1 ) <- Using Eq. 56 of arXiv:astro-ph/0503420
         //   = 1 - 1/(u^0 \alpha)^2 <= 1
-        const double gxxL = gxx[index];
-        const double gxyL = gxy[index];
-        const double gxzL = gxz[index];
-        const double gyyL = gyy[index];
-        const double gyzL = gyz[index];
-        const double gzzL = gzz[index];
+        const CCTK_REAL gxxL = gxx[index];
+        const CCTK_REAL gxyL = gxy[index];
+        const CCTK_REAL gxzL = gxz[index];
+        const CCTK_REAL gyyL = gyy[index];
+        const CCTK_REAL gyzL = gyz[index];
+        const CCTK_REAL gzzL = gzz[index];
 
-        const double one_minus_invW_squared = (gxxL* SQR(utU[0]) +
+        const CCTK_REAL one_minus_invW_squared = (gxxL* SQR(utU[0]) +
                                                2.0*gxyL*(utU[0])*(utU[1]) +
                                                2.0*gxzL*(utU[0])*(utU[2]) +
                                                gyyL* SQR(utU[1]) +
@@ -81,7 +81,7 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
           CCTK_VINFO("convert_from_GRHayLMHD_to_HydroBase WARNING: Found superluminal velocity. This should have been caught by GRHayLMHD.");
         }
 
-        const double W = 1.0/sqrt(1.0-one_minus_invW_squared);
+        const CCTK_REAL W = 1.0/sqrt(1.0-one_minus_invW_squared);
         if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e", W, lapseL_inv, one_minus_invW_squared);
 
         // u0 = W/alpha

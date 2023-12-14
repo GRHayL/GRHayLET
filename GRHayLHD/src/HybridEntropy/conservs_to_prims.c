@@ -31,19 +31,19 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   int backup0 = 0;
   int backup1 = 0;
   int backup2 = 0;
-  double error_rho_numer = 0;
-  double error_tau_numer = 0;
-  double error_Sx_numer = 0;
-  double error_Sy_numer = 0;
-  double error_Sz_numer = 0;
-  double error_ent_numer = 0;
+  CCTK_REAL error_rho_numer = 0;
+  CCTK_REAL error_tau_numer = 0;
+  CCTK_REAL error_Sx_numer = 0;
+  CCTK_REAL error_Sy_numer = 0;
+  CCTK_REAL error_Sz_numer = 0;
+  CCTK_REAL error_ent_numer = 0;
 
-  double error_rho_denom = 0;
-  double error_tau_denom = 0;
-  double error_Sx_denom = 0;
-  double error_Sy_denom = 0;
-  double error_Sz_denom = 0;
-  double error_ent_denom = 0;
+  CCTK_REAL error_rho_denom = 0;
+  CCTK_REAL error_tau_denom = 0;
+  CCTK_REAL error_Sx_denom = 0;
+  CCTK_REAL error_Sy_denom = 0;
+  CCTK_REAL error_Sz_denom = 0;
+  CCTK_REAL error_ent_denom = 0;
   int n_iter = 0;
 
 #pragma omp parallel for reduction(+: \
@@ -55,7 +55,7 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
 
-        double local_failure_checker = 0;
+        CCTK_REAL local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
@@ -238,12 +238,12 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
     }
   }
 
-  const double rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
-  const double tau_error     = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
-  const double Sx_error      = (error_Sx_denom==0) ?  error_Sx_numer :  error_Sx_numer/error_Sx_denom;
-  const double Sy_error      = (error_Sy_denom==0) ?  error_Sy_numer :  error_Sy_numer/error_Sy_denom;
-  const double Sz_error      = (error_Sz_denom==0) ?  error_Sz_numer :  error_Sz_numer/error_Sz_denom;
-  const double entropy_error = (error_ent_denom==0) ? error_ent_numer : error_ent_numer/error_ent_denom;
+  const CCTK_REAL rho_error     = (error_rho_denom==0) ? error_rho_numer : error_rho_numer/error_rho_denom;
+  const CCTK_REAL tau_error     = (error_tau_denom==0) ? error_tau_numer : error_tau_numer/error_tau_denom;
+  const CCTK_REAL Sx_error      = (error_Sx_denom==0) ?  error_Sx_numer :  error_Sx_numer/error_Sx_denom;
+  const CCTK_REAL Sy_error      = (error_Sy_denom==0) ?  error_Sy_numer :  error_Sy_numer/error_Sy_denom;
+  const CCTK_REAL Sz_error      = (error_Sz_denom==0) ?  error_Sz_numer :  error_Sz_numer/error_Sz_denom;
+  const CCTK_REAL entropy_error = (error_ent_denom==0) ? error_ent_numer : error_ent_numer/error_ent_denom;
   /*
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
@@ -261,7 +261,7 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                backup0, backup1, backup2,
                vel_limited_ptcount, rho_star_fix_applied,
                failures, failures_inhoriz, pointcount_inhoriz,
-               (double)n_iter/( (double)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
+               (CCTK_REAL)n_iter/( (CCTK_REAL)(cctk_lsh[0]*cctk_lsh[1]*cctk_lsh[2]) ),
                rho_error, error_rho_denom,
                tau_error, error_tau_denom,
                entropy_error, error_ent_denom,
