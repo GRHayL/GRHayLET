@@ -1,17 +1,34 @@
 /*******************************************************
  * Outer boundaries are handled as follows:
- * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones (including outer AMR refinement, processor, and outer boundaries)
- * ( 0) Let MoL update all evolution variables
- * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
- * ( 2) Compute B^i from A_i everywhere, synchronize B^i
- * ( 3) Call con2prim to get primitives on interior pts
- * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
- * ( 5) (optional) set conservatives on outer boundary.
+ * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones
+ *(including outer AMR refinement, processor, and outer boundaries) ( 0) Let MoL
+ *update all evolution variables ( 1) Apply outer boundary conditions (BCs) on
+ *A_{\mu} ( 2) Compute B^i from A_i everywhere, synchronize B^i ( 3) Call
+ *con2prim to get primitives on interior pts ( 4) Apply outer BCs on
+ *{P,rho,vx,vy,vz}. ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
 
 #include "GRHayLHD.h"
 
-void GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
+// clang-format off
+#define IDX(i,j,k) CCTK_GFINDEX3D(cctkGH,(i),(j),(k))
+#define XMAX_OB_SIMPLE_COPY(FUNC,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imax,j,k)] = FUNC[IDX(imax-1,j,k)];
+#define YMAX_OB_SIMPLE_COPY(FUNC,jmax) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmax,k)] = FUNC[IDX(i,jmax-1,k)];
+#define ZMAX_OB_SIMPLE_COPY(FUNC,kmax) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmax)] = FUNC[IDX(i,j,kmax-1)];
+
+#define XMIN_OB_SIMPLE_COPY(FUNC,imin) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) FUNC[IDX(imin,j,k)] = FUNC[IDX(imin+1,j,k)];
+#define YMIN_OB_SIMPLE_COPY(FUNC,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,jmin,k)] = FUNC[IDX(i,jmin+1,k)];
+#define ZMIN_OB_SIMPLE_COPY(FUNC,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) FUNC[IDX(i,j,kmin)] = FUNC[IDX(i,j,kmin+1)];
+
+
+#define XMAX_INFLOW_CHECK(vx,imax) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) if(vx[IDX(imax,j,k)]<0.) vx[IDX(imax,j,k)]=0.;
+#define YMAX_INFLOW_CHECK(vy,jmax) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) if(vy[IDX(i,jmax,k)]<0.) vy[IDX(i,jmax,k)]=0.;
+#define ZMAX_INFLOW_CHECK(vz,kmax) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) if(vz[IDX(i,j,kmax)]<0.) vz[IDX(i,j,kmax)]=0.;
+
+#define XMIN_INFLOW_CHECK(vx,imin) for(int k=0;k<cctk_lsh[2];k++) for(int j=0;j<cctk_lsh[1];j++) if(vx[IDX(imin,j,k)]>0.) vx[IDX(imin,j,k)]=0.;
+#define YMIN_INFLOW_CHECK(vy,jmin) for(int k=0;k<cctk_lsh[2];k++) for(int i=0;i<cctk_lsh[0];i++) if(vy[IDX(i,jmin,k)]>0.) vy[IDX(i,jmin,k)]=0.;
+#define ZMIN_INFLOW_CHECK(vz,kmin) for(int j=0;j<cctk_lsh[1];j++) for(int i=0;i<cctk_lsh[0];i++) if(vz[IDX(i,j,kmin)]>0.) vz[IDX(i,j,kmin)]=0.;
+// clang-format on
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -24,200 +41,153 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_outer_boundaries;
   DECLARE_CCTK_PARAMETERS;
 
-  if(CCTK_EQUALS(Matter_BC,"frozen")) return;
+  if (CCTK_EQUALS(Matter_BC, "frozen"))
+    return;
 
-  const bool do_outflow = CCTK_EQUALS(Matter_BC,"outflow");
+  // const bool do_outflow = CCTK_EQUALS(Matter_BC, "outflow");
 
-  const bool Symmetry_none = CCTK_EQUALS(Symmetry,"none") ? true : false;
+  const bool Symmetry_none = CCTK_EQUALS(Symmetry, "none") ? true : false;
 
-  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
-  if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
+  // Don't apply approximate outer boundary conditions on initial data, which
+  // should be defined everywhere, or on levels != [coarsest level].
+  if (cctk_iteration == 0 || GetRefinementLevel(cctkGH) != 0)
+    return;
 
-  if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal number of ghostzones in different directions!");
+  if (cctk_nghostzones[0] != cctk_nghostzones[1] ||
+      cctk_nghostzones[0] != cctk_nghostzones[2])
+    CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal "
+               "number of ghostzones in different directions!");
+
+  // clang-format off
   for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
+    int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt; // for cctk_nghostzones==3, this goes {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry pt is at cctk_lsh-1
+    int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
+    int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
 
-    /* XMIN & XMAX */
-    // i=imax=outer boundary
+    int imin=cctk_nghostzones[0]-which_bdry_pt-1; // for cctk_nghostzones==3, this goes {2,1,0}
+    int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+    int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+
     if(cctk_bbox[1]) {
-      const int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt;
-#pragma omp parallel for
-      for(int k=0; k<cctk_lsh[2]; k++) {
-        for(int j=0; j<cctk_lsh[1]; j++) {
-          const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
-          const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
-
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
-          prims.vU[1]       = vy[indm1];
-          prims.vU[2]       = vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-        }
-      }
+      XMAX_OB_SIMPLE_COPY(press      ,imax);
+      XMAX_OB_SIMPLE_COPY(rho        ,imax);
+      XMAX_OB_SIMPLE_COPY(vx         ,imax);
+      XMAX_OB_SIMPLE_COPY(vy         ,imax);
+      XMAX_OB_SIMPLE_COPY(vz         ,imax);
+      XMAX_OB_SIMPLE_COPY(eps        ,imax);
+      XMAX_OB_SIMPLE_COPY(Y_e        ,imax);
+      XMAX_OB_SIMPLE_COPY(temperature,imax);
+      XMAX_INFLOW_CHECK(vx           ,imax);
     }
-    // i=imin=outer boundary
     if(cctk_bbox[0]) {
-      const int imin=cctk_nghostzones[0]-which_bdry_pt-1;
-#pragma omp parallel for
-      for(int k=0; k<cctk_lsh[2]; k++) {
-        for(int j=0; j<cctk_lsh[1]; j++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
-          const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
-
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
-          prims.vU[1]       = vy[indp1];
-          prims.vU[2]       = vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
-
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-        }
-      }
+      XMIN_OB_SIMPLE_COPY(press      ,imin);
+      XMIN_OB_SIMPLE_COPY(rho        ,imin);
+      XMIN_OB_SIMPLE_COPY(vx         ,imin);
+      XMIN_OB_SIMPLE_COPY(vy         ,imin);
+      XMIN_OB_SIMPLE_COPY(vz         ,imin);
+      XMIN_OB_SIMPLE_COPY(eps        ,imin);
+      XMIN_OB_SIMPLE_COPY(Y_e        ,imin);
+      XMIN_OB_SIMPLE_COPY(temperature,imin);
+      XMIN_INFLOW_CHECK(vx           ,imin);
     }
-
-    /* YMIN & YMAX */
-    // j=jmax=outer boundary
     if(cctk_bbox[3]) {
-      const int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
-#pragma omp parallel for
-      for(int k=0; k<cctk_lsh[2]; k++) {
-        for(int i=0; i<cctk_lsh[0]; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
-          const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
-
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = vx[indm1];
-          prims.vU[1]       = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
-          prims.vU[2]       = vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-        }
-      }
+      YMAX_OB_SIMPLE_COPY(press      ,jmax);
+      YMAX_OB_SIMPLE_COPY(rho        ,jmax);
+      YMAX_OB_SIMPLE_COPY(vx         ,jmax);
+      YMAX_OB_SIMPLE_COPY(vy         ,jmax);
+      YMAX_OB_SIMPLE_COPY(vz         ,jmax);
+      YMAX_OB_SIMPLE_COPY(eps        ,jmax);
+      YMAX_OB_SIMPLE_COPY(Y_e        ,jmax);
+      YMAX_OB_SIMPLE_COPY(temperature,jmax);
+      YMAX_INFLOW_CHECK(vx           ,jmax);
     }
-    // j=jmin=outer boundary
     if(cctk_bbox[2]) {
-      const int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
-#pragma omp parallel for
-      for(int k=0; k<cctk_lsh[2]; k++) {
-        for(int i=0; i<cctk_lsh[0]; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
-          const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
-
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = vx[indp1];
-          prims.vU[1]       = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
-          prims.vU[2]       = vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
-
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-        }
-      }
+      YMIN_OB_SIMPLE_COPY(press      ,jmin);
+      YMIN_OB_SIMPLE_COPY(rho        ,jmin);
+      YMIN_OB_SIMPLE_COPY(vx         ,jmin);
+      YMIN_OB_SIMPLE_COPY(vy         ,jmin);
+      YMIN_OB_SIMPLE_COPY(vz         ,jmin);
+      YMIN_OB_SIMPLE_COPY(eps        ,jmin);
+      YMIN_OB_SIMPLE_COPY(Y_e        ,jmin);
+      YMIN_OB_SIMPLE_COPY(temperature,jmin);
+      YMIN_INFLOW_CHECK(vx           ,jmin);
     }
-
-    /* ZMIN & ZMAX */
-    // k=kmax=outer boundary
     if(cctk_bbox[5]) {
-      const int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
-#pragma omp parallel for
-      for(int j=0; j<cctk_lsh[1]; j++) {
-        for(int i=0; i<cctk_lsh[0]; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
-          const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
-
-          ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indm1];
-          prims.press       = press[indm1];
-          prims.vU[0]       = vx[indm1];
-          prims.vU[1]       = vy[indm1];
-          prims.vU[2]       = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
-          prims.Y_e         = Y_e[indm1];
-          prims.temperature = temperature[indm1];
-
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
-        }
-      }
+      ZMAX_OB_SIMPLE_COPY(press      ,kmax);
+      ZMAX_OB_SIMPLE_COPY(rho        ,kmax);
+      ZMAX_OB_SIMPLE_COPY(vx         ,kmax);
+      ZMAX_OB_SIMPLE_COPY(vy         ,kmax);
+      ZMAX_OB_SIMPLE_COPY(vz         ,kmax);
+      ZMAX_OB_SIMPLE_COPY(eps        ,kmax);
+      ZMAX_OB_SIMPLE_COPY(Y_e        ,kmax);
+      ZMAX_OB_SIMPLE_COPY(temperature,kmax);
+      ZMAX_INFLOW_CHECK(vx           ,kmax);
     }
-    // k=kmin=outer boundary
-    if((cctk_bbox[4]) && Symmetry_none) {
-      const int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+    if(cctk_bbox[4] && Symmetry_none) {
+      ZMIN_OB_SIMPLE_COPY(press      ,kmin);
+      ZMIN_OB_SIMPLE_COPY(rho        ,kmin);
+      ZMIN_OB_SIMPLE_COPY(vx         ,kmin);
+      ZMIN_OB_SIMPLE_COPY(vy         ,kmin);
+      ZMIN_OB_SIMPLE_COPY(vz         ,kmin);
+      ZMIN_OB_SIMPLE_COPY(eps        ,kmin);
+      ZMIN_OB_SIMPLE_COPY(Y_e        ,kmin);
+      ZMIN_OB_SIMPLE_COPY(temperature,kmin);
+      ZMIN_INFLOW_CHECK(vx           ,kmin);
+    }
+  }
+  // clang-format on
 #pragma omp parallel for
-      for(int j=0; j<cctk_lsh[1]; j++) {
-        for(int i=0; i<cctk_lsh[0]; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
-          const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
+  for (int k = 0; k < cctk_lsh[2]; k++) {
+    for (int j = 0; j < cctk_lsh[1]; j++) {
+      for (int i = 0; i < cctk_lsh[0]; i++) {
+        if (((cctk_bbox[0]) && i < cctk_nghostzones[0]) ||
+            ((cctk_bbox[1]) && i >= cctk_lsh[0] - cctk_nghostzones[0]) ||
+            ((cctk_bbox[2]) && j < cctk_nghostzones[1]) ||
+            ((cctk_bbox[3]) && j >= cctk_lsh[1] - cctk_nghostzones[1]) ||
+            ((cctk_bbox[4]) && k < cctk_nghostzones[2] &&
+             CCTK_EQUALS(Symmetry, "none")) ||
+            ((cctk_bbox[5]) && k >= cctk_lsh[2] - cctk_nghostzones[2])) {
+
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+
+          ghl_metric_quantities ADM_metric;
+          ghl_enforce_detgtij_and_initialize_ADM_metric(
+              alp[index], betax[index], betay[index], betaz[index], gxx[index],
+              gxy[index], gxz[index], gyy[index], gyz[index], gzz[index],
+              &ADM_metric);
+
+          ghl_ADM_aux_quantities metric_aux;
+          ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
           ghl_primitive_quantities prims;
-          prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = vx[indp1];
-          prims.vU[1]       = vy[indp1];
-          prims.vU[2]       = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
-          prims.Y_e         = Y_e[indp1];
-          prims.temperature = temperature[indp1];
+          ghl_initialize_primitives(rho[index], press[index], eps[index],
+                                    vx[index], vy[index], vz[index], 0.0, 0.0,
+                                    0.0, 0.0, Y_e[index], temperature[index],
+                                    &prims);
 
-          GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          ghl_conservative_quantities cons;
+          const int speed_limited CCTK_ATTRIBUTE_UNUSED =
+              ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
+                                                          &ADM_metric, &prims);
+
+          ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
+
+          rho[index] = prims.rho;
+          press[index] = prims.press;
+          vx[index] = prims.vU[0];
+          vy[index] = prims.vU[1];
+          vz[index] = prims.vU[2];
+          Y_e[index] = prims.Y_e;
+          temperature[index] = prims.temperature;
+
+          rho_star[index] = cons.rho;
+          tau[index] = cons.tau;
+          Stildex[index] = cons.SD[0];
+          Stildey[index] = cons.SD[1];
+          Stildez[index] = cons.SD[2];
+          Ye_star[index] = cons.Y_e;
         }
       }
     }
   }
-}
-
-void GRHayLHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
-  // We cheat here by using the argument list of the scheduled function
-  // instead of explicitly passing all these grid functions.
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_outer_boundaries;
-
-  ghl_metric_quantities ADM_metric;
-  ghl_enforce_detgtij_and_initialize_ADM_metric(
-        alp[index],
-        betax[index], betay[index], betaz[index],
-        gxx[index], gxy[index], gxz[index],
-        gyy[index], gyz[index], gzz[index],
-        &ADM_metric);
-
-  ghl_ADM_aux_quantities metric_aux;
-  ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
-
-  ghl_conservative_quantities cons;
-  const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
-        ghl_params, ghl_eos, &ADM_metric, prims);
-
-  ghl_compute_conservs(
-        &ADM_metric, &metric_aux, prims, &cons);
-
-  rho[index]         = prims->rho;
-  press[index]       = prims->press;
-  vx[index]          = prims->vU[0];
-  vy[index]          = prims->vU[1];
-  vz[index]          = prims->vU[2];
-  Y_e[index]         = prims->Y_e;
-  temperature[index] = prims->temperature;
-
-  rho_star[index] = cons.rho;
-  tau[index]      = cons.tau;
-  Stildex[index]  = cons.SD[0];
-  Stildey[index]  = cons.SD[1];
-  Stildez[index]  = cons.SD[2];
-  Ye_star[index]  = cons.Y_e;
 }

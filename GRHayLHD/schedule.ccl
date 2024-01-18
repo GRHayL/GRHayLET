@@ -428,7 +428,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::Y_e, HydroBase::temperature
+      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::Y_e, HydroBase::temperature, HydroBase::eps
     } "Tabulated version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_tabulated_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
