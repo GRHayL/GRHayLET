@@ -202,6 +202,7 @@ void GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const
 
   rho[index]     = prims->rho;
   press[index]   = prims->press;
+  eps[index]   = prims->eps;
   vx[index]      = prims->vU[0];
   vy[index]      = prims->vU[1];
   vz[index]      = prims->vU[2];

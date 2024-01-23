@@ -174,6 +174,7 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
 
           rho[index] = prims.rho;
           press[index] = prims.press;
+          eps[index] = prims.eps;
           vx[index] = prims.vU[0];
           vy[index] = prims.vU[1];
           vz[index] = prims.vU[2];
