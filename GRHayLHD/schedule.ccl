@@ -5,7 +5,7 @@ STORAGE: ADMBase::shift[shift_timelevels]
 
 STORAGE: grmhd_conservatives[3], grmhd_velocities
 STORAGE: u0, grmhd_conservatives_rhs
-STORAGE: grmhd_flux_temps, failure_checker
+STORAGE: grmhd_flux_temps, failure_checker, needs_average
 
 if (CCTK_Equals(EOS_type, "Tabulated")) {
   STORAGE: Ye_star[3], Ye_star_rhs, Ye_star_flux
@@ -411,7 +411,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               grmhd_conservatives, grmhd_velocities, Ye_star
-      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere), needs_average(everywhere),
               u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
@@ -458,7 +458,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::Y_e, HydroBase::temperature,
               grmhd_velocities
-      WRITES: grmhd_velocities(everywhere),
+      WRITES: grmhd_velocities(everywhere), 
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Tabulated version of GRHayLHD_perturb_primitives"
