@@ -8,7 +8,7 @@
  *con2prim to get primitives on interior pts ( 4) Apply outer BCs on
  *{P,rho_b,vx,vy,vz}. ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
-#include "GRHayLib.h"
+#include "GRHayLHD.h"
 
 #define IDX(i, j, k) CCTK_GFINDEX3D(cctkGH, (i), (j), (k))
 
