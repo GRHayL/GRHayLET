@@ -180,6 +180,7 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
           vz[index] = prims.vU[2];
           Y_e[index] = prims.Y_e;
           temperature[index] = prims.temperature;
+          u0[index] = prims.u0;
 
           rho_star[index] = cons.rho;
           tau[index] = cons.tau;

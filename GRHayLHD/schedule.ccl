@@ -424,7 +424,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::Y_e, HydroBase::temperature,
               grmhd_velocities
-      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere), u0(everywhere),
               grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
