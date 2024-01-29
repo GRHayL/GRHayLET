@@ -81,10 +81,6 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  // Initialize EOS parameters
-  igm_eos_parameters eos;
-  initialize_igm_eos_parameters_from_input(igm_eos_key, cctk_time, eos);
-
   if (CCTK_EQUALS(Matter_BC, "frozen"))
     return;
 
@@ -98,8 +94,6 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
   // should be defined everywhere, or on levels != [coarsest level].
   if (cctk_iteration == 0 || levelnumber != 0)
     return;
-
-  int ENABLE = 1;
 
   // if(levelnumber<=11110) {
   if (cctk_nghostzones[0] != cctk_nghostzones[1] ||
@@ -247,9 +241,9 @@ void GRHayLHD_tabulated_outer_boundaries(CCTK_ARGUMENTS) {
 
           rho_star[index] = cons.rho;
           tau[index] = cons.tau;
-          mhd_st_x[index] = cons.SD[0];
-          mhd_st_y[index] = cons.SD[1];
-          mhd_st_z[index] = cons.SD[2];
+          Stildex[index] = cons.SD[0];
+          Stildey[index] = cons.SD[1];
+          Stildez[index] = cons.SD[2];
           Ye_star[index] = cons.Y_e;
         }
       }

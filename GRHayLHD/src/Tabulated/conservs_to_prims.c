@@ -338,7 +338,7 @@ void GRHayLHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
         ghl_conservative_quantities cons, cons_orig;
         const int avg_fail = GRHayLHD_local_avg(
             cctkGH, i, j, k, avg_weight, needs_average, rho_star, tau, Stildex,
-            Stildey, Stildez, S_star, Ye_star, &cons);
+            Stildey, Stildez, ent_star, Ye_star, &cons);
 
         if (avg_fail ||
             isnan(cons.rho * cons.tau * cons.SD[0] * cons.SD[1] * cons.SD[2] *
