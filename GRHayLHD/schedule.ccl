@@ -31,8 +31,34 @@ schedule GRHayLHD_InitSymBound at BASEGRID after Lapse_InitSymBound
 ####################
 
 ####################
-# RHS EVALUATION
+# Initial data
+schedule group GRHayLHD_Prim2Con2Prim at CCTK_INITIAL in HydroBase_Prim2ConInitial
+{
+} "Initial P -> C -> P"
 
+schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
+{
+  LANG: C
+} "Convert from HydroBase"
+
+schedule GRHayLHD_tabulated_entropy_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD 
+{
+  LANG: C
+} "P -> C"
+
+schedule GRHayLHD_tabulated_entropy_conservs_to_prims in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD 
+{
+  LANG: C
+} "C -> P"
+
+schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim after GRHayLHD_tabulated_entropy_conservs_to_prims
+{
+  LANG: C
+} "Convert to HydroBase"
+####################
+
+####################
+# RHS EVALUATION
 schedule group GRHayLHD_RHSs in MoL_CalcRHS
 {
   LANG: C
@@ -43,14 +69,20 @@ schedule GRHayLHD_tabulated_entropy_evaluate_sources_rhs in GRHayLHD_RHSs as GRH
   LANG: C
 } "Initialize RHSs of the GRHD equations to zero; add GRHD source terms to the RHSs"
 
-schedule GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs in GRHayLHD_RHSs as GRHayLHD_RHS_sources after GRHayLHD_RHS_sources
+schedule GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs in GRHayLHD_RHSs as GRHayLHD_RHS_fluxes after GRHayLHD_RHS_sources
 {
   LANG: C
 } "Evaluate and add flux terms to the RHSs of the GRHD equations"
 ####################
 
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
+schedule GRHayLHD_InitSymBound in HydroBase_Con2Prim as GRHayLHD_sync
+{
+  LANG: C
+  SYNC: grmhd_conservatives, ADMBase::lapse, ADMBase::shift, ADMBase::metric, ADMBase::curv
+} "Sync conservatives and metric"
+
+schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim after GRHayLHD_sync
 {
 } "Compute primitive variables from conservatives"
 
@@ -59,9 +91,8 @@ schedule GRHayLHD_tabulated_entropy_conservs_to_prims in GRHayLHD_Con2Prim
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-schedule GRHayLHD_tabulated_entropy_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
+schedule GRHayLHD_tabulated_entropy_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_tabulated_entropy_conservs_to_prims
 {
-  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
   LANG: C
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
