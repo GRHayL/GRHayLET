@@ -1,0 +1,15 @@
+# Main make.code.defn file for thorn GRHayLHD
+
+# Source files in this directory
+SRCS = \
+       compute_Tmunu.c \
+       Convert_from_HydroBase.c \
+       Convert_to_HydroBase.c \
+       driver_conserv_to_prims.c \
+       driver_evaluate_MHD_rhs.c \
+       InitSymBound.c \
+       MoL_registration.c \
+       outer_boundaries.c \
+       postpostinitial__set_symmetries__copy_timelevels.c \
+       Prim2Con.c \
+       symmetry__set_gzs_staggered_gfs.c

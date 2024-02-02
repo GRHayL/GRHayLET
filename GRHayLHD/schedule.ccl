@@ -1,0 +1,129 @@
+# Scheduler setup for GRHayLHD
+
+STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
+STORAGE: GRHayLHD::BSSN_quantities
+
+STORAGE: grmhd_conservatives[3]
+STORAGE: grmhd_primitives_allbutBi,grmhd_conservatives_rhs,grmhd_cmin_cmax_temps,grmhd_flux_temps,TUPmunu,diagnostic_gfs
+STORAGE: needs_average
+
+schedule GRHayLHD_RegisterVars in MoL_Register after BSSN_RegisterVars after lapse_RegisterVars
+{
+  LANG: C
+  OPTIONS: META
+} "Register evolved, rhs variables in GRHayLHD for MoL"
+
+# Tells the symmetry thorn how to apply symmetries on each gridfunction:
+schedule GRHayLHD_InitSymBound at BASEGRID after Lapse_InitSymBound
+{
+  LANG: C
+} "Schedule symmetries"
+####################
+
+####################
+# POSTPOSTINITIAL
+# HydroBase_Con2Prim in CCTK_POSTPOSTINITIAL sets conserv to prim then
+# outer boundaries (OBs, which are technically disabled). The post OB
+# SYNCs actually reprolongate the conservative variables, making cons
+# and prims INCONSISTENT. So here we redo the con2prim, avoiding the
+# SYNC afterward, then copy the result to other timelevels"
+schedule GROUP GRHayLHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_PostStep after HydroBase_Con2Prim
+{
+} "HydroBase_Con2Prim in CCTK_POSTPOSTINITIAL sets conserv to prim then outer boundaries (OBs, which are technically disabled). The post OB SYNCs actually reprolongate the conservative variables, making cons and prims INCONSISTENT. So here we redo the con2prim, avoiding the SYNC afterward, then copy the result to other timelevels"
+
+schedule GRHayLHD_InitSymBound in GRHayLHD_PostPostInitial as postid before compute_b
+{
+  SYNC: grmhd_conservatives
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
+# Copy data to other timelevels.
+schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_PostPostInitial as mhdpostid after compute_b after p2c
+{
+  LANG: C
+} "Compute post-initialdata quantities"
+####################
+
+####################
+# RHS EVALUATION
+schedule GRHayLHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as GRHayLHD_RHS_eval after bssn_rhs after shift_rhs
+{
+  LANG: C
+} "Evaluate RHSs of GR Hydro & GRMHD equations"
+####################
+
+schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
+{
+  SYNC: grmhd_conservatives
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+
+schedule GRHayLHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Boundary_SYNCs before mhd_conserv2prims_postrestrict
+{
+  LANG: C
+} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i."
+
+# Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
+schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
+{
+} "Compute primitive variables from conservatives"
+
+schedule GRHayLHD_conserv_to_prims in GRHayLHD_Con2Prim
+{
+  LANG: C
+} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+
+schedule GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
+{
+  # We must sync {P,rho_b,vx,vy,vz} here.
+  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
+  LANG: C
+} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
+
+schedule GRHayLHD_compute_Tmunu in AddToTmunu
+{
+  LANG: C
+} "Add the GR(M)HD stress-tensor to Tmunu"
+##########################################################
+
+schedule group GRHayLHD_ID_Converter at CCTK_INITIAL after HydroBase_Initial before GRHayLHD_Convert_to_HydroBase
+{
+} "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
+
+schedule GRHayLHD_Convert_from_HydroBase IN GRHayLHD_ID_Converter as first_initialdata before TOV_Initial_Data
+{
+   LANG:       C
+   OPTIONS:    LOCAL
+   # What the heck, let's synchronize everything!
+   SYNC: GRHayLHD::grmhd_primitives_allbutBi,GRHayLHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
+} "Convert HydroBase initial data (ID) to ID that GRHayLHD can read."
+
+schedule GRHayLHD_Prim2Con IN GRHayLHD_ID_Converter as second_initialdata after first_initialdata
+{
+  LANG: C
+  OPTIONS: LOCAL
+  SYNC: GRHayLHD::grmhd_conservatives
+} "Computes conservatives from primitives"
+
+schedule GRHayLHD_InitSymBound IN GRHayLHD_ID_Converter as third_initialdata after second_initialdata
+{
+  SYNC: GRHayLHD::grmhd_conservatives
+  LANG: C
+} "Schedule symmetries -- Actually just a placeholder function to ensure prolongation / processor syncs are done BEFORE the primitives solver."
+
+schedule GRHayLHD_conserv_to_prims IN GRHayLHD_ID_Converter as fourth_initialdata after third_initialdata
+{
+  LANG: C
+} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+
+SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_INITIAL AFTER SetTmunu
+{
+  LANG: C
+} "Convert GRHayLHD-native variables to HydroBase"
+
+SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
+{
+  OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+  LANG: C
+} "Convert GRHayLHD-native variables to HydroBase"
+
