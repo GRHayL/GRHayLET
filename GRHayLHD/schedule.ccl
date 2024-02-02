@@ -86,7 +86,7 @@ schedule GRHayLHD_compute_Tmunu in AddToTmunu
 } "Add the GR(M)HD stress-tensor to Tmunu"
 ##########################################################
 
-schedule group GRHayLHD_ID_Converter at CCTK_INITIAL after HydroBase_Initial before GRHayLHD_Convert_to_HydroBase
+schedule group GRHayLHD_ID_Converter at CCTK_INITIAL in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
 
@@ -116,7 +116,7 @@ schedule GRHayLHD_conserv_to_prims IN GRHayLHD_ID_Converter as fourth_initialdat
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_INITIAL AFTER SetTmunu
+SCHEDULE GRHayLHD_Convert_to_HydroBase at CCTK_INITIAL after HydroBase_Prim2ConInitial
 {
   LANG: C
 } "Convert GRHayLHD-native variables to HydroBase"
