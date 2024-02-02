@@ -280,17 +280,17 @@ void GRHayLHD_driver_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
       case 0:
         v_flux_dir = vx;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn0;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
         break;
       case 1:
         v_flux_dir = vy;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn1;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
         break;
       case 2:
         v_flux_dir = vz;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn2;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
         break;
       default:
         CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
