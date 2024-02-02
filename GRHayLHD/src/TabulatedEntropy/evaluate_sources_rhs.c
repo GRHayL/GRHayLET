@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_evaluate_sources_rhs;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctk_nghostzones[0];

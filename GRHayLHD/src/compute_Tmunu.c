@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_compute_Tmunu;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
 #pragma omp parallel for

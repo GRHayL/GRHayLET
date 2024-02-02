@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_tabulated_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_prims_to_conservs;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];

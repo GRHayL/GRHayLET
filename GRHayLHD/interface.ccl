@@ -18,10 +18,6 @@ cctk_real grmhd_velocities type = GF TAGS='InterpNumTimelevels=1 prolongation="n
   vx, vy, vz
 } "Components of primitive three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 
-# Separating the computation of Tmunu from the con2prim routine requires providing u0.
-# This is most easily done by adding another grid function.
-cctk_real u0 type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no"' "4-velocity component u^0"
-
 #########################################################
 
 # Evolved variables

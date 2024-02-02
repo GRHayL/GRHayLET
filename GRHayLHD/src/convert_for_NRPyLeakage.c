@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_convert_for_NRPyLeakage(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_convert_for_NRPyLeakage;
+  DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
   // Convert rho, Y_e, T, and velocities to HydroBase
