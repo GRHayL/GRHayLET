@@ -127,3 +127,10 @@ SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poy
   LANG: C
 } "Convert GRHayLHD-native variables to HydroBase"
 
+if(CCTK_IsThornActive("NRPyLeakageET"))
+{
+  SCHEDULE GRHayLHD_Convert_to_HydroBase in MoL_PostRHS before NRPyLeakageET_MoL
+  {
+    LANG: C
+  } "Convert GRHayLHD-native variables to HydroBase"
+}
