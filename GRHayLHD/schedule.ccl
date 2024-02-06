@@ -46,10 +46,19 @@ schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_Po
 
 ####################
 # RHS EVALUATION
-schedule GRHayLHD_driver_evaluate_MHD_rhs in MoL_CalcRHS as GRHayLHD_RHS_eval after bssn_rhs after shift_rhs
+schedule group GRHayLHD_RHSs in MoL_CalcRHS
+{
+} "Evaluate the right-hand sides (RHSs) of the GRHD equations"
+
+schedule GRHayLHD_tabulated_evaluate_sources_rhs in GRHayLHD_RHSs
 {
   LANG: C
-} "Evaluate RHSs of GR Hydro & GRMHD equations"
+} "Evaluate source terms of the RHSs of GRHD equations"
+
+schedule GRHayLHD_tabulated_evaluate_fluxes_rhs in GRHayLHD_RHSs after GRHayLHD_tabulated_evaluate_sources_rhs
+{
+  LANG: C
+} "Evaluate flux terms of the RHSs of GRHD equations"
 ####################
 
 schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict

@@ -6,7 +6,8 @@ SRCS = \
        Convert_from_HydroBase.c \
        Convert_to_HydroBase.c \
        driver_conserv_to_prims.c \
-       driver_evaluate_MHD_rhs.c \
+       evaluate_sources_rhs.c \
+       evaluate_fluxes_rhs.c \
        InitSymBound.c \
        MoL_registration.c \
        outer_boundaries.c \
