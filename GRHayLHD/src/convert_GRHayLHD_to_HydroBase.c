@@ -1,11 +1,6 @@
-#include <math.h>
-#include "cctk.h"
-#include "cctk_Arguments.h"
-#include "cctk_Parameters.h"
+#include "GRHayLHD.h"
 
-#define SQR(x) ( (x) * (x) )
-
-void GRHayLHD_Convert_to_HydroBase(CCTK_ARGUMENTS) {
+void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 

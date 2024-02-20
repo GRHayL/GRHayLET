@@ -1,25 +1,16 @@
 /*******************************************************
  * Outer boundaries are handled as follows:
- * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones
- *(including outer AMR refinement, processor, and outer boundaries) ( 0) Let MoL
- *update all evolution variables ( 1) Apply outer boundary conditions (BCs) on
- *A_{\mu} ( 2) Compute B^i from A_i everywhere, synchronize B^i ( 3) Call
- *con2prim to get primitives on interior pts ( 4) Apply outer BCs on
- *{P,rho_b,vx,vy,vz}. ( 5) (optional) set conservatives on outer boundary.
+ * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones (including outer AMR refinement, processor, and outer boundaries)
+ * ( 0) Let MoL update all evolution variables
+ * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
+ * ( 2) Compute B^i from A_i everywhere, synchronize B^i
+ * ( 3) Call con2prim to get primitives on interior pts
+ * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
  *******************************************************/
 
-#include "cctk.h"
-#include "cctk_Arguments.h"
-#include "cctk_Parameters.h"
-
-#include "GRHayLib.h"
+#include "GRHayLHD.h"
 
 #define IDX(i, j, k) CCTK_GFINDEX3D(cctkGH, (i), (j), (k))
-
-/*********************************************
- * Apply outer boundary conditions on A_{\mu}
- ********************************************/
-void GRHayLHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {}
 
 #define XMAX_OB_SIMPLE_COPY(FUNC, imax)                                        \
   for (int k = 0; k < cctk_lsh[2]; k++)                                        \
@@ -80,56 +71,34 @@ void GRHayLHD_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {}
         vz[IDX(i, j, kmin)] = 0.;
 
 /*******************************************************
- * Apply outer boundary conditions on {P,rho_b,vx,vy,vz}
+ * Apply outer boundary conditions on {P,rho,vx,vy,vz}
  * It is better to apply BCs on primitives than conservs,
  * because small errors in conservs can be greatly
  * amplified in con2prim, sometimes leading to unphysical
  * primitives & unnecessary fixes.
  *******************************************************/
-void
-GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
+void GRHayLHD_outer_boundaries(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
-  if (CCTK_EQUALS(Matter_BC, "frozen"))
-    return;
+  if(CCTK_EQUALS(Matter_BC, "frozen")) return;
 
-  bool Symmetry_none = false;
-  if (CCTK_EQUALS(Symmetry, "none"))
-    Symmetry_none = true;
+  const bool do_outflow = CCTK_EQUALS(Matter_BC,"outflow");
 
-  int levelnumber = GetRefinementLevel(cctkGH);
+  const bool Symmetry_none = CCTK_EQUALS(Symmetry,"none") ? true : false;
 
   // Don't apply approximate outer boundary conditions on initial data, which
   // should be defined everywhere, or on levels != [coarsest level].
-  if (cctk_iteration == 0 || levelnumber != 0)
-    return;
+  if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
 
-  int ENABLE = 1;
+  if(cctk_nghostzones[0] != cctk_nghostzones[1] || cctk_nghostzones[0] != cctk_nghostzones[2])
+    CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal number of ghostzones in different directions!");
+  for(int which_bdry_pt=0; which_bdry_pt<cctk_nghostzones[0]; which_bdry_pt++) {
 
-  // if(levelnumber<=11110) {
-  if (cctk_nghostzones[0] != cctk_nghostzones[1] ||
-      cctk_nghostzones[0] != cctk_nghostzones[2])
-    CCTK_ERROR("ERROR: GRHayLHD outer BC driver does not support unequal "
-               "number of ghostzones in different directions!");
-  for (int which_bdry_pt = 0; which_bdry_pt < cctk_nghostzones[0];
-       which_bdry_pt++) {
-    int imax = cctk_lsh[0] - cctk_nghostzones[0] +
-               which_bdry_pt; // for cctk_nghostzones==3, this goes
-                              // {cctk_lsh-3,cctk_lsh-2,cctk_lsh-1}; outer bdry
-                              // pt is at cctk_lsh-1
-    int jmax = cctk_lsh[1] - cctk_nghostzones[1] + which_bdry_pt;
-    int kmax = cctk_lsh[2] - cctk_nghostzones[2] + which_bdry_pt;
-
-    int imin = cctk_nghostzones[0] - which_bdry_pt -
-               1; // for cctk_nghostzones==3, this goes {2,1,0}
-    int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
-    int kmin = cctk_nghostzones[2] - which_bdry_pt - 1;
-
-    // Order here is for compatibility with old version of this code.
     /* XMIN & XMAX */
     // i=imax=outer boundary
-    if (cctk_bbox[1]) {
+    if(cctk_bbox[1]) {
+      const int imax = cctk_lsh[0] - cctk_nghostzones[0] + which_bdry_pt;
       XMAX_OB_SIMPLE_COPY(press, imax);
       XMAX_OB_SIMPLE_COPY(rho, imax);
       XMAX_OB_SIMPLE_COPY(vx, imax);
@@ -139,12 +108,13 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       XMAX_OB_SIMPLE_COPY(eps, imax);
       XMAX_OB_SIMPLE_COPY(Y_e, imax);
       XMAX_OB_SIMPLE_COPY(temperature, imax);
-      if (ENABLE) {
+      if (do_outflow) {
         XMAX_INFLOW_CHECK(vx, imax);
       }
     }
     // i=imin=outer boundary
-    if (cctk_bbox[0]) {
+    if(cctk_bbox[0]) {
+      const int imin = cctk_nghostzones[0] - which_bdry_pt - 1;
       XMIN_OB_SIMPLE_COPY(press, imin);
       XMIN_OB_SIMPLE_COPY(rho, imin);
       XMIN_OB_SIMPLE_COPY(vx, imin);
@@ -154,13 +124,14 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       XMIN_OB_SIMPLE_COPY(eps, imin);
       XMIN_OB_SIMPLE_COPY(Y_e, imin);
       XMIN_OB_SIMPLE_COPY(temperature, imin);
-      if (ENABLE)
+      if (do_outflow)
         XMIN_INFLOW_CHECK(vx, imin);
     }
 
     /* YMIN & YMAX */
     // j=jmax=outer boundary
-    if (cctk_bbox[3]) {
+    if(cctk_bbox[3]) {
+      const int jmax = cctk_lsh[1] - cctk_nghostzones[1] + which_bdry_pt;
       YMAX_OB_SIMPLE_COPY(press, jmax);
       YMAX_OB_SIMPLE_COPY(rho, jmax);
       YMAX_OB_SIMPLE_COPY(vx, jmax);
@@ -170,11 +141,12 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       YMAX_OB_SIMPLE_COPY(eps, jmax);
       YMAX_OB_SIMPLE_COPY(Y_e, jmax);
       YMAX_OB_SIMPLE_COPY(temperature, jmax);
-      if (ENABLE)
+      if (do_outflow)
         YMAX_INFLOW_CHECK(vy, jmax);
     }
     // j=jmin=outer boundary
-    if (cctk_bbox[2]) {
+    if(cctk_bbox[2]) {
+      const int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
       YMIN_OB_SIMPLE_COPY(press, jmin);
       YMIN_OB_SIMPLE_COPY(rho, jmin);
       YMIN_OB_SIMPLE_COPY(vx, jmin);
@@ -184,13 +156,14 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       YMIN_OB_SIMPLE_COPY(eps, jmin);
       YMIN_OB_SIMPLE_COPY(Y_e, jmin);
       YMIN_OB_SIMPLE_COPY(temperature, jmin);
-      if (ENABLE)
+      if (do_outflow)
         YMIN_INFLOW_CHECK(vy, jmin);
     }
 
     /* ZMIN & ZMAX */
     // k=kmax=outer boundary
-    if (cctk_bbox[5]) {
+    if(cctk_bbox[5]) {
+      const int kmax = cctk_lsh[2] - cctk_nghostzones[2] + which_bdry_pt;
       ZMAX_OB_SIMPLE_COPY(press, kmax);
       ZMAX_OB_SIMPLE_COPY(rho, kmax);
       ZMAX_OB_SIMPLE_COPY(vx, kmax);
@@ -200,11 +173,12 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       ZMAX_OB_SIMPLE_COPY(eps, kmax);
       ZMAX_OB_SIMPLE_COPY(Y_e, kmax);
       ZMAX_OB_SIMPLE_COPY(temperature, kmax);
-      if (ENABLE)
+      if (do_outflow)
         ZMAX_INFLOW_CHECK(vz, kmax);
     }
     // k=kmin=outer boundary
-    if ((cctk_bbox[4]) && Symmetry_none) {
+    if((cctk_bbox[4]) && Symmetry_none) {
+      const int kmin = cctk_nghostzones[2] - which_bdry_pt - 1;
       ZMIN_OB_SIMPLE_COPY(press, kmin);
       ZMIN_OB_SIMPLE_COPY(rho, kmin);
       ZMIN_OB_SIMPLE_COPY(vx, kmin);
@@ -214,7 +188,7 @@ GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
       ZMIN_OB_SIMPLE_COPY(temperature, kmin);
       ZMIN_OB_SIMPLE_COPY(Y_e, kmin);
       ZMIN_OB_SIMPLE_COPY(temperature, kmin);
-      if (ENABLE)
+      if (do_outflow)
         ZMIN_INFLOW_CHECK(vz, kmin);
     }
   }

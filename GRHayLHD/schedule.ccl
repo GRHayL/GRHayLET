@@ -67,11 +67,6 @@ schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before 
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-schedule GRHayLHD_outer_boundaries_on_A_mu in HydroBase_Boundaries after Boundary_SYNCs before mhd_conserv2prims_postrestrict
-{
-  LANG: C
-} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i."
-
 # Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
 schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 {
@@ -82,7 +77,7 @@ schedule GRHayLHD_conserv_to_prims in GRHayLHD_Con2Prim
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-schedule GRHayLHD_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
+schedule GRHayLHD_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
 {
   # We must sync {P,rho_b,vx,vy,vz} here.
   SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
@@ -95,11 +90,11 @@ schedule GRHayLHD_compute_Tmunu in AddToTmunu
 } "Add the GR(M)HD stress-tensor to Tmunu"
 ##########################################################
 
-schedule group GRHayLHD_ID_Converter at CCTK_INITIAL in HydroBase_Prim2ConInitial
+schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
 } "Translate ET-generated, HydroBase-compatible initial data and convert into variables used by GRHayLHD"
 
-schedule GRHayLHD_Convert_from_HydroBase IN GRHayLHD_ID_Converter as first_initialdata before TOV_Initial_Data
+schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
 {
    LANG:       C
    OPTIONS:    LOCAL
@@ -107,30 +102,29 @@ schedule GRHayLHD_Convert_from_HydroBase IN GRHayLHD_ID_Converter as first_initi
    SYNC: GRHayLHD::grmhd_primitives_allbutBi,GRHayLHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
 } "Convert HydroBase initial data (ID) to ID that GRHayLHD can read."
 
-schedule GRHayLHD_Prim2Con IN GRHayLHD_ID_Converter as second_initialdata after first_initialdata
+schedule GRHayLHD_Prim2Con in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
-  OPTIONS: LOCAL
   SYNC: GRHayLHD::grmhd_conservatives
 } "Computes conservatives from primitives"
 
-schedule GRHayLHD_InitSymBound IN GRHayLHD_ID_Converter as third_initialdata after second_initialdata
+schedule GRHayLHD_InitSymBound in GRHayLHD_Prim2Con2Prim after GRHayLHD_Prim2Con
 {
   SYNC: GRHayLHD::grmhd_conservatives
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongation / processor syncs are done BEFORE the primitives solver."
 
-schedule GRHayLHD_conserv_to_prims IN GRHayLHD_ID_Converter as fourth_initialdata after third_initialdata
+schedule GRHayLHD_conserv_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_InitSymBound
 {
   LANG: C
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
-SCHEDULE GRHayLHD_Convert_to_HydroBase at CCTK_INITIAL after HydroBase_Prim2ConInitial
+SCHEDULE convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim after GRHayLHD_conserv_to_prims
 {
   LANG: C
 } "Convert GRHayLHD-native variables to HydroBase"
 
-SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
+SCHEDULE convert_GRHayLHD_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
 {
   OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
   LANG: C
@@ -138,7 +132,7 @@ SCHEDULE GRHayLHD_Convert_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poy
 
 if(CCTK_IsThornActive("NRPyLeakageET"))
 {
-  SCHEDULE GRHayLHD_Convert_to_HydroBase in MoL_PostRHS before NRPyLeakageET_MoL
+  SCHEDULE convert_GRHayLHD_to_HydroBase in MoL_PostRHS before NRPyLeakageET_MoL
   {
     LANG: C
   } "Convert GRHayLHD-native variables to HydroBase"

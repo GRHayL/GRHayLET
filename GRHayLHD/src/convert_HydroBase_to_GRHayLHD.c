@@ -1,8 +1,6 @@
-#include "cctk.h"
-#include "cctk_Parameters.h"
-#include "cctk_Arguments.h"
+#include "GRHayLHD.h"
 
-void GRHayLHD_Convert_from_HydroBase(CCTK_ARGUMENTS) {
+void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
@@ -19,7 +17,6 @@ void GRHayLHD_Convert_from_HydroBase(CCTK_ARGUMENTS) {
         const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
         const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
         const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];
-
 
         // GRHayLHD defines v^i = u^i/u^0.
 

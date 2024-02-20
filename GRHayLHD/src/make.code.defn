@@ -3,8 +3,8 @@
 # Source files in this directory
 SRCS = \
        compute_Tmunu.c \
-       Convert_from_HydroBase.c \
-       Convert_to_HydroBase.c \
+       convert_HydroBase_to_GRHayLHD.c \
+       convert_GRHayLHD_to_HydroBase.c \
        driver_conserv_to_prims.c \
        evaluate_sources_rhs.c \
        evaluate_fluxes_rhs.c \
@@ -12,5 +12,5 @@ SRCS = \
        MoL_registration.c \
        outer_boundaries.c \
        postpostinitial__set_symmetries__copy_timelevels.c \
-       Prim2Con.c \
+       prims_to_conservs.c \
        symmetry__set_gzs_staggered_gfs.c

@@ -4,22 +4,16 @@
 // To understand this, read documentation in arrangements/CactusBase/MoL/doc
 //--------------------------------------------------------------------------
 
-#include "cctk.h"
-#include "cctk_Parameters.h"
-#include "cctk_Arguments.h"
-
+#include "GRHayLHD.h"
 #include "Symmetry.h"
 
-void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
-{
-  DECLARE_CCTK_ARGUMENTS;
+void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   CCTK_INT ierr = 0, group, rhs;
 
-  // Register evolution & RHS gridfunction groups
-
-  /* ALL OTHER EVOLVED VARIABLES (rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z) */
+  //***********************************************
+  // Register evolution & RHS gridfunction variables
   group = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives");
   rhs = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
