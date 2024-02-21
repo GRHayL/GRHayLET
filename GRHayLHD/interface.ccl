@@ -1,120 +1,78 @@
 # Interface definition for thorn GRHayLHD
 
 implements: GRHayLHD
-inherits: ADMBase, Boundary, SpaceMask, Tmunubase, HydroBase, grid, GRHayLib
 
-USES INCLUDE: Symmetry.h GRHayLib.h
+inherits: ADMBase, Tmunubase, HydroBase, GRHayLib
 
-public:
+USES INCLUDE: Symmetry.h
+USES INCLUDE: GRHayLib.h
 
-#vvvvvvvv EVOLVED VARIABLES vvvvvvvv#
-cctk_real grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
-{
-  rho_star,tau,mhd_st_x,mhd_st_y,mhd_st_z,Ye_star,S_star  # Note that st = Stilde, as mhd_st_i = \tilde{S}_i.
-} "Evolved mhd variables"
+#########################################################
 
-CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
-
-#vvvvvvv PRIMITIVE VARIABLES vvvvvvv#
-# TODO: split into groups with well defined symmetry properties: (rho_b, P, u0), (vx,vy,vz)
+# Primitive variables
+# The variables rho_b and pressure are identical to the HydroBase variables. However,
+# GRHayL uses the velocity v^i = u^i/u^0, while HydroBase uses the Valencia velocity, so
+# these velocities differ from HydroBase.
 cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
   vx,vy,vz
 } "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
-#vvvvvvv BSSN-based quantities, computed from ADM quantities.v vvvvvvv#
-cctk_real BSSN_quantities type = GF TAGS='prolongation="none" Checkpoint="no"'
+#########################################################
+
+# Evolved variables
+cctk_real grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
 {
-   gtxx,gtxy,gtxz,gtyy,gtyz,gtzz,gtupxx,gtupxy,gtupxz,gtupyy,gtupyz,gtupzz,phi_bssn,psi_bssn,lapm1
-} "BSSN quantities, computed from ADM quantities"
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+  rho_star, tau, Stildex, Stildey, Stildez, Ye_star, ent_star
+} "Evolved mhd variables"
 
-private:
+#########################################################
 
-#vvvvvvv DIAGNOSTIC GRIDFUNCTIONS vvvvvvv#
-cctk_real diagnostic_gfs type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  failure_checker
-} "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
-
-#vvvvvvv RHS VARIABLES vvvvvvv#
+# RHS variables for MoL timestepping
 cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_rhs,tau_rhs,st_x_rhs,st_y_rhs,st_z_rhs,Ye_star_rhs,S_star_rhs
-} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+  rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
+} "Right-hand side for grmhd_conservatives variables"
 
-#vvvvvvv TEMPORARY VARIABLES USEFUL FOR A-FIELD EVOLUTION vvvvvvv#
-cctk_real grmhd_cmin_cmax_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  cmin_x,cmax_x,
-  cmin_y,cmax_y,
-  cmin_z,cmax_z
-} "Store min and max characteristic speeds in all three directions."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+#########################################################
 
-#vvvvvvv TEMPORARY VARIABLES USEFUL FOR FLUX COMPUTATION vvvvvvv#
+#Temporary variables for flux computation
 cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
-  rho_star_flux,tau_flux,st_x_flux,st_y_flux,st_z_flux,Ye_star_flux,S_star_flux
+  rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, Ye_star_flux, ent_star_flux
+
 } "Temporary variables for storing the flux terms of tilde{S}_i."
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
 
-#vvvvvvv T^{\mu \nu}, stored to avoid expensive recomputation vvvvvvv#
-cctk_real TUPmunu type = GF TAGS='prolongation="none" Checkpoint="no"'
-{
-  TUPtt,TUPtx,TUPty,TUPtz,TUPxx,TUPxy,TUPxz,TUPyy,TUPyz,TUPzz
-} "T^{mu nu}, stored to avoid expensive recomputation"
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
 
-###########################################################################
-####################################################
-###  Functions provided by MoL for registration  ###
-####################################################
+#########################################################
 
-CCTK_INT FUNCTION MoLRegisterEvolved(CCTK_INT IN EvolvedIndex, \
-                                         CCTK_INT IN RHSIndex)
-CCTK_INT FUNCTION MoLRegisterEvolvedSlow(CCTK_INT IN EvolvedIndex, \
-                                         CCTK_INT IN RHSIndexSlow)
-CCTK_INT FUNCTION MoLRegisterConstrained(CCTK_INT IN ConstrainedIndex)
-CCTK_INT FUNCTION MoLRegisterEvolvedGroup(CCTK_INT IN EvolvedIndex, \
-                                          CCTK_INT IN RHSIndex)
-CCTK_INT FUNCTION MoLRegisterEvolvedGroupSlow(CCTK_INT IN EvolvedIndex, \
-                                          CCTK_INT IN RHSIndexSlow)
-CCTK_INT FUNCTION MoLRegisterConstrainedGroup(CCTK_INT IN ConstrainedIndex)
-CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(CCTK_INT IN SandRIndex)
+# Diagnostic gridfunctions
+CCTK_REAL failure_checker type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
 
-USES FUNCTION MoLRegisterEvolved
-USES FUNCTION MoLRegisterEvolvedSlow
-USES FUNCTION MoLRegisterConstrained
-USES FUNCTION MoLRegisterEvolvedGroup
-USES FUNCTION MoLRegisterEvolvedGroupSlow
-USES FUNCTION MoLRegisterConstrainedGroup
-USES FUNCTION MoLRegisterSaveAndRestoreGroup
-
-#########################################
-###  Aliased functions from Boundary  ###
-#########################################
-
-CCTK_INT FUNCTION Boundary_SelectVarForBC(CCTK_POINTER_TO_CONST IN GH, \
-  CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, \
-  CCTK_STRING IN var_name, CCTK_STRING IN bc_name)
-CCTK_INT FUNCTION Boundary_SelectGroupForBC(CCTK_POINTER_TO_CONST IN GH, \
-  CCTK_INT IN faces, CCTK_INT IN boundary_width, CCTK_INT IN table_handle, \
-  CCTK_STRING IN group_name, CCTK_STRING IN bc_name)
-
-USES FUNCTION Boundary_SelectVarForBC
-USES FUNCTION Boundary_SelectGroupForBC
 ###########################################################################
 
 #########################################
 ###  Aliased functions from Carpet    ###
 #########################################
 
-CCTK_INT FUNCTION                         \
-    GetRefinementLevel                    \
-        (CCTK_POINTER_TO_CONST IN cctkGH)
+CCTK_INT FUNCTION GetRefinementLevel(
+      CCTK_POINTER_TO_CONST IN cctkGH)
 USES FUNCTION GetRefinementLevel
 
+####################################################
+###  Aliased function from MoL for registration  ###
+####################################################
+
+CCTK_INT FUNCTION MoLRegisterEvolved(
+      CCTK_INT IN EvolvedIndex,
+      CCTK_INT IN RHSIndex)
+CCTK_INT FUNCTION MoLRegisterEvolvedGroup(
+      CCTK_INT IN EvolvedIndex,
+      CCTK_INT IN RHSIndex)
+CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(
+      CCTK_INT IN SandRIndex)
+
+USES FUNCTION MoLRegisterEvolved
+USES FUNCTION MoLRegisterEvolvedGroup
+USES FUNCTION MoLRegisterSaveAndRestoreGroup

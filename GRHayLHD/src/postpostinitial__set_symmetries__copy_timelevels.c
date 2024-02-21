@@ -46,21 +46,21 @@ GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CCTK_ARGUMENTS) {
 
         rho_star_p[index] = rho_star[index];
         tau_p[index] = tau[index];
-        mhd_st_x_p[index] = mhd_st_x[index];
-        mhd_st_y_p[index] = mhd_st_y[index];
-        mhd_st_z_p[index] = mhd_st_z[index];
+        Stildex_p[index] = Stildex[index];
+        Stildey_p[index] = Stildey[index];
+        Stildez_p[index] = Stildez[index];
 
         rho_star_p_p[index] = rho_star[index];
         tau_p_p[index] = tau[index];
-        mhd_st_x_p_p[index] = mhd_st_x[index];
-        mhd_st_y_p_p[index] = mhd_st_y[index];
-        mhd_st_z_p_p[index] = mhd_st_z[index];
+        Stildex_p_p[index] = Stildex[index];
+        Stildey_p_p[index] = Stildey[index];
+        Stildez_p_p[index] = Stildez[index];
 
         Ye_star_p[index] = Ye_star[index];
         Ye_star_p_p[index] = Ye_star[index];
 
-        S_star_p[index] = S_star[index];
-        S_star_p_p[index] = S_star[index];
+        ent_star_p[index] = ent_star[index];
+        ent_star_p_p[index] = ent_star[index];
       }
     }
   }

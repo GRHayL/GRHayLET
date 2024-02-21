@@ -143,9 +143,9 @@ void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &curv, &cons_source);
 
         tau_rhs    [index] = cons_source.tau;
-        st_x_rhs[index] = cons_source.SD[0];
-        st_y_rhs[index] = cons_source.SD[1];
-        st_z_rhs[index] = cons_source.SD[2];
+        Stildex_rhs[index] = cons_source.SD[0];
+        Stildey_rhs[index] = cons_source.SD[1];
+        Stildez_rhs[index] = cons_source.SD[2];
       }
     }
   }

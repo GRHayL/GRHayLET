@@ -1,13 +1,12 @@
 # Scheduler setup for GRHayLHD
 
 STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
-STORAGE: GRHayLHD::BSSN_quantities
 
 STORAGE: grmhd_conservatives[3]
-STORAGE: grmhd_primitives_allbutBi,grmhd_conservatives_rhs,grmhd_cmin_cmax_temps,grmhd_flux_temps,TUPmunu,diagnostic_gfs
+STORAGE: grmhd_primitives_allbutBi,grmhd_conservatives_rhs,grmhd_flux_temps,failure_checker
 STORAGE: needs_average
 
-schedule GRHayLHD_RegisterVars in MoL_Register after BSSN_RegisterVars after lapse_RegisterVars
+schedule GRHayLHD_RegisterVars in MoL_Register
 {
   LANG: C
   OPTIONS: META
@@ -79,9 +78,8 @@ schedule GRHayLHD_conserv_to_prims in GRHayLHD_Con2Prim
 
 schedule GRHayLHD_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_conserv_to_prims
 {
-  # We must sync {P,rho_b,vx,vy,vz} here.
-  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
   LANG: C
+  SYNC: grmhd_primitives_allbutBi, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
 } "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 schedule GRHayLHD_compute_Tmunu in AddToTmunu
@@ -99,16 +97,16 @@ schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
    LANG:       C
    OPTIONS:    LOCAL
    # What the heck, let's synchronize everything!
-   SYNC: GRHayLHD::grmhd_primitives_allbutBi,GRHayLHD::BSSN_quantities,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
+   SYNC: GRHayLHD::grmhd_primitives_allbutBi,ADMBase::metric,ADMBase::lapse,ADMBase::shift,ADMBase::curv
 } "Convert HydroBase initial data (ID) to ID that GRHayLHD can read."
 
-schedule GRHayLHD_Prim2Con in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
+schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
   LANG: C
   SYNC: GRHayLHD::grmhd_conservatives
 } "Computes conservatives from primitives"
 
-schedule GRHayLHD_InitSymBound in GRHayLHD_Prim2Con2Prim after GRHayLHD_Prim2Con
+schedule GRHayLHD_InitSymBound in GRHayLHD_Prim2Con2Prim after GRHayLHD_prims_to_conservs
 {
   SYNC: GRHayLHD::grmhd_conservatives
   LANG: C

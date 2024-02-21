@@ -8,8 +8,8 @@ static inline int GRHayLMHD_local_avg(
     const cGH *restrict cctkGH, const int i, const int j, const int k,
     const int weight, const CCTK_INT *restrict needs_average,
     const CCTK_REAL *restrict rho_star, const CCTK_REAL *restrict tau,
-    const CCTK_REAL *restrict mhd_st_x, const CCTK_REAL *restrict mhd_st_y,
-    const CCTK_REAL *restrict mhd_st_z, const CCTK_REAL *restrict S_star,
+    const CCTK_REAL *restrict Stildex, const CCTK_REAL *restrict Stildey,
+    const CCTK_REAL *restrict Stildez, const CCTK_REAL *restrict ent_star,
     const CCTK_REAL *restrict Ye_star,
     ghl_conservative_quantities *restrict cons) {
 
@@ -33,10 +33,10 @@ static inline int GRHayLMHD_local_avg(
   const double cfac = 1.0 - wfac;
   cons->rho = cfac * rho_star[index];
   cons->tau = cfac * tau[index];
-  cons->SD[0] = cfac * mhd_st_x[index];
-  cons->SD[1] = cfac * mhd_st_y[index];
-  cons->SD[2] = cfac * mhd_st_z[index];
-  cons->entropy = cfac * S_star[index];
+  cons->SD[0] = cfac * Stildex[index];
+  cons->SD[1] = cfac * Stildey[index];
+  cons->SD[2] = cfac * Stildez[index];
+  cons->entropy = cfac * ent_star[index];
   cons->Y_e = cfac * Ye_star[index];
 
   double rhotmp, tautmp, Sxtmp, Sytmp, Sztmp, enttmp, yetmp;
@@ -52,10 +52,10 @@ static inline int GRHayLMHD_local_avg(
           continue;
         rhotmp += rho_star[inavg];
         tautmp += tau[inavg];
-        Sxtmp += mhd_st_x[inavg];
-        Sytmp += mhd_st_y[inavg];
-        Sztmp += mhd_st_z[inavg];
-        enttmp += S_star[inavg];
+        Sxtmp += Stildex[inavg];
+        Sytmp += Stildey[inavg];
+        Sztmp += Stildez[inavg];
+        enttmp += ent_star[inavg];
         yetmp += Ye_star[inavg];
         num_avg++;
       }
@@ -95,7 +95,7 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
-  if (CCTK_EQUALS(Symmetry, "equatorial")) {
+  if(CCTK_EQUALS(Symmetry, "equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr = 0;
     ierr += CartSymGN(cctkGH, "GRHayLMHD::grmhd_conservatives");
@@ -104,7 +104,7 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
     ierr += CartSymGN(cctkGH, "bssn::BSSN_vars");
     ierr += CartSymGN(cctkGH, "bssn::BSSN_AH");
     ierr += CartSymGN(cctkGH, "shift::shift_vars");
-    if (ierr != 0)
+    if(ierr != 0)
       CCTK_VERROR("Error with setting equatorial symmetries in con2prim.");
   }
 
@@ -119,38 +119,38 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
   int backup0 = 0;
   int backup1 = 0;
   int backup2 = 0;
-  double error_rho_numer = 0;
-  double error_tau_numer = 0;
-  double error_Sx_numer = 0;
-  double error_Sy_numer = 0;
-  double error_Sz_numer = 0;
-  double error_ent_numer = 0;
-  double error_Ye_numer = 0;
+  CCTK_REAL error_rho_numer = 0;
+  CCTK_REAL error_tau_numer = 0;
+  CCTK_REAL error_Sx_numer = 0;
+  CCTK_REAL error_Sy_numer = 0;
+  CCTK_REAL error_Sz_numer = 0;
+  CCTK_REAL error_ent_numer = 0;
+  CCTK_REAL error_Ye_numer = 0;
 
-  double error_rho_denom = 0;
-  double error_tau_denom = 0;
-  double error_Sx_denom = 0;
-  double error_Sy_denom = 0;
-  double error_Sz_denom = 0;
-  double error_ent_denom = 0;
-  double error_Ye_denom = 0;
+  CCTK_REAL error_rho_denom = 0;
+  CCTK_REAL error_tau_denom = 0;
+  CCTK_REAL error_Sx_denom = 0;
+  CCTK_REAL error_Sy_denom = 0;
+  CCTK_REAL error_Sz_denom = 0;
+  CCTK_REAL error_ent_denom = 0;
+  CCTK_REAL error_Ye_denom = 0;
   int n_iter = 0;
   int n_avg = 0;
 
-#pragma omp parallel for reduction(                                            \
-        + : pointcount, backup0, backup1, backup2, vel_limited_ptcount,        \
-            rho_star_fix_applied, failures, failures_inhoriz,                  \
-            pointcount_inhoriz, n_iter, error_rho_numer, error_tau_numer,      \
-            error_Sx_numer, error_Sy_numer, error_Sz_numer, error_ent_numer,   \
-            error_Ye_numer, error_rho_denom, error_tau_denom, error_Sx_denom,  \
-            error_Sy_denom, error_Sz_denom, error_ent_denom, error_Ye_denom)   \
+#pragma omp parallel for reduction(+:                                    \
+      pointcount, backup0, backup1, backup2, vel_limited_ptcount,        \
+      rho_star_fix_applied, failures, failures_inhoriz,                  \
+      pointcount_inhoriz, n_iter, error_rho_numer, error_tau_numer,      \
+      error_Sx_numer, error_Sy_numer, error_Sz_numer, error_ent_numer,   \
+      error_Ye_numer, error_rho_denom, error_tau_denom, error_Sx_denom,  \
+      error_Sy_denom, error_Sz_denom, error_ent_denom, error_Ye_denom)   \
     schedule(static)
-  for (int k = 0; k < kmax; k++) {
-    for (int j = 0; j < jmax; j++) {
-      for (int i = 0; i < imax; i++) {
+  for(int k=0; k<kmax; k++) {
+    for(int j=0; j<jmax; j++) {
+      for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
-        double local_failure_checker = 0;
+        CCTK_REAL local_failure_checker = 0;
 
         ghl_con2prim_diagnostics diagnostics;
         ghl_initialize_diagnostics(&diagnostics);
@@ -159,9 +159,11 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // set auxiliary and ADM metric quantities
         ghl_metric_quantities ADM_metric;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
-            alp[index], betax[index], betay[index], betaz[index], gxx[index],
-            gxy[index], gxz[index], gyy[index], gyz[index], gzz[index],
-            &ADM_metric);
+              alp[index],
+              betax[index], betay[index], betaz[index],
+              gxx[index], gxy[index], gxz[index],
+              gyy[index], gyz[index], gzz[index],
+              &ADM_metric);
 
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
@@ -171,19 +173,17 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         // so using the previous timelevel as an initial guess would need to
         // be implemented here.
         ghl_primitive_quantities prims;
-        prims.BU[0] = 0.0;
-        prims.BU[1] = 0.0;
-        prims.BU[2] = 0.0;
+        prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
 
         // Read in conservative variables from gridfunctions
         ghl_conservative_quantities cons, cons_orig;
-        cons.rho = rho_star[index];
-        cons.tau = tau[index];
-        cons.SD[0] = mhd_st_x[index];
-        cons.SD[1] = mhd_st_y[index];
-        cons.SD[2] = mhd_st_z[index];
-        cons.entropy = S_star[index];
-        cons.Y_e = Ye_star[index];
+        cons.rho     = rho_star[index];
+        cons.tau     = tau[index];
+        cons.SD[0]   = Stildex[index];
+        cons.SD[1]   = Stildey[index];
+        cons.SD[2]   = Stildez[index];
+        cons.entropy = ent_star[index];
+        cons.Y_e     = Ye_star[index];
 
         // Here we save the original values of conservative variables in
         // cons_orig for debugging purposes.
@@ -198,13 +198,12 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         }
 
         /************* Main conservative-to-primitive logic ************/
-        if (cons.rho > 0.0) {
+        if(cons.rho>0.0) {
           // declare some variables for the C2P routine.
           ghl_conservative_quantities cons_undens;
 
           // Set the conserved variables required by the con2prim routine
-          ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons,
-                                        &cons_undens);
+          ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
           prims.Y_e = cons.Y_e / cons.rho;
           prims.rho = rho[index];
@@ -219,10 +218,10 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
           /************* Conservative-to-primitive recovery ************/
           const int check = ghl_con2prim_multi_method(
-              ghl_params, ghl_eos, &ADM_metric, &metric_aux, &cons_undens,
-              &prims, &diagnostics);
+                ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                &cons_undens, &prims, &diagnostics);
 
-          if (check || isnan(prims.rho * prims.press * prims.eps * prims.vU[0] *
+          if(check || isnan(prims.rho * prims.press * prims.eps * prims.vU[0] *
                              prims.vU[1] * prims.vU[2] * prims.entropy *
                              prims.Y_e * prims.temperature)) {
             needs_average[index] = 1;
@@ -240,28 +239,26 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         //---------- Primitive recovery succeeded ----------
         //--------------------------------------------------
         // Enforce limits on primitive variables and recompute conservatives.
-        diagnostics.speed_limited +=
-            ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
-                                                        &ADM_metric, &prims);
-
+        diagnostics.speed_limited += ghl_enforce_primitive_limits_and_compute_u0(
+              ghl_params, ghl_eos, &ADM_metric, &prims);
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
-        rho[index] = prims.rho;
-        press[index] = prims.press;
-        eps[index] = prims.eps;
-        vx[index] = prims.vU[0];
-        vy[index] = prims.vU[1];
-        vz[index] = prims.vU[2];
-        entropy[index] = prims.entropy;
-        Y_e[index] = prims.Y_e;
+        rho[index]         = prims.rho;
+        press[index]       = prims.press;
+        eps[index]         = prims.eps;
+        vx[index]          = prims.vU[0];
+        vy[index]          = prims.vU[1];
+        vz[index]          = prims.vU[2];
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
         temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;
         tau[index] = cons.tau;
-        mhd_st_x[index] = cons.SD[0];
-        mhd_st_y[index] = cons.SD[1];
-        mhd_st_z[index] = cons.SD[2];
-        S_star[index] = cons.entropy;
+        Stildex[index] = cons.SD[0];
+        Stildey[index] = cons.SD[1];
+        Stildez[index] = cons.SD[2];
+        ent_star[index] = cons.entropy;
         Ye_star[index] = cons.Y_e;
         needs_average[index] = 0;
 
@@ -353,8 +350,8 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         ghl_conservative_quantities cons, cons_orig;
         const int avg_fail = GRHayLMHD_local_avg(
-            cctkGH, i, j, k, avg_weight, needs_average, rho_star, tau, mhd_st_x,
-            mhd_st_y, mhd_st_z, S_star, Ye_star, &cons);
+            cctkGH, i, j, k, avg_weight, needs_average, rho_star, tau, Stildex,
+            Stildey, Stildez, ent_star, Ye_star, &cons);
 
         if (avg_fail || isnan(cons.rho * cons.tau * cons.SD[0] * cons.SD[1] *
                               cons.SD[2] * cons.entropy * cons.Y_e *
@@ -369,10 +366,10 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         cons_orig.rho = rho_star[index];
         cons_orig.tau = tau[index];
-        cons_orig.SD[0] = mhd_st_x[index];
-        cons_orig.SD[1] = mhd_st_y[index];
-        cons_orig.SD[2] = mhd_st_z[index];
-        cons_orig.entropy = S_star[index];
+        cons_orig.SD[0] = Stildex[index];
+        cons_orig.SD[1] = Stildey[index];
+        cons_orig.SD[2] = Stildez[index];
+        cons_orig.entropy = ent_star[index];
         cons_orig.Y_e = Ye_star[index];
 
         /************* Main conservative-to-primitive logic ************/
@@ -423,10 +420,10 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         rho_star[index] = cons.rho;
         tau[index] = cons.tau;
-        mhd_st_x[index] = cons.SD[0];
-        mhd_st_y[index] = cons.SD[1];
-        mhd_st_z[index] = cons.SD[2];
-        S_star[index] = cons.entropy;
+        Stildex[index] = cons.SD[0];
+        Stildey[index] = cons.SD[1];
+        Stildez[index] = cons.SD[2];
+        ent_star[index] = cons.entropy;
         Ye_star[index] = cons.Y_e;
 
         needs_average[index] = 0;
@@ -493,10 +490,10 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         ghl_conservative_quantities cons, cons_orig;
         cons_orig.rho = rho_star[index];
         cons_orig.tau = tau[index];
-        cons_orig.SD[0] = mhd_st_x[index];
-        cons_orig.SD[1] = mhd_st_y[index];
-        cons_orig.SD[2] = mhd_st_z[index];
-        cons_orig.entropy = S_star[index];
+        cons_orig.SD[0] = Stildex[index];
+        cons_orig.SD[1] = Stildey[index];
+        cons_orig.SD[2] = Stildez[index];
+        cons_orig.entropy = ent_star[index];
         cons_orig.Y_e = Ye_star[index];
 
         ghl_set_prims_to_constant_atm(ghl_eos, &prims);
@@ -542,10 +539,10 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
 
         rho_star[index] = cons.rho;
         tau[index] = cons.tau;
-        mhd_st_x[index] = cons.SD[0];
-        mhd_st_y[index] = cons.SD[1];
-        mhd_st_z[index] = cons.SD[2];
-        S_star[index] = cons.entropy;
+        Stildex[index] = cons.SD[0];
+        Stildey[index] = cons.SD[1];
+        Stildez[index] = cons.SD[2];
+        ent_star[index] = cons.entropy;
         Ye_star[index] = cons.Y_e;
 
         // Now we compute the difference between original & new conservatives,
@@ -585,33 +582,23 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
   if(j_vals) free(j_vals);
   if(k_vals) free(k_vals);
 
-  const double rho_error = (error_rho_denom == 0)
-                               ? error_rho_numer
-                               : error_rho_numer / error_rho_denom;
-  const double tau_error = (error_tau_denom == 0)
-                               ? error_tau_numer
-                               : error_tau_numer / error_tau_denom;
-  const double Sx_error =
-      (error_Sx_denom == 0) ? error_Sx_numer : error_Sx_numer / error_Sx_denom;
-  const double Sy_error =
-      (error_Sy_denom == 0) ? error_Sy_numer : error_Sy_numer / error_Sy_denom;
-  const double Sz_error =
-      (error_Sz_denom == 0) ? error_Sz_numer : error_Sz_numer / error_Sz_denom;
-  const double entropy_error = (error_ent_denom == 0)
-                                   ? error_ent_numer
-                                   : error_ent_numer / error_ent_denom;
-  const double Ye_error =
-      (error_Ye_denom == 0) ? error_Ye_numer : error_Ye_numer / error_Ye_denom;
+  const CCTK_REAL rho_error = (error_rho_denom == 0) ? error_rho_numer : error_rho_numer/error_rho_denom;
+  const CCTK_REAL tau_error = (error_tau_denom == 0) ? error_tau_numer : error_tau_numer/error_tau_denom;
+  const CCTK_REAL Sx_error  = (error_Sx_denom == 0)  ? error_Sx_numer  : error_Sx_numer/error_Sx_denom;
+  const CCTK_REAL Sy_error  = (error_Sy_denom == 0)  ? error_Sy_numer  : error_Sy_numer/error_Sy_denom;
+  const CCTK_REAL Sz_error  = (error_Sz_denom == 0)  ? error_Sz_numer  : error_Sz_numer/error_Sz_denom;
+  const CCTK_REAL ent_error = (error_ent_denom == 0) ? error_ent_numer : error_ent_numer/error_ent_denom;
+  const CCTK_REAL Ye_error =  (error_Ye_denom == 0)  ? error_Ye_numer  : error_Ye_numer/error_Ye_denom;
   /*
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
-      10: Limiting velocity u~ after C2P/Font Fix or v in
-    ghl_enforce_primitive_limits_and_compute_u0 100: Both C2P and Font Fix
-    failed 1k: backups used 10k: tau~ was reset in ghl_apply_conservative_limits
+      10: Limiting velocity u~ after C2P/Font Fix or v in ghl_enforce_primitive_limits_and_compute_u0
+     100: Both C2P and Font Fix failed
+      1k: backups used
+     10k: tau~ was reset in ghl_apply_conservative_limits
     100k: S~ was reset in ghl_apply_conservative_limits
   */
-  if (CCTK_Equals(verbose, "yes") || CCTK_Equals(verbose, "essential") ||
-      CCTK_Equals(verbose, "essential+iteration output")) {
+  if(CCTK_Equals(verbose, "yes")) {
     CCTK_VINFO(
         "C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= "
         "%d rho*= %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
@@ -622,7 +609,7 @@ void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
         backup1, backup2, vel_limited_ptcount, rho_star_fix_applied, failures,
         failures_inhoriz, pointcount_inhoriz,
         (double)n_iter / ((double)(cctk_lsh[0] * cctk_lsh[1] * cctk_lsh[2])),
-        rho_error, error_rho_denom, tau_error, error_tau_denom, entropy_error,
+        rho_error, error_rho_denom, tau_error, error_tau_denom, ent_error,
         error_ent_denom, Ye_error, error_Ye_denom, Sx_error, error_Sx_denom,
         Sy_error, error_Sy_denom, Sz_error, error_Sz_denom);
   }

@@ -239,9 +239,9 @@ void GRHayLHD_outer_boundaries(CCTK_ARGUMENTS) {
 
           rho_star[index] = cons.rho;
           tau[index] = cons.tau;
-          mhd_st_x[index] = cons.SD[0];
-          mhd_st_y[index] = cons.SD[1];
-          mhd_st_z[index] = cons.SD[2];
+          Stildex[index] = cons.SD[0];
+          Stildey[index] = cons.SD[1];
+          Stildez[index] = cons.SD[2];
           Ye_star[index] = cons.Y_e;
         }
       }

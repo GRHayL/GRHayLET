@@ -1,10 +1,6 @@
+#include "GRHayLHD.h"
 
-#include "cctk.h"
-#include "cctk_Arguments.h"
-#include "cctk_Parameters.h"
-#include "GRHayLib.h"
-
-void GRHayLHD_Prim2Con(CCTK_ARGUMENTS) {
+void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 
@@ -58,10 +54,10 @@ void GRHayLHD_Prim2Con(CCTK_ARGUMENTS) {
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;
-        mhd_st_x[index]  = cons.SD[0];
-        mhd_st_y[index]  = cons.SD[1];
-        mhd_st_z[index]  = cons.SD[2];
-        S_star[index] = cons.entropy;
+        Stildex[index]  = cons.SD[0];
+        Stildey[index]  = cons.SD[1];
+        Stildez[index]  = cons.SD[2];
+        ent_star[index] = cons.entropy;
         Ye_star[index]  = cons.Y_e;
       }
     }
