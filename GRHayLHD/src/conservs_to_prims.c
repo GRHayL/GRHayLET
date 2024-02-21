@@ -87,7 +87,7 @@ static inline int GRHayLMHD_local_avg(
   return 0;
 }
 
-void GRHayLHD_conserv_to_prims(CCTK_ARGUMENTS) {
+void GRHayLHD_conservs_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
 

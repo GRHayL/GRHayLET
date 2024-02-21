@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_evaluate_sources_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctk_nghostzones[0];
@@ -22,7 +22,6 @@ void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         // These variables have no source terms
         rho_star_rhs[index] = 0.0;
-        //ent_star_rhs[index] = 0.0;
         Ye_star_rhs[index]  = 0.0;
 
         ghl_metric_quantities ADM_metric;
@@ -46,7 +45,6 @@ void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
-//        prims.entropy = entropy[index];
         prims.Y_e   = Y_e[index];
         prims.temperature = temperature[index];
 

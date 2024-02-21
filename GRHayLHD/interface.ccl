@@ -13,10 +13,10 @@ USES INCLUDE: GRHayLib.h
 # The variables rho_b and pressure are identical to the HydroBase variables. However,
 # GRHayL uses the velocity v^i = u^i/u^0, while HydroBase uses the Valencia velocity, so
 # these velocities differ from HydroBase.
-cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+cctk_real grmhd_velocities type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  vx,vy,vz
-} "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
+  vx, vy, vz
+} "Components of primitive three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 
 #########################################################
 
@@ -26,6 +26,9 @@ cctk_real grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
   rho_star, tau, Stildex, Stildey, Stildez, Ye_star, ent_star
 } "Evolved mhd variables"
 
+#CCTK_REAL Ye_star type = GF Timelevels=3 TAGS='prolongation="ENO"' "Evolved electron fraction variable"
+#CCTK_REAL ent_star type = GF Timelevels=3 TAGS='prolongation="ENO"' "Evolved entropy variable"
+
 #########################################################
 
 # RHS variables for MoL timestepping
@@ -34,16 +37,21 @@ cctk_real grmhd_conservatives_rhs type = GF TAGS='prolongation="none" Checkpoint
   rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs, Ye_star_rhs, ent_star_rhs
 } "Right-hand side for grmhd_conservatives variables"
 
+#CCTK_REAL Ye_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for Ye_star"
+#CCTK_REAL ent_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for ent_star"
+
 #########################################################
 
 #Temporary variables for flux computation
 cctk_real grmhd_flux_temps type = GF TAGS='prolongation="none" Checkpoint="no"'
 {
   rho_star_flux, tau_flux, Stildex_flux, Stildey_flux, Stildez_flux, Ye_star_flux, ent_star_flux
-
 } "Temporary variables for storing the flux terms of tilde{S}_i."
-CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
 
+#CCTK_REAL Ye_star_flux type = GF TAGS='prolongation="none" Checkpoint="no"' "Flux variable for Ye_star"
+#CCTK_REAL ent_star_flux type = GF TAGS='prolongation="none" Checkpoint="no"' "Flux variable for ent_star"
+
+CCTK_INT needs_average type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' ""
 
 #########################################################
 

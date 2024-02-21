@@ -26,7 +26,7 @@ GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels(CCTK_ARGUMENTS) {
     if (ierr != 0)
       CCTK_ERROR(
           "Microsoft error code #1874109358120048. Grep it in the source code");
-    ierr = CartSymGN(cctkGH, "GRHayLHD::grmhd_primitives_allbutBi");
+    ierr = CartSymGN(cctkGH, "GRHayLHD::grmhd_velocities");
     if (ierr != 0)
       CCTK_ERROR(
           "Microsoft error code #1874109358120049. Grep it in the source code");

@@ -3,12 +3,14 @@
 # Source files in this directory
 SRCS = \
        compute_Tmunu.c \
+       compute_metric_derivs.c \
        convert_HydroBase_to_GRHayLHD.c \
        convert_GRHayLHD_to_HydroBase.c \
        conservs_to_prims.c \
        evaluate_sources_rhs.c \
        evaluate_fluxes_rhs.c \
        InitSymBound.c \
+       interpolate_metric_to_face.c \
        MoL_registration.c \
        outer_boundaries.c \
        postpostinitial__set_symmetries__copy_timelevels.c \
