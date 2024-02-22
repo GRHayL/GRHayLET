@@ -11,7 +11,6 @@ SRCS = compute_metric_derivs.c         \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
        MoL_registration.c              \
-       conservs_to_prims.c \
        evaluate_sources_rhs.c \
        evaluate_fluxes_rhs.c \
        outer_boundaries.c \
