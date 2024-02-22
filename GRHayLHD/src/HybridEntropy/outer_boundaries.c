@@ -40,7 +40,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     /* XMIN & XMAX */
     // i=imax=outer boundary
     if(cctk_bbox[1]) {
-      const int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt;
+      const int imax = cctk_lsh[0] - cctk_nghostzones[0] + which_bdry_pt;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int j=0; j<cctk_lsh[1]; j++) {
@@ -63,7 +63,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     }
     // i=imin=outer boundary
     if(cctk_bbox[0]) {
-      const int imin=cctk_nghostzones[0]-which_bdry_pt-1;
+      const int imin = cctk_nghostzones[0] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int j=0; j<cctk_lsh[1]; j++) {
@@ -88,7 +88,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     /* YMIN & YMAX */
     // j=jmax=outer boundary
     if(cctk_bbox[3]) {
-      const int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
+      const int jmax = cctk_lsh[1] - cctk_nghostzones[1] + which_bdry_pt;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -136,7 +136,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     /* ZMIN & ZMAX */
     // k=kmax=outer boundary
     if(cctk_bbox[5]) {
-      const int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
+      const int kmax = cctk_lsh[2] - cctk_nghostzones[2] + which_bdry_pt;
 #pragma omp parallel for
       for(int j=0; j<cctk_lsh[1]; j++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -159,7 +159,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     }
     // k=kmin=outer boundary
     if((cctk_bbox[4]) && Symmetry_none) {
-      const int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+      const int kmin = cctk_nghostzones[2] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int j=0; j<cctk_lsh[1]; j++) {
         for(int i=0; i<cctk_lsh[0]; i++) {

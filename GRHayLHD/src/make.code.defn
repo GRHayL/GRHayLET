@@ -11,6 +11,5 @@ SRCS = compute_metric_derivs.c         \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
        MoL_registration.c              \
-       outer_boundaries.c \
        postpostinitial__set_symmetries__copy_timelevels.c \
        symmetry__set_gzs_staggered_gfs.c
