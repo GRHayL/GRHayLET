@@ -153,11 +153,11 @@ schedule GRHayLHD_InitSymBound in GRHayLHD_PostPostInitial
   SYNC: grmhd_conservatives
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-# Copy data to other timelevels.
-schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_PostPostInitial as mhdpostid after compute_b after p2c
-{
-  LANG: C
-} "Compute post-initialdata quantities"
+## Copy data to other timelevels.
+#schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_PostPostInitial as mhdpostid after compute_b after p2c
+#{
+#  LANG: C
+#} "Compute post-initialdata quantities"
 
 ####################
 

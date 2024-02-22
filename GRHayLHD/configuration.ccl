@@ -1,7 +1,2 @@
 # Configuration definition for thorn GRHayLHD
-REQUIRES EOS_Omni Boundary CartGrid3D SpaceMask
-
-PROVIDES GRHayLHD
-{
-}
-
+requires HDF5

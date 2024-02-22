@@ -1,10 +1,5 @@
 # Parameter definitions for thorn GRHayLHD
 
-shares: ADMBase
-USES CCTK_INT lapse_timelevels
-USES CCTK_INT shift_timelevels
-USES CCTK_INT metric_timelevels
-
 shares: GRHayLib
 USES KEYWORD EOS_type
 USES CCTK_BOOLEAN evolve_entropy
