@@ -85,7 +85,7 @@ static inline int GRHayLMHD_local_avg(
 }
 
 void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];

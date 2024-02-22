@@ -2,9 +2,9 @@
 
 # Source files in this directory
 SRCS = conservs_to_prims.c     \
+       evaluate_fluxes_rhs.c   \
+       evaluate_sources_rhs.c  \
        perturb_conservatives.c \
        perturb_primitives.c    \
        prims_to_conservs.c
-#       evaluate_fluxes_rhs.c   \
-#       evaluate_sources_rhs.c  \
 #       outer_boundaries.c      \
