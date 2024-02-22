@@ -1,10 +1,11 @@
 # Main make.code.defn file for thorn GRHayL
 
 # Source files in this directory
-SRCS = conservs_to_prims.c     \
-       evaluate_fluxes_rhs.c   \
-       evaluate_sources_rhs.c  \
-       outer_boundaries.c      \
-       perturb_conservatives.c \
-       perturb_primitives.c    \
-       prims_to_conservs.c
+SRCS = prims_to_conservs.c
+#SRCS = conservs_to_prims.c     \
+#       evaluate_fluxes_rhs.c   \
+#       evaluate_sources_rhs.c  \
+#       outer_boundaries.c      \
+#       perturb_conservatives.c \
+#       perturb_primitives.c    \
+#       prims_to_conservs.c

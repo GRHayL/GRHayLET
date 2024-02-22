@@ -1,7 +1,21 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_evaluate_fluxes_rhs;
+static inline CCTK_REAL get_Gamma_eff(
+      const CCTK_REAL rho_in,
+      const CCTK_REAL press_in) {
+  CCTK_REAL K, Gamma;
+  ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
+  const CCTK_REAL P_cold = K*pow(rho_in, Gamma);
+  return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
+}
+
+/*
+ *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
+ *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
+ *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
+*/
+void GRHayLHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin = cctkGH->cctk_nghostzones[0];
@@ -38,17 +52,17 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
       case 0:
         v_flux_dir = vx;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn0;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_hybrid;
         break;
       case 1:
         v_flux_dir = vy;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn1;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_hybrid;
         break;
       case 2:
         v_flux_dir = vz;
         calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn2;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated;
+        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_hybrid;
         break;
       default:
         CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
@@ -73,7 +87,6 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
 
           CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
           CCTK_REAL vx_stencil[6], vy_stencil[6], vz_stencil[6];
-          CCTK_REAL Ye_stencil[6];
           ghl_primitive_quantities prims_r, prims_l;
 
           for(int ind=0; ind<6; ind++) {
@@ -85,36 +98,24 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
             vx_stencil[ind]    = vx[stencil];
             vy_stencil[ind]    = vy[stencil];
             vz_stencil[ind]    = vz[stencil];
-            Ye_stencil[ind]    = Y_e[stencil];
           }
 
           CCTK_REAL ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-          ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
+          const CCTK_REAL Gamma = get_Gamma_eff(rho[index], press[index]);
+          ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
           ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
           ghl_ppm_reconstruction(ftilde, vx_stencil, &prims_r.vU[0], &prims_l.vU[0]);
           ghl_ppm_reconstruction(ftilde, vy_stencil, &prims_r.vU[1], &prims_l.vU[1]);
           ghl_ppm_reconstruction(ftilde, vz_stencil, &prims_r.vU[2], &prims_l.vU[2]);
-          ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
 
           prims_r.BU[0] = prims_r.BU[1] = prims_r.BU[2] = 0.0;
           prims_l.BU[0] = prims_l.BU[1] = prims_l.BU[2] = 0.0;
 
-          prims_r.temperature = prims_l.temperature = temperature[index];
-
           int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
           speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
-
-          // We must now compute eps and T
-          ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
-          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
-                                             &prims_r.eps, &prims_r.temperature);
-  
-          ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
-          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
-                                             &prims_l.eps, &prims_l.temperature);
 
           CCTK_REAL cmin, cmax;
           ghl_conservative_quantities cons_fluxes;
@@ -126,7 +127,6 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           Stildex_flux [index] = cons_fluxes.SD[0];
           Stildey_flux [index] = cons_fluxes.SD[1];
           Stildez_flux [index] = cons_fluxes.SD[2];
-          Ye_star_flux [index] = cons_fluxes.Y_e;
         }
       }
     }
@@ -145,7 +145,6 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
           Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
           Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
-          Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
         }
       }
     }

@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
-void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+void GRHayLHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_entropy_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
@@ -27,14 +27,12 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-        prims.rho         = rho[index];
-        prims.press       = press[index];
-        prims.vU[0]       = vx[index];
-        prims.vU[1]       = vy[index];
-        prims.vU[2]       = vz[index];
-        //prims.entropy     = entropy[index];
-        prims.Y_e         = Y_e[index];
-        prims.temperature = temperature[index];
+        prims.rho     = rho[index];
+        prims.press   = press[index];
+        prims.vU[0]   = vx[index];
+        prims.vU[1]   = vy[index];
+        prims.vU[2]   = vz[index];
+        prims.entropy = entropy[index];
 
         ghl_conservative_quantities cons;
         const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
@@ -42,23 +40,21 @@ void GRHayLHD_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        rho[index]         = prims.rho;
-        press[index]       = prims.press;
-        eps[index]         = prims.eps;
-        vx[index]          = prims.vU[0];
-        vy[index]          = prims.vU[1];
-        vz[index]          = prims.vU[2];
-        //entropy[index]     = prims.entropy;
-        Y_e[index]         = prims.Y_e;
-        temperature[index] = prims.temperature;
+        rho[index]     = prims.rho;
+        press[index]   = prims.press;
+        eps[index]     = prims.eps;
+        u0[index]      = prims.u0;
+        vx[index]      = prims.vU[0];
+        vy[index]      = prims.vU[1];
+        vz[index]      = prims.vU[2];
+        entropy[index] = prims.entropy;
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;
         Stildex[index]  = cons.SD[0];
         Stildey[index]  = cons.SD[1];
         Stildez[index]  = cons.SD[2];
-        //ent_star[index] = cons.entropy;
-        Ye_star[index]  = cons.Y_e;
+        ent_star[index] = cons.entropy;
       }
     }
   }

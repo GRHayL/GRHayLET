@@ -16,22 +16,22 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        double *cmin, double *cmax);
+        CCTK_REAL *cmin, CCTK_REAL *cmax);
 
   void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        const double cmin,
-        const double cmax,
+        const CCTK_REAL cmin,
+        const CCTK_REAL cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
     const int xdir = (flux_dir == 0);
     const int ydir = (flux_dir == 1);
     const int zdir = (flux_dir == 2);
-    const double *v_flux_dir;
+    const CCTK_REAL *v_flux_dir;
 
     // Set function pointer to specific function for a given direction
     switch(flux_dir) {
@@ -91,8 +91,7 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           CCTK_REAL ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-          const CCTK_REAL Gamma = 1.0;
-          ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
+          ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
           ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
           ghl_ppm_reconstruction(ftilde, vx_stencil, &prims_r.vU[0], &prims_l.vU[0]);
@@ -152,5 +151,3 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
     }
   }
 }
-
-

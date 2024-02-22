@@ -1,18 +1,16 @@
-# Scheduler setup for GRHayLHD
+# Schedule for thorn GRHayLHD
 
-STORAGE: ADMBase::metric[metric_timelevels], ADMBase::curv[metric_timelevels], ADMBase::lapse[lapse_timelevels], ADMBase::shift[shift_timelevels]
-
-STORAGE: grmhd_conservatives[3]
-STORAGE: grmhd_velocities, grmhd_conservatives_rhs, grmhd_flux_temps, failure_checker
-STORAGE: needs_average
+STORAGE: grmhd_conservatives[3], grmhd_velocities
+STORAGE: u0, grmhd_conservatives_rhs
+STORAGE: grmhd_flux_temps, failure_checker, needs_average
 
 #if (CCTK_Equals(EOS_type, "Tabulated")) {
+#  STORAGE: Ye_star[3], Ye_star_rhs, Ye_star_flux
 #}
-#  STORAGE: Ye_star[3], Ye_star_rhs, ent_star_flux
 #
 #if (evolve_entropy) {
-#}
 #  STORAGE: ent_star[3], ent_star_rhs, ent_star_flux
+#}
 
 #########################################################
 # BASIC SETUP
@@ -49,16 +47,14 @@ schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
 } "Convert HydroBase initial data (ID) to GRHayLHD variables"
 
 # Runs everywhere. Shouldn't need to sync
-schedule GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
+schedule group GRHayLHD_prims_to_conservs in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD
 {
-  LANG: C
-  SYNC: grmhd_conservatives
 } "Compute conservative variables from primitives"
 
 schedule GRHayLHD_conservs_to_prims in GRHayLHD_Prim2Con2Prim after GRHayLHD_prims_to_conservs
 {
   LANG: C
-} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
+} "Compute primitive variables from conservatives"
 
 if(Convert_to_HydroBase_every) {
   schedule convert_GRHayLHD_to_HydroBase in GRHayLHD_Prim2Con2Prim after GRHayLHD_conservs_to_prims
@@ -70,7 +66,70 @@ if(Convert_to_HydroBase_every) {
   } "Convert GRHayLHD-native variables to HydroBase"
 }
 
-####################
+#########################################################
+# Con2Prim
+#########################################################
+
+schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
+{
+} "Compute primitive variables from conservatives"
+
+schedule GRHayLHD_conservs_to_prims in GRHayLHD_Con2Prim
+{
+  LANG: C
+} "Compute primitive variables from conservatives"
+
+# Runs everywhere. Shouldn't need to sync
+schedule GRHayLHD_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
+{
+  LANG: C
+  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
+} "Apply selected boundary conditions to the primitive variables"
+
+#########################################################
+# Stress-energy Tensor
+#########################################################
+
+schedule GRHayLHD_compute_Tmunu in AddToTmunu
+{
+  LANG: C
+  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+          HydroBase::rho, HydroBase::press, HydroBase::eps,
+          grmhd_velocities #, u0
+  WRITES: TmunuBase::stress_energy_scalar(everywhere),
+          TmunuBase::stress_energy_vector(everywhere),
+          TmunuBase::stress_energy_tensor(everywhere)
+} "Compute stress-energy tensor"
+
+#########################################################
+# RHS EVALUATION
+#########################################################
+
+schedule group GRHayLHD_RHS in MoL_CalcRHS
+{
+} "Evaluate RHSs GRHD equations"
+
+schedule GRHayLHD_tabulated_evaluate_sources_rhs in GRHayLHD_RHS
+{
+  LANG: C
+} "Evaluate source terms in GRHD RHSs"
+
+schedule GRHayLHD_tabulated_evaluate_fluxes_rhs in GRHayLHD_RHS after GRHayLHD_tabulated_evaluate_sources_rhs
+{
+  LANG: C
+} "Evaluate flux terms in GRHD RHSs"
+
+if(CCTK_IsThornActive("NRPyLeakageET"))
+{
+  schedule convert_GRHayLHD_to_HydroBase in MoL_PostRHS before NRPyLeakageET_MoL
+  {
+    LANG: C
+    READS:  ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities
+    WRITES: HydroBase::vel(everywhere)
+  } "Convert needed HydroBase variables for NRPyLeakage"
+}
+
 # POSTPOSTINITIAL
 # HydroBase_Con2Prim in CCTK_POSTPOSTINITIAL sets conserv to prim then
 # outer boundaries (OBs, which are technically disabled). The post OB
@@ -95,61 +154,143 @@ schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_Po
 ####################
 
 ####################
-# RHS EVALUATION
-schedule group GRHayLHD_RHSs in MoL_CalcRHS
-{
-} "Evaluate the right-hand sides (RHSs) of the GRHD equations"
 
-schedule GRHayLHD_tabulated_evaluate_sources_rhs in GRHayLHD_RHSs
-{
-  LANG: C
-} "Evaluate source terms of the RHSs of GRHD equations"
-
-schedule GRHayLHD_tabulated_evaluate_fluxes_rhs in GRHayLHD_RHSs after GRHayLHD_tabulated_evaluate_sources_rhs
-{
-  LANG: C
-} "Evaluate flux terms of the RHSs of GRHD equations"
-####################
-
-schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs before compute_B_postrestrict
+schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs
 {
   SYNC: grmhd_conservatives
   LANG: C
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
-# Nontrivial primitives solve, for P,rho_b,vx,vy,vz.
-schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
-{
-} "Compute primitive variables from conservatives"
+#########################################################
+# Set HydroBase variables for analysis
+#########################################################
 
-schedule GRHayLHD_conservs_to_prims in GRHayLHD_Con2Prim
-{
-  LANG: C
-} "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
-
-schedule GRHayLHD_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_conservs_to_prims
-{
-  LANG: C
-  SYNC: grmhd_velocities, HydroBase::rho, HydroBase::Y_e, HydroBase::temperature, HydroBase::press, HydroBase::eps, HydroBase::entropy
-} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
-
-schedule GRHayLHD_compute_Tmunu in AddToTmunu
-{
-  LANG: C
-} "Add the GR(M)HD stress-tensor to Tmunu"
-##########################################################
-
-
-SCHEDULE convert_GRHayLHD_to_HydroBase AT CCTK_ANALYSIS BEFORE compute_bi_b2_Poyn_fluxET BEFORE particle_tracerET BEFORE VolumeIntegralGroup BEFORE convert_to_MHD_3velocity AFTER ML_BSSN_evolCalcGroup
-{
-  OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-  LANG: C
-} "Convert GRHayLHD-native variables to HydroBase"
-
-if(CCTK_IsThornActive("NRPyLeakageET"))
-{
-  SCHEDULE convert_GRHayLHD_to_HydroBase in MoL_PostRHS before NRPyLeakageET_MoL
+if(Convert_to_HydroBase_every) {
+  schedule convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
+}
+
+##########################################################
+# Specific function variants based on evolution parameters
+##########################################################
+
+if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
+  if (evolve_entropy) {
+
+    schedule GRHayLHD_hybrid_entropy_prims_to_conservs in GRHayLHD_prims_to_conservs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::rho, HydroBase::press, HydroBase::eps,
+              HydroBase::entropy, grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere),
+              grmhd_conservatives(everywhere), #ent_star(everywhere),
+              HydroBase::rho(everywhere), HydroBase::press(everywhere),
+              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+      SYNC: grmhd_conservatives #, ent_star
+    } "Entropy+Hybrid version of GRHayLHD_prims_to_conservs"
+
+#    schedule GRHayLHD_hybrid_entropy_conservs_to_prims in GRHayLHD_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  GRID::coordinates,
+#              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+#              grmhd_conservatives #, ent_star
+#      WRITES: grmhd_conservatives(everywhere), #ent_star(everywhere), u0(everywhere),
+#              grmhd_velocities(everywhere), failure_checker(everywhere),
+#              HydroBase::rho(everywhere), HydroBase::press(everywhere),
+#              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+#    } "Entropy+Hybrid version of GRHayLHD_conservs_to_prims"
+    
+
+  } else {
+
+    schedule GRHayLHD_hybrid_prims_to_conservs in GRHayLHD_prims_to_conservs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::rho, HydroBase::press, HydroBase::eps,
+              grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
+      SYNC: grmhd_conservatives
+    } "Hybrid version of GRHayLHD_prims_to_conservs"
+
+#    schedule GRHayLHD_hybrid_conservs_to_prims in GRHayLHD_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  GRID::coordinates,
+#              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+#              grmhd_conservatives
+#      WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
+#              u0(everywhere), grmhd_velocities(everywhere),
+#              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
+#    } "Hybrid version of GRHayLHD_conservs_to_prims"
+    
+
+  }
+} else if (CCTK_Equals(EOS_type, "Tabulated")) {
+  if (evolve_entropy) {
+
+    schedule GRHayLHD_tabulated_entropy_prims_to_conservs in GRHayLHD_prims_to_conservs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::rho, HydroBase::press, HydroBase::eps,
+              HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
+              grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+#              ent_star(everywhere), Ye_star(everywhere),
+              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+      SYNC: grmhd_conservatives #, Ye_star, ent_star
+    } "Entropy+Tabulated version of GRHayLHD_prims_to_conservs"
+
+#    schedule GRHayLHD_tabulated_entropy_conservs_to_prims in GRHayLHD_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  GRID::coordinates,
+#              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+#              grmhd_conservatives, grmhd_velocities #, ent_star, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), #ent_star(everywhere), Ye_star(everywhere),
+#              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+#              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+#              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+#    } "Entropy+Tabulated version of GRHayLHD_conservs_to_prims"
+    
+
+  } else {
+
+    schedule GRHayLHD_tabulated_prims_to_conservs in GRHayLHD_prims_to_conservs
+    {
+      LANG: C
+      READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+              HydroBase::rho, HydroBase::press, HydroBase::eps,
+              HydroBase::Y_e, HydroBase::temperature,
+              grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere), #Ye_star(everywhere),
+              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+              HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+      SYNC: grmhd_conservatives #, Ye_star
+    } "Tabulated version of GRHayLHD_prims_to_conservs"
+
+#    schedule GRHayLHD_tabulated_conservs_to_prims in GRHayLHD_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  GRID::coordinates,
+#              ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+#              grmhd_conservatives, grmhd_velocities #, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), #Ye_star(everywhere),
+#              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+#              HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+#              HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
+#    } "Tabulated version of GRHayLHD_conservs_to_prims"
+    
+  }
 }
