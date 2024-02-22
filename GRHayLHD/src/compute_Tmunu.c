@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_GRHayLHD_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
 #pragma omp parallel for
@@ -32,7 +32,7 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
-        //prims.u0    = u0[index];
+        prims.u0    = u0[index];
 
         ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
                                                     &ADM_metric, &prims);

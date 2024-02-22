@@ -18,6 +18,18 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
   rhs = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
+//  if(ghl_params->evolve_entropy) {
+//    group = CCTK_GroupIndex("GRHayLHD::ent_star");
+//    rhs = CCTK_GroupIndex("GRHayLHD::ent_star_rhs");
+//    ierr += MoLRegisterEvolvedGroup(group, rhs);
+//  }
+//
+//  if(ghl_eos->eos_type == ghl_eos_tabulated) {
+//    group = CCTK_GroupIndex("GRHayLHD::Ye_star");
+//    rhs = CCTK_GroupIndex("GRHayLHD::Ye_star_rhs");
+//    ierr += MoLRegisterEvolvedGroup(group, rhs);
+//  }
+
   if (ierr) CCTK_ERROR("Problems registering with MoL");
   //***********************************************
 

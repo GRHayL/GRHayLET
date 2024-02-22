@@ -10,65 +10,6 @@
 
 #include "GRHayLHD.h"
 
-#define IDX(i, j, k) CCTK_GFINDEX3D(cctkGH, (i), (j), (k))
-
-#define XMAX_OB_SIMPLE_COPY(FUNC, imax)                                        \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int j = 0; j < cctk_lsh[1]; j++)                                      \
-      FUNC[IDX(imax, j, k)] = FUNC[IDX(imax - 1, j, k)];
-#define YMAX_OB_SIMPLE_COPY(FUNC, jmax)                                        \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      FUNC[IDX(i, jmax, k)] = FUNC[IDX(i, jmax - 1, k)];
-#define ZMAX_OB_SIMPLE_COPY(FUNC, kmax)                                        \
-  for (int j = 0; j < cctk_lsh[1]; j++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      FUNC[IDX(i, j, kmax)] = FUNC[IDX(i, j, kmax - 1)];
-
-#define XMIN_OB_SIMPLE_COPY(FUNC, imin)                                        \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int j = 0; j < cctk_lsh[1]; j++)                                      \
-      FUNC[IDX(imin, j, k)] = FUNC[IDX(imin + 1, j, k)];
-#define YMIN_OB_SIMPLE_COPY(FUNC, jmin)                                        \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      FUNC[IDX(i, jmin, k)] = FUNC[IDX(i, jmin + 1, k)];
-#define ZMIN_OB_SIMPLE_COPY(FUNC, kmin)                                        \
-  for (int j = 0; j < cctk_lsh[1]; j++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      FUNC[IDX(i, j, kmin)] = FUNC[IDX(i, j, kmin + 1)];
-
-#define XMAX_INFLOW_CHECK(vx, imax)                                            \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int j = 0; j < cctk_lsh[1]; j++)                                      \
-      if (vx[IDX(imax, j, k)] < 0.)                                            \
-        vx[IDX(imax, j, k)] = 0.;
-#define YMAX_INFLOW_CHECK(vy, jmax)                                            \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      if (vy[IDX(i, jmax, k)] < 0.)                                            \
-        vy[IDX(i, jmax, k)] = 0.;
-#define ZMAX_INFLOW_CHECK(vz, kmax)                                            \
-  for (int j = 0; j < cctk_lsh[1]; j++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      if (vz[IDX(i, j, kmax)] < 0.)                                            \
-        vz[IDX(i, j, kmax)] = 0.;
-
-#define XMIN_INFLOW_CHECK(vx, imin)                                            \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int j = 0; j < cctk_lsh[1]; j++)                                      \
-      if (vx[IDX(imin, j, k)] > 0.)                                            \
-        vx[IDX(imin, j, k)] = 0.;
-#define YMIN_INFLOW_CHECK(vy, jmin)                                            \
-  for (int k = 0; k < cctk_lsh[2]; k++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      if (vy[IDX(i, jmin, k)] > 0.)                                            \
-        vy[IDX(i, jmin, k)] = 0.;
-#define ZMIN_INFLOW_CHECK(vz, kmin)                                            \
-  for (int j = 0; j < cctk_lsh[1]; j++)                                        \
-    for (int i = 0; i < cctk_lsh[0]; i++)                                      \
-      if (vz[IDX(i, j, kmin)] > 0.)                                            \
-        vz[IDX(i, j, kmin)] = 0.;
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -99,97 +40,137 @@ void GRHayLHD_outer_boundaries(CCTK_ARGUMENTS) {
     // i=imax=outer boundary
     if(cctk_bbox[1]) {
       const int imax = cctk_lsh[0] - cctk_nghostzones[0] + which_bdry_pt;
-      XMAX_OB_SIMPLE_COPY(press, imax);
-      XMAX_OB_SIMPLE_COPY(rho, imax);
-      XMAX_OB_SIMPLE_COPY(vx, imax);
-      XMAX_OB_SIMPLE_COPY(vy, imax);
-      XMAX_OB_SIMPLE_COPY(vz, imax);
-      XMAX_OB_SIMPLE_COPY(entropy, imax);
-      XMAX_OB_SIMPLE_COPY(eps, imax);
-      XMAX_OB_SIMPLE_COPY(Y_e, imax);
-      XMAX_OB_SIMPLE_COPY(temperature, imax);
-      if (do_outflow) {
-        XMAX_INFLOW_CHECK(vx, imax);
+
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int j=0; j<cctk_lsh[1]; j++) {
+          const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
+          const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
+          rho[index]         = rho[indm1];
+          press[index]       = press[indm1];
+          vx[index]          = vx[indm1];
+          vy[index]          = vy[indm1];
+          vz[index]          = vz[indm1];
+          eps[index]         = eps[indm1];
+          Y_e[index]         = Y_e[indm1];
+          temperature[index] = temperature[indm1];
+          if (do_outflow && vx[index] < 0.0)
+            vx[index] = 0.0;
+        }
       }
     }
     // i=imin=outer boundary
     if(cctk_bbox[0]) {
       const int imin = cctk_nghostzones[0] - which_bdry_pt - 1;
-      XMIN_OB_SIMPLE_COPY(press, imin);
-      XMIN_OB_SIMPLE_COPY(rho, imin);
-      XMIN_OB_SIMPLE_COPY(vx, imin);
-      XMIN_OB_SIMPLE_COPY(vy, imin);
-      XMIN_OB_SIMPLE_COPY(vz, imin);
-      XMIN_OB_SIMPLE_COPY(entropy, imin);
-      XMIN_OB_SIMPLE_COPY(eps, imin);
-      XMIN_OB_SIMPLE_COPY(Y_e, imin);
-      XMIN_OB_SIMPLE_COPY(temperature, imin);
-      if (do_outflow)
-        XMIN_INFLOW_CHECK(vx, imin);
+
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int j=0; j<cctk_lsh[1]; j++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
+          const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
+
+          rho[index]         = rho[indp1];
+          press[index]       = press[indp1];
+          vx[index]          = vx[indp1];
+          vy[index]          = vy[indp1];
+          vz[index]          = vz[indp1];
+          eps[index]         = eps[indp1];
+          Y_e[index]         = Y_e[indp1];
+          temperature[index] = temperature[indp1];
+          if (do_outflow && vx[index] > 0.0)
+            vx[index] = 0.0;
+        }
+      }
     }
 
     /* YMIN & YMAX */
     // j=jmax=outer boundary
     if(cctk_bbox[3]) {
       const int jmax = cctk_lsh[1] - cctk_nghostzones[1] + which_bdry_pt;
-      YMAX_OB_SIMPLE_COPY(press, jmax);
-      YMAX_OB_SIMPLE_COPY(rho, jmax);
-      YMAX_OB_SIMPLE_COPY(vx, jmax);
-      YMAX_OB_SIMPLE_COPY(vy, jmax);
-      YMAX_OB_SIMPLE_COPY(vz, jmax);
-      YMAX_OB_SIMPLE_COPY(entropy, jmax);
-      YMAX_OB_SIMPLE_COPY(eps, jmax);
-      YMAX_OB_SIMPLE_COPY(Y_e, jmax);
-      YMAX_OB_SIMPLE_COPY(temperature, jmax);
-      if (do_outflow)
-        YMAX_INFLOW_CHECK(vy, jmax);
+#pragma omp parallel for
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
+          const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
+
+          rho[index]         = rho[indm1];
+          press[index]       = press[indm1];
+          vx[index]          = vx[indm1];
+          vy[index]          = vy[indm1];
+          vz[index]          = vz[indm1];
+          eps[index]         = eps[indm1];
+          Y_e[index]         = Y_e[indm1];
+          temperature[index] = temperature[indm1];
+          if (do_outflow && vy[index] < 0.0)
+            vy[index] = 0.0;
+        }
+      }
     }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
       const int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
-      YMIN_OB_SIMPLE_COPY(press, jmin);
-      YMIN_OB_SIMPLE_COPY(rho, jmin);
-      YMIN_OB_SIMPLE_COPY(vx, jmin);
-      YMIN_OB_SIMPLE_COPY(vy, jmin);
-      YMIN_OB_SIMPLE_COPY(vz, jmin);
-      YMIN_OB_SIMPLE_COPY(entropy, jmin);
-      YMIN_OB_SIMPLE_COPY(eps, jmin);
-      YMIN_OB_SIMPLE_COPY(Y_e, jmin);
-      YMIN_OB_SIMPLE_COPY(temperature, jmin);
-      if (do_outflow)
-        YMIN_INFLOW_CHECK(vy, jmin);
+
+      for(int k=0; k<cctk_lsh[2]; k++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
+          const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
+
+          rho[index]         = rho[indp1];
+          press[index]       = press[indp1];
+          vx[index]          = vx[indp1];
+          vy[index]          = vy[indp1];
+          vz[index]          = vz[indp1];
+          eps[index]         = eps[indp1];
+          Y_e[index]         = Y_e[indp1];
+          temperature[index] = temperature[indp1];
+          if (do_outflow && vy[index] > 0.0)
+            vy[index] = 0.;
+        }
+      }
     }
 
     /* ZMIN & ZMAX */
     // k=kmax=outer boundary
     if(cctk_bbox[5]) {
       const int kmax = cctk_lsh[2] - cctk_nghostzones[2] + which_bdry_pt;
-      ZMAX_OB_SIMPLE_COPY(press, kmax);
-      ZMAX_OB_SIMPLE_COPY(rho, kmax);
-      ZMAX_OB_SIMPLE_COPY(vx, kmax);
-      ZMAX_OB_SIMPLE_COPY(vy, kmax);
-      ZMAX_OB_SIMPLE_COPY(vz, kmax);
-      ZMAX_OB_SIMPLE_COPY(entropy, kmax);
-      ZMAX_OB_SIMPLE_COPY(eps, kmax);
-      ZMAX_OB_SIMPLE_COPY(Y_e, kmax);
-      ZMAX_OB_SIMPLE_COPY(temperature, kmax);
-      if (do_outflow)
-        ZMAX_INFLOW_CHECK(vz, kmax);
+
+      for(int j=0; j<cctk_lsh[1]; j++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
+          const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
+
+          rho[index]         = rho[indm1];
+          press[index]       = press[indm1];
+          vx[index]          = vx[indm1];
+          vy[index]          = vy[indm1];
+          vz[index]          = vz[indm1];
+          eps[index]         = eps[indm1];
+          Y_e[index]         = Y_e[indm1];
+          temperature[index] = temperature[indm1];
+          if (do_outflow && vz[index] < 0.0)
+            vz[index] = 0.;
+        }
+      }
     }
     // k=kmin=outer boundary
     if((cctk_bbox[4]) && Symmetry_none) {
       const int kmin = cctk_nghostzones[2] - which_bdry_pt - 1;
-      ZMIN_OB_SIMPLE_COPY(press, kmin);
-      ZMIN_OB_SIMPLE_COPY(rho, kmin);
-      ZMIN_OB_SIMPLE_COPY(vx, kmin);
-      ZMIN_OB_SIMPLE_COPY(vy, kmin);
-      ZMIN_OB_SIMPLE_COPY(vz, kmin);
-      ZMIN_OB_SIMPLE_COPY(entropy, kmin);
-      ZMIN_OB_SIMPLE_COPY(temperature, kmin);
-      ZMIN_OB_SIMPLE_COPY(Y_e, kmin);
-      ZMIN_OB_SIMPLE_COPY(temperature, kmin);
-      if (do_outflow)
-        ZMIN_INFLOW_CHECK(vz, kmin);
+
+      for(int j=0; j<cctk_lsh[1]; j++) {
+        for(int i=0; i<cctk_lsh[0]; i++) {
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
+          const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
+
+          rho[index]         = rho[indp1];
+          press[index]       = press[indp1];
+          vx[index]          = vx[indp1];
+          vy[index]          = vy[indp1];
+          vz[index]          = vz[indp1];
+          eps[index]         = eps[indp1];
+          Y_e[index]         = Y_e[indp1];
+          temperature[index] = temperature[indp1];
+          if (do_outflow && vz[index] > 0.0)
+            vz[index] = 0.;
+        }
+      }
     }
   }
 

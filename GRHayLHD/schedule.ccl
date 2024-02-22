@@ -79,6 +79,13 @@ schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 {
 } "Compute primitive variables from conservatives"
 
+# Does MoL sync evolved variables after each substep? If so, no need for this
+schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs
+{
+  LANG: C
+  SYNC: grmhd_conservatives
+} "Sync conservative variable ghost zones for c2p routine"
+
 if(perturb_every_con2prim) {
   schedule group GRHayLHD_perturb_conservatives in GRHayLHD_Con2Prim after GRHayLHD_sync_conservatives before GRHayLHD_conservs_to_prims
   {
@@ -142,10 +149,10 @@ schedule GROUP GRHayLHD_PostPostInitial at CCTK_POSTPOSTINITIAL before MoL_PostS
 {
 } "HydroBase_Con2Prim in CCTK_POSTPOSTINITIAL sets conserv to prim then outer boundaries (OBs, which are technically disabled). The post OB SYNCs actually reprolongate the conservative variables, making cons and prims INCONSISTENT. So here we redo the con2prim, avoiding the SYNC afterward, then copy the result to other timelevels"
 
-schedule GRHayLHD_InitSymBound in GRHayLHD_PostPostInitial as postid before compute_b
+schedule GRHayLHD_InitSymBound in GRHayLHD_PostPostInitial
 {
-  SYNC: grmhd_conservatives
   LANG: C
+  SYNC: grmhd_conservatives
 } "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
 
 # Copy data to other timelevels.
@@ -153,13 +160,8 @@ schedule GRHayLHD_PostPostInitial_Set_Symmetries__Copy_Timelevels in GRHayLHD_Po
 {
   LANG: C
 } "Compute post-initialdata quantities"
-####################
 
-schedule GRHayLHD_InitSymBound in HydroBase_Boundaries as Boundary_SYNCs
-{
-  SYNC: grmhd_conservatives
-  LANG: C
-} "Schedule symmetries -- Actually just a placeholder function to ensure prolongations / processor syncs are done BEFORE outer boundaries are updated."
+####################
 
 #########################################################
 # Set HydroBase variables for analysis

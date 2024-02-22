@@ -18,21 +18,21 @@ void GRHayLHD_InitSymBound(CCTK_ARGUMENTS)
 
     int sym[3];
 
-    if(CCTK_EQUALS(Symmetry,"none")) {
-      /* FIRST SET NO SYMMETRY OPTION */
-      sym[0] = 1; sym[1] = 1; sym[2] = 1;
-      SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_conservatives");
-      SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_velocities");
-    } else if(CCTK_EQUALS(Symmetry,"equatorial")) {
-      /* THEN SET EQUATORIAL SYMMETRY OPTION */
-      // Set default to no symmetry, which is correct for scalars and most vectors:
-      sym[0] = 1; sym[1] = 1; sym[2] = 1;
-      SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_conservatives");
-      SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_velocities");
-    } else {
+    sym[0] = 1; sym[1] = 1; sym[2] = 1;
+    SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_conservatives");
+    SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_velocities");
+    if(ghl_params->evolve_entropy)
+      SetCartSymGN(cctkGH,sym,"GRHayLHD::ent_star");
+    if(ghl_eos->eos_type == ghl_eos_tabulated)
+      SetCartSymGN(cctkGH,sym,"GRHayLHD::Ye_star");
+
+    if(CCTK_EQUALS(Symmetry,"equatorial")) {
+      sym[2] = -1;
+      SetCartSymVN(cctkGH, sym,"GRHayLHD::Stilde_z");
+      SetCartSymVN(cctkGH, sym,"GRHayLHD::vz");
+    } else if (!CCTK_EQUALS(Symmetry,"none")) {
       CCTK_ERROR("GRHayLHD_initsymbound: Should not be here; picked an impossible symmetry.");
     }
   }
 }
-
 

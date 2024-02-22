@@ -1,7 +1,7 @@
 #include "GRHayLHD.h"
 
 void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLHD;
   DECLARE_CCTK_PARAMETERS;
 
   const int imax = cctk_lsh[0];
