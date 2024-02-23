@@ -220,6 +220,7 @@ void GRHayLHD_tabulated_entropy_enforce_primitive_limits_and_compute_conservs(co
 
   rho[index]         = prims->rho;
   press[index]       = prims->press;
+  u0[index]          = prims->u0;
   vx[index]          = prims->vU[0];
   vy[index]          = prims->vU[1];
   vz[index]          = prims->vU[2];

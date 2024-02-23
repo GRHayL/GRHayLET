@@ -243,6 +243,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         rho[index]         = prims.rho;
         press[index]       = prims.press;
         eps[index]         = prims.eps;
+        u0[index]          = prims.u0;
         vx[index]          = prims.vU[0];
         vy[index]          = prims.vU[1];
         vz[index]          = prims.vU[2];
@@ -405,14 +406,15 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                                                         &ADM_metric, &prims);
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
-        rho[index] = prims.rho;
-        press[index] = prims.press;
-        eps[index] = prims.eps;
-        vx[index] = prims.vU[0];
-        vy[index] = prims.vU[1];
-        vz[index] = prims.vU[2];
-        entropy[index] = prims.entropy;
-        Y_e[index] = prims.Y_e;
+        rho[index]         = prims.rho;
+        press[index]       = prims.press;
+        eps[index]         = prims.eps;
+        u0[index]          = prims.u0;
+        vx[index]          = prims.vU[0];
+        vy[index]          = prims.vU[1];
+        vz[index]          = prims.vU[2];
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
         temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;
@@ -524,14 +526,15 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                                                         &ADM_metric, &prims);
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
-        rho[index] = prims.rho;
-        press[index] = prims.press;
-        eps[index] = prims.eps;
-        vx[index] = prims.vU[0];
-        vy[index] = prims.vU[1];
-        vz[index] = prims.vU[2];
-        entropy[index] = prims.entropy;
-        Y_e[index] = prims.Y_e;
+        rho[index]         = prims.rho;
+        press[index]       = prims.press;
+        eps[index]         = prims.eps;
+        u0[index]          = prims.u0;
+        vx[index]          = prims.vU[0];
+        vy[index]          = prims.vU[1];
+        vz[index]          = prims.vU[2];
+        entropy[index]     = prims.entropy;
+        Y_e[index]         = prims.Y_e;
         temperature[index] = prims.temperature;
 
         rho_star[index] = cons.rho;

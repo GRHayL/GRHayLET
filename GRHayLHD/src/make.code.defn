@@ -10,6 +10,4 @@ SRCS = compute_metric_derivs.c         \
        convert_GRHayLHD_to_HydroBase.c \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
-       MoL_registration.c              \
-       postpostinitial__set_symmetries__copy_timelevels.c \
-       symmetry__set_gzs_staggered_gfs.c
+       MoL_registration.c 

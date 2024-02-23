@@ -34,8 +34,8 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         prims.vU[2] = vz[index];
         prims.u0    = u0[index];
 
-        ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
-                                                    &ADM_metric, &prims);
+        //ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
+        //                                            &ADM_metric, &prims);
 
         ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);
