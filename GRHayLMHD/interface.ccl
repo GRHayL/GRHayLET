@@ -24,14 +24,14 @@ CCTK_REAL u0 type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoin
 #########################################################
 
 # Evolved variables
-CCTK_REAL grmhd_conservatives type = GF Timelevels=3
+CCTK_REAL grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation_type="ENO"'
 {
   rho_star, tau, Stildex, Stildey, Stildez
 } "Evolved hydrodynamic variables"
 
 # We split these to better control read/write access
-CCTK_REAL Ye_star type = GF Timelevels=3 "Evolved electron fraction variable"
-CCTK_REAL ent_star type = GF Timelevels=3 "Evolved entropy variable"
+CCTK_REAL Ye_star type = GF Timelevels=3 TAGS='prolongation_type="ENO"' "Evolved electron fraction variable"
+CCTK_REAL ent_star type = GF Timelevels=3 TAGS='prolongation_type="ENO"' "Evolved entropy variable"
 
 # These variables are semi-staggered. Since their staggering and--by extension--
 # prolongation type are different, we cannot use the Avec defined by

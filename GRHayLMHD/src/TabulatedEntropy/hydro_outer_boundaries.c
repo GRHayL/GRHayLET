@@ -226,12 +226,14 @@ void GRHayLMHD_tabulated_entropy_conservs_outer_boundaries(const cGH* cctkGH, co
 
   rho_b[index]       = prims->rho;
   pressure[index]    = prims->press;
+  eps[index]         = prims->eps;
   vx[index]          = prims->vU[0];
   vy[index]          = prims->vU[1];
   vz[index]          = prims->vU[2];
   entropy[index]     = prims->entropy;
   Y_e[index]         = prims->Y_e;
   temperature[index] = prims->temperature;
+  u0[index]          = prims->u0;
 
   rho_star[index] = cons.rho;
   tau[index]      = cons.tau;
