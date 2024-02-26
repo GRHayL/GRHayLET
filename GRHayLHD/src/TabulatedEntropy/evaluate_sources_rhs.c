@@ -87,7 +87,7 @@ void GRHayLHD_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &ADM_metric_derivs_z,
               &curv, &cons_source);
 
-        tau_rhs    [index] = cons_source.tau;
+        tau_rhs[index]     = cons_source.tau;
         Stildex_rhs[index] = cons_source.SD[0];
         Stildey_rhs[index] = cons_source.SD[1];
         Stildez_rhs[index] = cons_source.SD[2];

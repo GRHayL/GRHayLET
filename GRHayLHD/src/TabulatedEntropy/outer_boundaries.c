@@ -117,7 +117,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
-      const int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+      const int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int i=0; i<cctk_lsh[0]; i++) {

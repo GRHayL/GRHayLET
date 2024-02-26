@@ -11,7 +11,7 @@
 
 #include "GRHayLHD.h"
 
-static void GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
+void GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -111,7 +111,7 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
     }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
-      const int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+      const int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -121,12 +121,12 @@ void GRHayLHD_hybrid_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const CCTK_REAL vtmp = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
           ghl_primitive_quantities prims;
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-          prims.rho         = rho[indp1];
-          prims.press       = press[indp1];
-          prims.vU[0]       = vx[indp1];
-          prims.vU[1]       = vtmp;
-          prims.vU[2]       = vz[indp1];
-          prims.entropy     = entropy[indp1];
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
+          prims.vU[0]   = vx[indp1];
+          prims.vU[1]   = vtmp;
+          prims.vU[2]   = vz[indp1];
+          prims.entropy = entropy[indp1];
 
           GRHayLHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
