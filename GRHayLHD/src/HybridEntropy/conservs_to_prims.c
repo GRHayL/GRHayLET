@@ -84,7 +84,8 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
         /************* Main conservative-to-primitive logic ************/
         if (cons.rho > 0.0 &&
-            isfinite(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*cons.entropy)) {
+            isfinite(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*
+                     cons.entropy)) {
 
           ghl_apply_conservative_limits(
               ghl_params, ghl_eos, &ADM_metric,
@@ -200,7 +201,8 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
 
-            if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*prims.entropy*prims.Y_e*prims.temperature) )
+            if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+                     prims.entropy) )
               check = 1;
 
             if(check) {
@@ -322,7 +324,7 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         cons_orig.SD[0]   = Stildex[index];
         cons_orig.SD[1]   = Stildey[index];
         cons_orig.SD[2]   = Stildez[index];
-        cons_orig.Y_e     = Ye_star[index];
+        cons_orig.entropy = ent_star[index];
 
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 

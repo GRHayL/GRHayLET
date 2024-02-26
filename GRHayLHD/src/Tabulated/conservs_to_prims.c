@@ -83,7 +83,8 @@ void GRHayLHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
 
         /************* Main conservative-to-primitive logic ************/
         if (cons.rho > 0.0 &&
-            isfinite(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*cons.Y_e)) {
+            isfinite(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*
+                     cons.Y_e)) {
 
           ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
@@ -220,7 +221,7 @@ void GRHayLHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
         Y_e[index]         = prims.Y_e;
         temperature[index] = prims.temperature;
 
-        if (diagnostics.speed_limited) {
+        if(diagnostics.speed_limited) {
           local_failure_checker += 10;
           vel_limited_ptcount++;
         }

@@ -21,10 +21,10 @@ void GRHayLHD_InitSymBound(CCTK_ARGUMENTS)
     sym[0] = 1; sym[1] = 1; sym[2] = 1;
     SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_conservatives");
     SetCartSymGN(cctkGH,sym,"GRHayLHD::grmhd_velocities");
-    //if(ghl_params->evolve_entropy)
-    //  SetCartSymGN(cctkGH,sym,"GRHayLHD::ent_star");
-    //if(ghl_eos->eos_type == ghl_eos_tabulated)
-    //  SetCartSymGN(cctkGH,sym,"GRHayLHD::Ye_star");
+    if(ghl_params->evolve_entropy)
+      SetCartSymGN(cctkGH,sym,"GRHayLHD::ent_star");
+    if(ghl_eos->eos_type == ghl_eos_tabulated)
+      SetCartSymGN(cctkGH,sym,"GRHayLHD::Ye_star");
 
     if(CCTK_EQUALS(Symmetry,"equatorial")) {
       sym[2] = -1;

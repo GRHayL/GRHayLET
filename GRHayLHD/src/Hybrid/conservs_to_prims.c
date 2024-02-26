@@ -193,7 +193,7 @@ void GRHayLHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
 
-            if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*prims.entropy*prims.Y_e*prims.temperature) )
+            if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) )
               check = 1;
 
             if(check) {
