@@ -1,10 +1,5 @@
 #include "GRHayLHD.h"
 
-static inline CCTK_REAL get_Gamma_eff(const CCTK_REAL rho_in,
-                                      const CCTK_REAL press_in) {
-  return 1.0;
-}
-
 void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;

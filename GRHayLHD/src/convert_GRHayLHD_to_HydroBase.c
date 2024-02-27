@@ -18,7 +18,7 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 1);
         const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 2);
 
-        // IllinoisGRMHD defines v^i = u^i/u^0.
+        // GRHayLHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
         // formalism, splits the 4 velocity into a purely spatial part

@@ -45,3 +45,4 @@ void GRHayLHD_compute_metric_derivs(
         d_gyy, d_gyz, d_gzz,
         metric_derivs);
 }
+

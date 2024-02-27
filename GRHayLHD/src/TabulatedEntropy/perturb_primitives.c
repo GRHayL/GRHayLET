@@ -10,17 +10,17 @@ void GRHayLHD_tabulated_entropy_perturb_primitives(CCTK_ARGUMENTS) {
 
   srand(random_seed); // Use srand() as rand() is thread-safe.
 #pragma omp parallel for
-  for(int k=0; k<kmax; k++) {
-    for(int j=0; j<jmax; j++) {
-      for(int i=0; i<imax; i++) {
+  for (int k = 0; k < kmax; k++) {
+    for (int j = 0; j < jmax; j++) {
+      for (int i = 0; i < imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-        rho[index]         *= one_plus_pert(random_pert);
-        press[index]       *= one_plus_pert(random_pert);
-        vx[index]          *= one_plus_pert(random_pert);
-        vy[index]          *= one_plus_pert(random_pert);
-        vz[index]          *= one_plus_pert(random_pert);
-        entropy[index]     *= one_plus_pert(random_pert);
-        Y_e[index]         *= one_plus_pert(random_pert);
+        rho[index] *= one_plus_pert(random_pert);
+        press[index] *= one_plus_pert(random_pert);
+        vx[index] *= one_plus_pert(random_pert);
+        vy[index] *= one_plus_pert(random_pert);
+        vz[index] *= one_plus_pert(random_pert);
+        entropy[index] *= one_plus_pert(random_pert);
+        Y_e[index] *= one_plus_pert(random_pert);
         temperature[index] *= one_plus_pert(random_pert);
       }
     }

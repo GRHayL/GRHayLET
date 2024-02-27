@@ -44,3 +44,4 @@ void GRHayLHD_interpolate_metric_to_face(
         face_gyy, face_gyz, face_gzz,
         metric);
 }
+

@@ -7,8 +7,7 @@
 #include "GRHayLHD.h"
 #include "Symmetry.h"
 
-void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
-{
+void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_RegisterVars;
   DECLARE_CCTK_PARAMETERS;
 
@@ -16,23 +15,24 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
 
   //***********************************************
   // Register evolution & RHS gridfunction variables
-  var = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives");
-  rhs = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives_rhs");
+  var = CCTK_GroupIndex("GRHayLHD::grhd_conservatives");
+  rhs = CCTK_GroupIndex("GRHayLHD::grhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(var, rhs);
 
-  if(ghl_params->evolve_entropy) {
+  if (ghl_params->evolve_entropy) {
     var = CCTK_GroupIndex("GRHayLHD::ent_star");
     rhs = CCTK_GroupIndex("GRHayLHD::ent_star_rhs");
     ierr += MoLRegisterEvolvedGroup(var, rhs);
   }
 
-  if(ghl_eos->eos_type == ghl_eos_tabulated) {
+  if (ghl_eos->eos_type == ghl_eos_tabulated) {
     var = CCTK_GroupIndex("GRHayLHD::Ye_star");
     rhs = CCTK_GroupIndex("GRHayLHD::Ye_star_rhs");
     ierr += MoLRegisterEvolvedGroup(var, rhs);
   }
 
-  if (ierr) CCTK_ERROR("Problems registering with MoL");
+  if (ierr)
+    CCTK_ERROR("Problems registering with MoL");
   //***********************************************
 
   //***********************************************
@@ -47,5 +47,6 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
   ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::shift"));
   ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::metric"));
   ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::curv"));
-  if (ierr) CCTK_ERROR("Problems registering with MoLRegisterSaveAndRestoreGroup");
+  if (ierr)
+    CCTK_ERROR("Problems registering with MoLRegisterSaveAndRestoreGroup");
 }
