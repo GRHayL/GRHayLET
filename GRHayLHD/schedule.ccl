@@ -83,7 +83,7 @@ schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 schedule GRHayLHD_InitSymBound in GRHayLHD_Con2Prim as GRHayLHD_sync_conservatives
 {
   LANG: C
-  SYNC: grmhd_conservatives
+  SYNC: grmhd_conservatives, Ye_star, ent_star
 } "Sync conservative variable ghost zones for c2p routine"
 
 if(perturb_every_con2prim) {
@@ -183,9 +183,10 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grmhd_conservatives, ent_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), u0(everywhere),
-              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+              HydroBase::rho(everywhere), HydroBase::press(everywhere),
+              HydroBase::entropy, grmhd_conservatives, ent_star
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              u0(everywhere), grmhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
               HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
     } "Entropy+Hybrid version of GRHayLHD_conservs_to_prims"
@@ -200,7 +201,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_velocities(everywhere), HydroBase::rho(everywhere),
               HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::entropy
+      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::entropy
     } "Entropy+Hybrid version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_hybrid_entropy_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
@@ -326,13 +327,13 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grmhd_conservatives, grmhd_velocities, ent_star, Ye_star
+              grmhd_conservatives, ent_star, Ye_star
       WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
               u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Entropy+Tabulated version of GRHayLHD_conservs_to_prims"
-    
+
     schedule GRHayLHD_tabulated_entropy_outer_boundaries in GRHayLHD_outer_boundaries
     {
       LANG: C

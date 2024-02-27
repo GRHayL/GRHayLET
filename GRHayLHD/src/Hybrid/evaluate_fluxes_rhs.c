@@ -69,7 +69,7 @@ void GRHayLHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
     for(int k=kmin; k<kmax+1; k++) {
       for(int j=jmin; j<jmax+1; j++) {
         for(int i=imin; i<imax+1; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
           ghl_metric_quantities ADM_metric_face;
           GRHayLHD_interpolate_metric_to_face(
@@ -126,7 +126,7 @@ void GRHayLHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
       }
     }
 
-    CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
+    const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
 
 #pragma omp parallel for
     for(int k=kmin; k<kmax; k++) {

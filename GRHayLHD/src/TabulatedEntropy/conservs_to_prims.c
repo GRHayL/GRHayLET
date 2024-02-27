@@ -292,6 +292,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         prims.vU[0]       = vx[index];
         prims.vU[1]       = vy[index];
         prims.vU[2]       = vz[index];
+        prims.entropy     = entropy[index];
         prims.Y_e         = Y_e[index];
         prims.temperature = temperature[index];
 
@@ -301,6 +302,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         cons_orig.SD[0]   = Stildex[index];
         cons_orig.SD[1]   = Stildey[index];
         cons_orig.SD[2]   = Stildez[index];
+        cons_orig.entropy = ent_star[index];
         cons_orig.Y_e     = Ye_star[index];
 
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
@@ -322,8 +324,8 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         error_Sz_numer  += fabs(cons.SD[2] - cons_orig.SD[2]);
         error_ent_numer += fabs(cons.entropy - cons_orig.entropy);
         error_Ye_numer  += fabs(cons.Y_e - cons_orig.Y_e);
-        error_rho_denom += cons_orig.tau;
-        error_tau_denom += cons_orig.rho;
+        error_rho_denom += cons_orig.rho;
+        error_tau_denom += cons_orig.tau;
         error_Sx_denom  += fabs(cons_orig.SD[0]);
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
@@ -358,9 +360,9 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e | "
         "Y_e %.3e, %.3e\n"
         "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
-        cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount, backup0,
-        backup1, backup2, vel_limited_ptcount, rho_star_fix_applied,
-        pointcount_avg,
+        cctk_iteration, GetRefinementLevel(cctkGH), pointcount,
+        backup0, backup1, backup2, vel_limited_ptcount,
+        rho_star_fix_applied, pointcount_avg,
         failures, failures_inhoriz, pointcount_inhoriz,
         (CCTK_REAL)n_iter / ((CCTK_REAL)(pointcount)),
         rho_error, error_rho_denom, tau_error, error_tau_denom,

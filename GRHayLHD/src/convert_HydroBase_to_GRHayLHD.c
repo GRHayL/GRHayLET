@@ -12,11 +12,11 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
-        const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int index=CCTK_GFINDEX3D(cctkGH, i, j, k);
 
-        const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
-        const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
-        const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];
+        const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 0)];
+        const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 1)];
+        const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 2)];
 
         // GRHayLHD defines v^i = u^i/u^0.
 

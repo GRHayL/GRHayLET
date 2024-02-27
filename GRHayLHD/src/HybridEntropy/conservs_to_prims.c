@@ -116,11 +116,11 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           cons.entropy = ent_star[index];
 
           ghl_conservative_quantities cons_neigh_avg, cons_avg;
-          cons_neigh_avg.rho   = 0.0;
-          cons_neigh_avg.tau   = 0.0;
-          cons_neigh_avg.SD[0] = 0.0;
-          cons_neigh_avg.SD[1] = 0.0;
-          cons_neigh_avg.SD[2] = 0.0;
+          cons_neigh_avg.rho     = 0.0;
+          cons_neigh_avg.tau     = 0.0;
+          cons_neigh_avg.SD[0]   = 0.0;
+          cons_neigh_avg.SD[1]   = 0.0;
+          cons_neigh_avg.SD[2]   = 0.0;
           cons_neigh_avg.entropy = 0.0;
 
           const int iavg_min = MAX(0, i-1);
@@ -275,7 +275,6 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   CCTK_REAL error_Sy_numer = 0;
   CCTK_REAL error_Sz_numer = 0;
   CCTK_REAL error_ent_numer = 0;
-  CCTK_REAL error_Ye_numer = 0;
 
   CCTK_REAL error_rho_denom = 0;
   CCTK_REAL error_tau_denom = 0;
@@ -309,13 +308,13 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-        prims.rho   = rho[index];
-        prims.press = press[index];
-        prims.eps   = eps[index];
-        prims.u0    = u0[index];
-        prims.vU[0] = vx[index];
-        prims.vU[1] = vy[index];
-        prims.vU[2] = vz[index];
+        prims.rho     = rho[index];
+        prims.press   = press[index];
+        prims.eps     = eps[index];
+        prims.u0      = u0[index];
+        prims.vU[0]   = vx[index];
+        prims.vU[1]   = vy[index];
+        prims.vU[2]   = vz[index];
         prims.entropy = entropy[index];
 
         ghl_conservative_quantities cons, cons_orig;
@@ -343,8 +342,8 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         error_Sy_numer  += fabs(cons.SD[1] - cons_orig.SD[1]);
         error_Sz_numer  += fabs(cons.SD[2] - cons_orig.SD[2]);
         error_ent_numer += fabs(cons.entropy - cons_orig.entropy);
-        error_rho_denom += cons_orig.tau;
-        error_tau_denom += cons_orig.rho;
+        error_rho_denom += cons_orig.rho;
+        error_tau_denom += cons_orig.tau;
         error_Sx_denom  += fabs(cons_orig.SD[0]);
         error_Sy_denom  += fabs(cons_orig.SD[1]);
         error_Sz_denom  += fabs(cons_orig.SD[2]);
@@ -376,9 +375,9 @@ void GRHayLHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         "                 Averaged pts = %d Font1D %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
         "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e\n"
         "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
-        cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount, backup0,
-        backup1, backup2, vel_limited_ptcount, rho_star_fix_applied,
-        pointcount_avg, pointcount_Font,
+        cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,
+        backup0, backup1, backup2, vel_limited_ptcount,
+        rho_star_fix_applied, pointcount_avg, pointcount_Font,
         failures, failures_inhoriz, pointcount_inhoriz,
         (CCTK_REAL)n_iter / ((CCTK_REAL)(pointcount)),
         rho_error, error_rho_denom, tau_error, error_tau_denom,
