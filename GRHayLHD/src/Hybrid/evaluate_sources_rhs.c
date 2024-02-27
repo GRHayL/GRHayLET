@@ -45,7 +45,8 @@ void GRHayLHD_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
 
-        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
+        const int speed_limited CCTK_ATTRIBUTE_UNUSED =
+              ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
         ghl_metric_quantities ADM_metric_derivs_x;
         GRHayLHD_compute_metric_derivs(

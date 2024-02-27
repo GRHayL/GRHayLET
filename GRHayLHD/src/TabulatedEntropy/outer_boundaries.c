@@ -1,6 +1,7 @@
 /*******************************************************
  * Outer boundaries are handled as follows:
- * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones (including outer AMR refinement, processor, and outer boundaries)
+ * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones
+ *      (including outer AMR refinement, processor, and outer boundaries)
  * ( 0) Let MoL update all evolution variables
  * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
  * ( 2) Compute B^i from A_i everywhere, synchronize B^i
@@ -24,13 +25,14 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_outer_boundaries;
   DECLARE_CCTK_PARAMETERS;
 
-  if(CCTK_EQUALS(Matter_BC,"frozen")) return;
+  if(CCTK_EQUALS(Matter_BC, "frozen")) return;
 
-  const bool do_outflow = CCTK_EQUALS(Matter_BC,"outflow");
+  const bool do_outflow = CCTK_EQUALS(Matter_BC, "outflow");
 
-  const bool Symmetry_none = CCTK_EQUALS(Symmetry,"none") ? true : false;
+  const bool Symmetry_none = CCTK_EQUALS(Symmetry, "none") ? true : false;
 
-  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
+  // Don't apply approximate outer boundary conditions on initial data, which
+  // should be defined everywhere, or on levels != [coarsest level].
   if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
@@ -214,6 +216,7 @@ void GRHayLHD_tabulated_entropy_enforce_primitive_limits_and_compute_conservs(co
 
   rho[index]         = prims->rho;
   press[index]       = prims->press;
+  eps[index]         = prims->eps;
   u0[index]          = prims->u0;
   vx[index]          = prims->vU[0];
   vy[index]          = prims->vU[1];

@@ -1,8 +1,8 @@
 # Schedule for thorn GRHayLHD
 
-STORAGE: grmhd_conservatives[3], grmhd_velocities
-STORAGE: u0, grmhd_conservatives_rhs
-STORAGE: grmhd_flux_temps, failure_checker
+STORAGE: grhd_conservatives[3], grhd_velocities
+STORAGE: u0, grhd_conservatives_rhs
+STORAGE: grhd_flux_temps, failure_checker
 
 if (CCTK_Equals(EOS_type, "Tabulated")) {
   STORAGE: Ye_star[3], Ye_star_rhs, Ye_star_flux
@@ -42,8 +42,8 @@ schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
   LANG: C
   READS:  ADMBase::lapse, ADMBase::shift
   READS:  HydroBase::vel
-  WRITES: grmhd_velocities(everywhere)
-  SYNC: grmhd_velocities
+  WRITES: grhd_velocities(everywhere)
+  SYNC: grhd_velocities
 } "Convert HydroBase initial data (ID) to GRHayLHD variables"
 
 if(perturb_initial_data) {
@@ -66,7 +66,7 @@ if(Convert_to_HydroBase_every) {
   {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-            grmhd_velocities
+            grhd_velocities
     WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
 }
@@ -83,7 +83,7 @@ schedule group GRHayLHD_Con2Prim in HydroBase_Con2Prim
 schedule GRHayLHD_InitSymBound in GRHayLHD_Con2Prim as GRHayLHD_sync_conservatives
 {
   LANG: C
-  SYNC: grmhd_conservatives, Ye_star, ent_star
+  SYNC: grhd_conservatives, Ye_star, ent_star
 } "Sync conservative variable ghost zones for c2p routine"
 
 if(perturb_every_con2prim) {
@@ -110,7 +110,7 @@ schedule GRHayLHD_compute_Tmunu in AddToTmunu
   LANG: C
   READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
           HydroBase::rho, HydroBase::press, HydroBase::eps,
-          grmhd_velocities, u0
+          grhd_velocities, u0
   WRITES: TmunuBase::stress_energy_scalar(everywhere),
           TmunuBase::stress_energy_vector(everywhere),
           TmunuBase::stress_energy_tensor(everywhere)
@@ -138,7 +138,7 @@ if(CCTK_IsThornActive("NRPyLeakageET"))
   {
     LANG: C
     READS:  ADMBase::lapse, ADMBase::shift,
-            grmhd_velocities
+            grhd_velocities
     WRITES: HydroBase::vel(everywhere)
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
@@ -153,7 +153,7 @@ if(Convert_to_HydroBase_every) {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-            grmhd_velocities
+            grhd_velocities
     WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere)
   } "Convert GRHayLHD-native variables to HydroBase"
 }
@@ -170,12 +170,12 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::eps,
-              HydroBase::entropy, grmhd_velocities
-      WRITES: u0(everywhere), grmhd_velocities(everywhere),
-              grmhd_conservatives(everywhere), ent_star(everywhere),
+              HydroBase::entropy, grhd_velocities
+      WRITES: u0(everywhere), grhd_velocities(everywhere),
+              grhd_conservatives(everywhere), ent_star(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
               HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
-      SYNC: grmhd_conservatives, ent_star
+      SYNC: grhd_conservatives, ent_star
     } "Entropy+Hybrid version of GRHayLHD_prims_to_conservs"
 
     schedule GRHayLHD_hybrid_entropy_conservs_to_prims in GRHayLHD_conservs_to_prims
@@ -184,9 +184,9 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
-              HydroBase::entropy, grmhd_conservatives, ent_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
-              u0(everywhere), grmhd_velocities(everywhere),
+              HydroBase::entropy, grhd_conservatives, ent_star
+      WRITES: grhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              u0(everywhere), grhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
               HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
     } "Entropy+Hybrid version of GRHayLHD_conservs_to_prims"
@@ -196,45 +196,45 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press,
-              HydroBase::entropy, grmhd_velocities
-      WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere),
-              grmhd_velocities(everywhere), HydroBase::rho(everywhere),
+              HydroBase::entropy, grhd_velocities
+      WRITES: u0(everywhere), grhd_conservatives(everywhere), ent_star(everywhere),
+              grhd_velocities(everywhere), HydroBase::rho(everywhere),
               HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::entropy
+      SYNC:   grhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::entropy
     } "Entropy+Hybrid version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_hybrid_entropy_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
-              HydroBase::rho, HydroBase::press, HydroBase::entropy, grmhd_velocities
-      WRITES: grmhd_conservatives_rhs, ent_star_rhs
+              HydroBase::rho, HydroBase::press, HydroBase::entropy, grhd_velocities
+      WRITES: grhd_conservatives_rhs, ent_star_rhs
     } "Entropy+Hybrid version of GRHayLHD_evaluate_sources_rhs"
 
     schedule GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs in GRHayLHD_evaluate_fluxes_rhs
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              HydroBase::rho, HydroBase::press, HydroBase::entropy, grmhd_velocities,
-              grmhd_conservatives_rhs(interior), ent_star_rhs(interior)
-      WRITES: grmhd_flux_temps, grmhd_conservatives_rhs, ent_star_flux, ent_star_rhs
+              HydroBase::rho, HydroBase::press, HydroBase::entropy, grhd_velocities,
+              grhd_conservatives_rhs(interior), ent_star_rhs(interior)
+      WRITES: grhd_flux_temps, grhd_conservatives_rhs, ent_star_flux, ent_star_rhs
     } "Entropy+Hybrid version of GRHayLHD_evaluate_fluxes_rhs"
 
     schedule GRHayLHD_hybrid_entropy_perturb_primitives in GRHayLHD_perturb_primitives
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-              HydroBase::entropy, grmhd_velocities
+              HydroBase::entropy, grhd_velocities
       WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
-              HydroBase::entropy, grmhd_velocities(everywhere)
+              HydroBase::entropy, grhd_velocities(everywhere)
     } "Entropy+Hybrid version of GRHayLHD_perturb_primitives"
 
     schedule GRHayLHD_hybrid_entropy_perturb_conservatives in GRHayLHD_perturb_conservatives
     {
       LANG: C
-      READS:  grmhd_conservatives, ent_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere)
+      READS:  grhd_conservatives, ent_star
+      WRITES: grhd_conservatives(everywhere), ent_star(everywhere)
     } "Entropy+Hybrid version of GRHayLHD_perturb_conservatives"
 
   } else {
@@ -244,10 +244,10 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::eps,
-              grmhd_velocities
-      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              grhd_velocities
+      WRITES: u0(everywhere), grhd_velocities(everywhere), grhd_conservatives(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
-      SYNC: grmhd_conservatives
+      SYNC: grhd_conservatives
     } "Hybrid version of GRHayLHD_prims_to_conservs"
 
     schedule GRHayLHD_hybrid_conservs_to_prims in GRHayLHD_conservs_to_prims
@@ -255,9 +255,9 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grmhd_conservatives
-      WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
-              u0(everywhere), grmhd_velocities(everywhere),
+              grhd_conservatives
+      WRITES: grhd_conservatives(everywhere), failure_checker(everywhere),
+              u0(everywhere), grhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
     } "Hybrid version of GRHayLHD_conservs_to_prims"
     
@@ -265,43 +265,43 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              HydroBase::rho, HydroBase::press, grmhd_velocities
-      WRITES: u0(everywhere), grmhd_conservatives(everywhere), grmhd_velocities(everywhere),
+              HydroBase::rho, HydroBase::press, grhd_velocities
+      WRITES: u0(everywhere), grhd_conservatives(everywhere), grhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps
+      SYNC:   grhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps
     } "Hybrid version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_hybrid_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
-              HydroBase::rho, HydroBase::press, grmhd_velocities
-      WRITES: grmhd_conservatives_rhs
+              HydroBase::rho, HydroBase::press, grhd_velocities
+      WRITES: grhd_conservatives_rhs
     } "Hybrid version of GRHayLHD_evaluate_sources_rhs"
 
     schedule GRHayLHD_hybrid_evaluate_fluxes_rhs in GRHayLHD_evaluate_fluxes_rhs
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              HydroBase::rho, HydroBase::press, grmhd_velocities,
-              grmhd_conservatives_rhs(interior)
-      WRITES: grmhd_flux_temps, grmhd_conservatives_rhs
+              HydroBase::rho, HydroBase::press, grhd_velocities,
+              grhd_conservatives_rhs(interior)
+      WRITES: grhd_flux_temps, grhd_conservatives_rhs
     } "Hybrid version of GRHayLHD_evaluate_fluxes_rhs"
 
     schedule GRHayLHD_hybrid_perturb_primitives in GRHayLHD_perturb_primitives
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-              grmhd_velocities
+              grhd_velocities
       WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
-              HydroBase::eps(everywhere), grmhd_velocities(everywhere)
+              HydroBase::eps(everywhere), grhd_velocities(everywhere)
     } "Hybrid version of GRHayLHD_perturb_primitives"
 
     schedule GRHayLHD_hybrid_perturb_conservatives in GRHayLHD_perturb_conservatives
     {
       LANG: C
-      READS:  grmhd_conservatives
-      WRITES: grmhd_conservatives(everywhere)
+      READS:  grhd_conservatives
+      WRITES: grhd_conservatives(everywhere)
     } "Hybrid version of GRHayLHD_perturb_conservatives"
 
   }
@@ -314,12 +314,12 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-              grmhd_velocities
-      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              grhd_velocities
+      WRITES: u0(everywhere), grhd_velocities(everywhere), grhd_conservatives(everywhere),
               ent_star(everywhere), Ye_star(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC: grmhd_conservatives, Ye_star, ent_star
+      SYNC: grhd_conservatives, Ye_star, ent_star
     } "Entropy+Tabulated version of GRHayLHD_prims_to_conservs"
 
     schedule GRHayLHD_tabulated_entropy_conservs_to_prims in GRHayLHD_conservs_to_prims
@@ -327,9 +327,9 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grmhd_conservatives, ent_star, Ye_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
-              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+              grhd_conservatives, ent_star, Ye_star
+      WRITES: grhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
+              u0(everywhere), grhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Entropy+Tabulated version of GRHayLHD_conservs_to_prims"
@@ -339,13 +339,13 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::entropy,
-              HydroBase::Y_e, HydroBase::temperature, grmhd_velocities
-      WRITES: u0(everywhere), grmhd_conservatives(everywhere),
+              HydroBase::Y_e, HydroBase::temperature, grhd_velocities
+      WRITES: u0(everywhere), grhd_conservatives(everywhere),
               ent_star(everywhere), Ye_star(everywhere),
-              grmhd_velocities(everywhere), HydroBase::rho(everywhere),
+              grhd_velocities(everywhere), HydroBase::rho(everywhere),
               HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::eps, HydroBase::press, HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
+      SYNC:   grhd_velocities, HydroBase::rho, HydroBase::eps, HydroBase::press, HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature
     } "Entropy+Tabulated version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_tabulated_entropy_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
@@ -354,8 +354,8 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
               HydroBase::rho, HydroBase::press, HydroBase::entropy,
               HydroBase::Y_e, HydroBase::temperature,
-              grmhd_velocities
-      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+              grhd_velocities
+      WRITES: grhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
     } "Entropy+Tabulated version of GRHayLHD_evaluate_sources_rhs"
 
     schedule GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs in GRHayLHD_evaluate_fluxes_rhs
@@ -363,11 +363,11 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::entropy,
-              HydroBase::Y_e, HydroBase::temperature, grmhd_velocities,
-              grmhd_conservatives_rhs(interior),
+              HydroBase::Y_e, HydroBase::temperature, grhd_velocities,
+              grhd_conservatives_rhs(interior),
               ent_star_rhs(interior), Ye_star_rhs(interior)
-      WRITES: grmhd_flux_temps, ent_star_flux, Ye_star_flux,
-              grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+      WRITES: grhd_flux_temps, ent_star_flux, Ye_star_flux,
+              grhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
     } "Entropy+Tabulated version of GRHayLHD_evaluate_fluxes_rhs"
 
     schedule GRHayLHD_tabulated_entropy_perturb_primitives in GRHayLHD_perturb_primitives
@@ -375,17 +375,17 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::entropy, HydroBase::Y_e, HydroBase::temperature,
-              grmhd_velocities
+              grhd_velocities
       WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy, HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
-              grmhd_velocities(everywhere)
+              grhd_velocities(everywhere)
     } "Entropy+Tabulated version of GRHayLHD_perturb_primitives"
 
     schedule GRHayLHD_tabulated_entropy_perturb_conservatives in GRHayLHD_perturb_conservatives
     {
       LANG: C
-      READS:  grmhd_conservatives, ent_star, Ye_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere)
+      READS:  grhd_conservatives, ent_star, Ye_star
+      WRITES: grhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere)
     } "Entropy+Tabulated version of GRHayLHD_perturb_conservatives"
 
   } else {
@@ -396,12 +396,12 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::Y_e, HydroBase::temperature,
-              grmhd_velocities
-      WRITES: u0(everywhere), grmhd_velocities(everywhere),
-              grmhd_conservatives(everywhere), Ye_star(everywhere),
+              grhd_velocities
+      WRITES: u0(everywhere), grhd_velocities(everywhere),
+              grhd_conservatives(everywhere), Ye_star(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC: grmhd_conservatives, Ye_star
+      SYNC: grhd_conservatives, Ye_star
     } "Tabulated version of GRHayLHD_prims_to_conservs"
 
     schedule GRHayLHD_tabulated_conservs_to_prims in GRHayLHD_conservs_to_prims
@@ -409,9 +409,9 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grmhd_conservatives, grmhd_velocities, Ye_star
-      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
-              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+              grhd_conservatives, grhd_velocities, Ye_star
+      WRITES: grhd_conservatives(everywhere), Ye_star(everywhere),
+              u0(everywhere), grhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Tabulated version of GRHayLHD_conservs_to_prims"
@@ -421,12 +421,12 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::Y_e,
-              HydroBase::temperature, grmhd_velocities
-      WRITES: u0(everywhere), grmhd_conservatives(everywhere), Ye_star(everywhere),
-              grmhd_velocities(everywhere), HydroBase::rho(everywhere),
+              HydroBase::temperature, grhd_velocities
+      WRITES: u0(everywhere), grhd_conservatives(everywhere), Ye_star(everywhere),
+              grhd_velocities(everywhere), HydroBase::rho(everywhere),
               HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::eps, HydroBase::press, HydroBase::Y_e, HydroBase::temperature
+      SYNC:   grhd_velocities, HydroBase::rho, HydroBase::eps, HydroBase::press, HydroBase::Y_e, HydroBase::temperature
     } "Tabulated version of GRHayLHD_outer_boundaries"
 
     schedule GRHayLHD_tabulated_evaluate_sources_rhs in GRHayLHD_evaluate_sources_rhs
@@ -434,8 +434,8 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
               HydroBase::rho, HydroBase::press, HydroBase::Y_e,
-              HydroBase::temperature, grmhd_velocities
-      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
+              HydroBase::temperature, grhd_velocities
+      WRITES: grhd_conservatives_rhs, Ye_star_rhs
     } "Tabulated version of GRHayLHD_evaluate_sources_rhs"
 
     schedule GRHayLHD_tabulated_evaluate_fluxes_rhs in GRHayLHD_evaluate_fluxes_rhs
@@ -443,9 +443,9 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::Y_e,
-              HydroBase::temperature, grmhd_velocities,
-              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior)
-      WRITES: grmhd_flux_temps, grmhd_conservatives_rhs, Ye_star_flux, Ye_star_rhs
+              HydroBase::temperature, grhd_velocities,
+              grhd_conservatives_rhs(interior), Ye_star_rhs(interior)
+      WRITES: grhd_flux_temps, grhd_conservatives_rhs, Ye_star_flux, Ye_star_rhs
     } "Tabulated version of GRHayLHD_evaluate_fluxes_rhs"
 
     schedule GRHayLHD_tabulated_perturb_primitives in GRHayLHD_perturb_primitives
@@ -453,8 +453,8 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
               HydroBase::Y_e, HydroBase::temperature,
-              grmhd_velocities
-      WRITES: grmhd_velocities(everywhere),
+              grhd_velocities
+      WRITES: grhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Tabulated version of GRHayLHD_perturb_primitives"
@@ -462,8 +462,8 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     schedule GRHayLHD_tabulated_perturb_conservatives in GRHayLHD_perturb_conservatives
     {
       LANG: C
-      READS:  grmhd_conservatives, Ye_star
-      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere)
+      READS:  grhd_conservatives, Ye_star
+      WRITES: grhd_conservatives(everywhere), Ye_star(everywhere)
     } "Tabulated version of GRHayLHD_perturb_conservatives"
   }
 }

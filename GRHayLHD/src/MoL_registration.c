@@ -14,8 +14,8 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
 
   //***********************************************
   // Register evolution & RHS gridfunction variables
-  group = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives");
-  rhs = CCTK_GroupIndex("GRHayLHD::grmhd_conservatives_rhs");
+  group = CCTK_GroupIndex("GRHayLHD::grhd_conservatives");
+  rhs = CCTK_GroupIndex("GRHayLHD::grhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
   if(ghl_params->evolve_entropy) {

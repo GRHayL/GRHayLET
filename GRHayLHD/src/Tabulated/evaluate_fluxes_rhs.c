@@ -122,10 +122,10 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
           rho_star_flux[index] = cons_fluxes.rho;
-          tau_flux     [index] = cons_fluxes.tau;
-          Stildex_flux [index] = cons_fluxes.SD[0];
-          Stildey_flux [index] = cons_fluxes.SD[1];
-          Stildez_flux [index] = cons_fluxes.SD[2];
+          tau_flux[index]      = cons_fluxes.tau;
+          Stildex_flux[index]  = cons_fluxes.SD[0];
+          Stildey_flux[index]  = cons_fluxes.SD[1];
+          Stildez_flux[index]  = cons_fluxes.SD[2];
           Ye_star_flux [index] = cons_fluxes.Y_e;
         }
       }
@@ -141,11 +141,11 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
           rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-          tau_rhs     [index] += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-          Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
-          Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
-          Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
-          Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
+          tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+          Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+          Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+          Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+          Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
         }
       }
     }
