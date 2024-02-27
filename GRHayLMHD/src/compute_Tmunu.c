@@ -5,36 +5,38 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
 #pragma omp parallel for
-  for(int k=0; k<cctk_lsh[2]; k++) {
-    for(int j=0; j<cctk_lsh[1]; j++) {
-      for(int i=0; i<cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+  for (int k = 0; k < cctk_lsh[2]; k++) {
+    for (int j = 0; j < cctk_lsh[1]; j++) {
+      for (int i = 0; i < cctk_lsh[0]; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
         ghl_metric_quantities ADM_metric;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
-              alp[index],
-              betax[index], betay[index], betaz[index],
-              gxx[index], gxy[index], gxz[index],
-              gyy[index], gyz[index], gzz[index],
-              &ADM_metric);
+            alp[index], betax[index], betay[index], betaz[index], gxx[index],
+            gxy[index], gxz[index], gyy[index], gyz[index], gzz[index],
+            &ADM_metric);
 
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
-        prims.rho   = rho_b[index];
-        prims.press = pressure[index];
-        prims.eps   = eps[index];
-        prims.vU[0] = vx[index];
-        prims.vU[1] = vy[index];
-        prims.vU[2] = vz[index];
-        prims.u0    = u0[index];
         prims.BU[0] = Bx_center[index];
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
+        prims.rho = rho_b[index];
+        prims.press = pressure[index];
+        prims.eps = eps[index];
+        prims.vU[0] = vx[index];
+        prims.vU[1] = vy[index];
+        prims.vU[2] = vz[index];
+        prims.Y_e = Y_e[index];
+        prims.temperature = temperature[index];
+
+        ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
+                                                    &ADM_metric, &prims);
 
         ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);
