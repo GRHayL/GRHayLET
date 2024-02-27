@@ -23,19 +23,20 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
-        prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
+        prims.BU[0] = 0.0;
+        prims.BU[1] = 0.0;
+        prims.BU[2] = 0.0;
         prims.rho = rho[index];
         prims.press = press[index];
         prims.eps = eps[index];
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
-        prims.u0 = u0[index];
-        // prims.temperature = temperature[index];
-        // prims.Y_e = Y_e[index];
-        //
-        // ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
-        //                                             &ADM_metric, &prims);
+        prims.Y_e = Y_e[index];
+        prims.temperature = temperature[index];
+
+        ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos,
+                                                    &ADM_metric, &prims);
 
         ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);

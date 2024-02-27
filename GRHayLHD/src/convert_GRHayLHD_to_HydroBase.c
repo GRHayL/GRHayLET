@@ -4,17 +4,19 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_GRHayLHD_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
 
-  // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-  if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
+  // Generally, we only need the HydroBase variables for diagnostic purposes, so
+  // we run the below loop only at iterations in which diagnostics are run.
+  if (cctk_iteration % Convert_to_HydroBase_every != 0)
+    return;
 
 #pragma omp parallel for
-  for(int k=0; k<cctk_lsh[2]; k++) {
-    for(int j=0; j<cctk_lsh[1]; j++) {
-      for(int i=0; i<cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
-        const int index4D0 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
-        const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
-        const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
+  for (int k = 0; k < cctk_lsh[2]; k++) {
+    for (int j = 0; j < cctk_lsh[1]; j++) {
+      for (int i = 0; i < cctk_lsh[0]; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+        const int index4D0 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 0);
+        const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 1);
+        const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 2);
 
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
@@ -38,23 +40,24 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         //     = \alpha ( U^i - \beta^i / \alpha )
         //     = \alpha U^i - \beta^i
         const double lapseL = alp[index];
-        const double lapseL_inv = 1.0/lapseL;
+        const double lapseL_inv = 1.0 / lapseL;
         const double utU[3] = {vx[index] + betax[index],
                                vy[index] + betay[index],
                                vz[index] + betaz[index]};
 
-        vel[index4D0] = utU[0]*lapseL_inv;
-        vel[index4D1] = utU[1]*lapseL_inv;
-        vel[index4D2] = utU[2]*lapseL_inv;
+        vel[index4D0] = utU[0] * lapseL_inv;
+        vel[index4D1] = utU[1] * lapseL_inv;
+        vel[index4D2] = utU[2] * lapseL_inv;
 
         // \alpha u^0 = 1/sqrt(1+γ^ij u_i u_j) = \Gamma = w_lorentz
         // First compute u^0:
         // Derivation of first equation:
         // \gamma_{ij} (v^i + \beta^i)(v^j + \beta^j)/(\alpha)^2
-        //   = \gamma_{ij} 1/(u^0)^2 ( \gamma^{ik} u_k \gamma^{jl} u_l /(\alpha)^2 <- Using Eq. 53 of arXiv:astro-ph/0503420
-        //   = 1/(u^0 \alpha)^2 u_j u_l \gamma^{jl}  <- Since \gamma_{ij} \gamma^{ik} = \delta^k_j
-        //   = 1/(u^0 \alpha)^2 ( (u^0 \alpha)^2 - 1 ) <- Using Eq. 56 of arXiv:astro-ph/0503420
-        //   = 1 - 1/(u^0 \alpha)^2 <= 1
+        //   = \gamma_{ij} 1/(u^0)^2 ( \gamma^{ik} u_k \gamma^{jl} u_l
+        //   /(\alpha)^2 <- Using Eq. 53 of arXiv:astro-ph/0503420 = 1/(u^0
+        //   \alpha)^2 u_j u_l \gamma^{jl}  <- Since \gamma_{ij} \gamma^{ik} =
+        //   \delta^k_j = 1/(u^0 \alpha)^2 ( (u^0 \alpha)^2 - 1 ) <- Using Eq.
+        //   56 of arXiv:astro-ph/0503420 = 1 - 1/(u^0 \alpha)^2 <= 1
         const double gxxL = gxx[index];
         const double gxyL = gxy[index];
         const double gxzL = gxz[index];
@@ -62,21 +65,26 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
         const double gyzL = gyz[index];
         const double gzzL = gzz[index];
 
-        const double one_minus_invW_squared = (gxxL* SQR(utU[0]) +
-                                               2.0*gxyL*(utU[0])*(utU[1]) +
-                                               2.0*gxzL*(utU[0])*(utU[2]) +
-                                               gyyL* SQR(utU[1]) +
-                                               2.0*gyzL*(utU[1])*(utU[2]) +
-                                               gzzL* SQR(utU[2]) )*SQR(lapseL_inv);
+        const double one_minus_invW_squared =
+            (gxxL * SQR(utU[0]) + 2.0 * gxyL * (utU[0]) * (utU[1]) +
+             2.0 * gxzL * (utU[0]) * (utU[2]) + gyyL * SQR(utU[1]) +
+             2.0 * gyzL * (utU[1]) * (utU[2]) + gzzL * SQR(utU[2])) *
+            SQR(lapseL_inv);
         /*** Check for superluminal velocity ***/
-        //FIXME: Instead of >1.0, should be one_minus_one_over_alpha_u0_squared > ONE_MINUS_ONE_OVER_GAMMA_SPEED_LIMIT_SQUARED, for consistency with conserv_to_prims routines
+        // FIXME: Instead of >1.0, should be one_minus_one_over_alpha_u0_squared
+        // > ONE_MINUS_ONE_OVER_GAMMA_SPEED_LIMIT_SQUARED, for consistency with
+        // conserv_to_prims routines
 
-        if(one_minus_invW_squared > 1.0) {
-          CCTK_VINFO("convert_from_GRHayLHD_to_HydroBase WARNING: Found superluminal velocity. This should have been caught by GRHayLHD.");
+        if (one_minus_invW_squared > 1.0) {
+          CCTK_VINFO(
+              "convert_from_GRHayLHD_to_HydroBase WARNING: Found superluminal "
+              "velocity. This should have been caught by GRHayLHD.");
         }
 
-        const double W = 1.0/sqrt(1.0-one_minus_invW_squared);
-        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n", W, lapseL_inv, one_minus_invW_squared);
+        const double W = 1.0 / sqrt(1.0 - one_minus_invW_squared);
+        if (isnan(W * lapseL_inv))
+          CCTK_VINFO("BAD FOUND NAN W CALC: %.15e %.15e %.15e\n", W, lapseL_inv,
+                     one_minus_invW_squared);
 
         w_lorentz[index] = W;
       }

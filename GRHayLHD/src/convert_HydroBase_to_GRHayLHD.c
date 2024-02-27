@@ -19,16 +19,19 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
   const int kmax = cctk_lsh[2];
 
 #pragma omp parallel for
-  for(int k=0; k<kmax; k++) {
-    for(int j=0; j<jmax; j++) {
-      for(int i=0; i<imax; i++) {
-        const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
+  for (int k = 0; k < kmax; k++) {
+    for (int j = 0; j < jmax; j++) {
+      for (int i = 0; i < imax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+        const int ind0 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 0);
+        const int ind1 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 1);
+        const int ind2 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 2);
 
-        const double ETvx = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)];
-        const double ETvy = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)];
-        const double ETvz = vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)];
+        const double ETvx = vel[ind0];
+        const double ETvy = vel[ind1];
+        const double ETvz = vel[ind2];
 
-        // IllinoisGRMHD defines v^i = u^i/u^0.
+        // GRHayLHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
         // formalism, splits the 4 velocity into a purely spatial part
@@ -50,9 +53,9 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
         //     = \alpha ( U^i - \beta^i / \alpha )
         //     = \alpha U^i - \beta^i
 
-        vx[index] = alp[index]*ETvx - betax[index];
-        vy[index] = alp[index]*ETvy - betay[index];
-        vz[index] = alp[index]*ETvz - betaz[index];
+        vx[index] = alp[index] * ETvx - betax[index];
+        vy[index] = alp[index] * ETvy - betay[index];
+        vz[index] = alp[index] * ETvz - betaz[index];
       }
     }
   }
