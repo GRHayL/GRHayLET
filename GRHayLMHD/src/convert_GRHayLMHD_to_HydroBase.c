@@ -18,10 +18,6 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
-        /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
-        rho[index]   = rho_b[index];
-        press[index] = pressure[index];
-
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia

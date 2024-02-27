@@ -8,7 +8,7 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
@@ -25,8 +25,8 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
-        prims.rho   = rho_b[index];
-        prims.press = pressure[index];
+        prims.rho   = rho[index];
+        prims.press = press[index];
         prims.eps   = eps[index];
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];

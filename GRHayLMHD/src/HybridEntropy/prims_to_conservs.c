@@ -26,8 +26,8 @@ void GRHayLMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         ghl_primitive_quantities prims;
-        prims.rho     = rho_b[index];
-        prims.press   = pressure[index];
+        prims.rho     = rho[index];
+        prims.press   = press[index];
         prims.vU[0]   = vx[index];
         prims.vU[1]   = vy[index];
         prims.vU[2]   = vz[index];
@@ -42,13 +42,14 @@ void GRHayLMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_compute_conservs(
               &ADM_metric, &metric_aux, &prims, &cons);
 
-        rho_b[index]    = prims.rho;
-        pressure[index] = prims.press;
-        eps[index]      = prims.eps;
-        vx[index]       = prims.vU[0];
-        vy[index]       = prims.vU[1];
-        vz[index]       = prims.vU[2];
-        entropy[index]  = prims.entropy;
+        rho[index]     = prims.rho;
+        press[index]   = prims.press;
+        eps[index]     = prims.eps;
+        u0[index]      = prims.u0;
+        vx[index]      = prims.vU[0];
+        vy[index]      = prims.vU[1];
+        vz[index]      = prims.vU[2];
+        entropy[index] = prims.entropy;
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;

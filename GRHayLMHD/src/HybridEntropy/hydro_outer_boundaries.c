@@ -11,7 +11,7 @@
 
 #include "GRHayLMHD.h"
 
-void GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
+void GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -40,7 +40,7 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
     /* XMIN & XMAX */
     // i=imax=outer boundary
     if(cctk_bbox[1]) {
-      const int imax=cctk_lsh[0]-cctk_nghostzones[0]+which_bdry_pt;
+      const int imax = cctk_lsh[0] - cctk_nghostzones[0] + which_bdry_pt;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int j=0; j<cctk_lsh[1]; j++) {
@@ -48,8 +48,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indm1];
-          prims.press   = pressure[indm1];
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
           prims.vU[0]   = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
           prims.vU[1]   = vy[indm1];
           prims.vU[2]   = vz[indm1];
@@ -58,13 +58,13 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indm1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
     // i=imin=outer boundary
     if(cctk_bbox[0]) {
-      const int imin=cctk_nghostzones[0]-which_bdry_pt-1;
+      const int imin = cctk_nghostzones[0] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int j=0; j<cctk_lsh[1]; j++) {
@@ -72,8 +72,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indp1];
-          prims.press   = pressure[indp1];
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
           prims.vU[0]   = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
           prims.vU[1]   = vy[indp1];
           prims.vU[2]   = vz[indp1];
@@ -82,7 +82,7 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indp1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -90,7 +90,7 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
     /* YMIN & YMAX */
     // j=jmax=outer boundary
     if(cctk_bbox[3]) {
-      const int jmax=cctk_lsh[1]-cctk_nghostzones[1]+which_bdry_pt;
+      const int jmax = cctk_lsh[1] - cctk_nghostzones[1] + which_bdry_pt;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -98,8 +98,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indm1];
-          prims.press   = pressure[indm1];
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
           prims.vU[0]   = vx[indm1];
           prims.vU[1]   = (do_outflow && vy[indm1] < 0.0) ? 0 : vy[indm1];
           prims.vU[2]   = vz[indm1];
@@ -108,13 +108,13 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indm1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
     // j=jmin=outer boundary
     if(cctk_bbox[2]) {
-      const int jmin=cctk_nghostzones[1]-which_bdry_pt-1;
+      const int jmin = cctk_nghostzones[1] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int k=0; k<cctk_lsh[2]; k++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -122,8 +122,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indp1];
-          prims.press   = pressure[indp1];
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
           prims.vU[0]   = vx[indp1];
           prims.vU[1]   = (do_outflow && vy[indp1] > 0.0) ? 0 : vy[indp1];
           prims.vU[2]   = vz[indp1];
@@ -132,7 +132,7 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indp1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
@@ -140,7 +140,7 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
     /* ZMIN & ZMAX */
     // k=kmax=outer boundary
     if(cctk_bbox[5]) {
-      const int kmax=cctk_lsh[2]-cctk_nghostzones[2]+which_bdry_pt;
+      const int kmax = cctk_lsh[2] - cctk_nghostzones[2] + which_bdry_pt;
 #pragma omp parallel for
       for(int j=0; j<cctk_lsh[1]; j++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -148,8 +148,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indm1];
-          prims.press   = pressure[indm1];
+          prims.rho     = rho[indm1];
+          prims.press   = press[indm1];
           prims.vU[0]   = vx[indm1];
           prims.vU[1]   = vy[indm1];
           prims.vU[2]   = (do_outflow && vz[indm1] < 0.0) ? 0 : vz[indm1];
@@ -158,13 +158,13 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indm1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
     // k=kmin=outer boundary
     if((cctk_bbox[4]) && Symmetry_none) {
-      const int kmin=cctk_nghostzones[2]-which_bdry_pt-1;
+      const int kmin = cctk_nghostzones[2] - which_bdry_pt - 1;
 #pragma omp parallel for
       for(int j=0; j<cctk_lsh[1]; j++) {
         for(int i=0; i<cctk_lsh[0]; i++) {
@@ -172,8 +172,8 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
           ghl_primitive_quantities prims;
-          prims.rho     = rho_b[indp1];
-          prims.press   = pressure[indp1];
+          prims.rho     = rho[indp1];
+          prims.press   = press[indp1];
           prims.vU[0]   = vx[indp1];
           prims.vU[1]   = vy[indp1];
           prims.vU[2]   = (do_outflow && vz[indp1] > 0.0) ? 0 : vz[indp1];
@@ -182,14 +182,14 @@ void GRHayLMHD_hybrid_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.BU[2]   = Bz_center[index];
           prims.entropy = entropy[indp1];
 
-          GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(cctkGH, index, &prims);
+          GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
         }
       }
     }
   }
 }
 
-void GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
+void GRHayLMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
   // instead of explicitly passing all these grid functions.
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_hybrid_entropy_hydro_outer_boundaries;
@@ -212,12 +212,13 @@ void GRHayLMHD_hybrid_entropy_conservs_outer_boundaries(const cGH* cctkGH, const
   ghl_compute_conservs(
         &ADM_metric, &metric_aux, prims, &cons);
 
-  rho_b[index]    = prims->rho;
-  pressure[index] = prims->press;
-  vx[index]       = prims->vU[0];
-  vy[index]       = prims->vU[1];
-  vz[index]       = prims->vU[2];
-  entropy[index]  = prims->entropy;
+  rho[index]     = prims->rho;
+  press[index]   = prims->press;
+  u0[index]      = prims->u0;
+  vx[index]      = prims->vU[0];
+  vy[index]      = prims->vU[1];
+  vz[index]      = prims->vU[2];
+  entropy[index] = prims->entropy;
 
   rho_star[index] = cons.rho;
   tau[index]      = cons.tau;

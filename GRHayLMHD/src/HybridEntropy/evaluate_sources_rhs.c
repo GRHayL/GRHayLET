@@ -23,6 +23,10 @@ void GRHayLMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         // These variables have no source terms
         rho_star_rhs[index] = 0.0;
         ent_star_rhs[index] = 0.0;
+        phitilde_rhs[index] = 0.0;
+        Ax_rhs[index]       = 0.0;
+        Ay_rhs[index]       = 0.0;
+        Az_rhs[index]       = 0.0;
 
         ghl_metric_quantities ADM_metric;
         ghl_initialize_metric(
@@ -39,8 +43,8 @@ void GRHayLMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &curv);
 
         ghl_primitive_quantities prims;
-        prims.rho   = rho_b[index];
-        prims.press = pressure[index];
+        prims.rho   = rho[index];
+        prims.press = press[index];
         prims.vU[0] = vx[index];
         prims.vU[1] = vy[index];
         prims.vU[2] = vz[index];
@@ -85,7 +89,7 @@ void GRHayLMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &ADM_metric_derivs_z,
               &curv, &cons_source);
 
-        tau_rhs    [index] = cons_source.tau;
+        tau_rhs[index]     = cons_source.tau;
         Stildex_rhs[index] = cons_source.SD[0];
         Stildey_rhs[index] = cons_source.SD[1];
         Stildez_rhs[index] = cons_source.SD[2];

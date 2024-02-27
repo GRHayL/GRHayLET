@@ -4,7 +4,6 @@
 // is independent of EOS
 void GRHayLMHD_reconstruction_loop(const cGH *restrict cctkGH, const int flux_dir, const int num_vars,
                          const int *restrict var_indices,
-                         const double *rho_b,
                          const double *pressure,
                          const double *v_flux,
                          const double **in_prims,
