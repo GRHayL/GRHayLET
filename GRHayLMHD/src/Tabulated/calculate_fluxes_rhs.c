@@ -210,11 +210,11 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
         const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
         rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-        tau_rhs     [index] += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-        Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
-        Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
-        Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
-        Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
+        tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+        Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+        Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+        Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+        Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
       }
     }
   }

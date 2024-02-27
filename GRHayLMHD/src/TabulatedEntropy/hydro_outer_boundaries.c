@@ -24,13 +24,14 @@ void GRHayLMHD_tabulated_entropy_hydro_outer_boundaries(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_tabulated_entropy_hydro_outer_boundaries;
   DECLARE_CCTK_PARAMETERS;
 
-  if(CCTK_EQUALS(Matter_BC,"frozen")) return;
+  if(CCTK_EQUALS(Matter_BC, "frozen")) return;
 
-  const bool do_outflow = CCTK_EQUALS(Matter_BC,"outflow");
+  const bool do_outflow = CCTK_EQUALS(Matter_BC, "outflow");
 
-  const bool Symmetry_none = CCTK_EQUALS(Symmetry,"none") ? true : false;
+  const bool Symmetry_none = CCTK_EQUALS(Symmetry, "none") ? true : false;
 
-  // Don't apply approximate outer boundary conditions on initial data, which should be defined everywhere, or on levels != [coarsest level].
+  // Don't apply approximate outer boundary conditions on initial data, which
+  // should be defined everywhere, or on levels != [coarsest level].
   if(cctk_iteration==0 || GetRefinementLevel(cctkGH)!=0) return;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
@@ -226,6 +227,7 @@ void GRHayLMHD_tabulated_entropy_enforce_primitive_limits_and_compute_conservs(c
 
   rho[index]         = prims->rho;
   press[index]       = prims->press;
+  eps[index]         = prims->eps;
   u0[index]          = prims->u0;
   vx[index]          = prims->vU[0];
   vy[index]          = prims->vU[1];
