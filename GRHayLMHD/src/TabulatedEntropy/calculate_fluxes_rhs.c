@@ -162,8 +162,8 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
 
         // clang-format off
         ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press,          &prims_l.press);
-        ghl_ppm_reconstruction(ftilde, vx_stencil,    &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
-        ghl_ppm_reconstruction(ftilde, vy_stencil,    &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
+        ghl_ppm_reconstruction(ftilde, B1_stencil,    &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
+        ghl_ppm_reconstruction(ftilde, B2_stencil,    &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
         ghl_ppm_reconstruction(ftilde, ent_stencil,   &prims_r.entropy,        &prims_l.entropy);
         ghl_ppm_reconstruction(ftilde, Ye_stencil,    &prims_r.Y_e,            &prims_l.Y_e);
         // clang-format on
