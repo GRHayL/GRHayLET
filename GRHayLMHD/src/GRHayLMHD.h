@@ -11,7 +11,7 @@ enum recon_indices{
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};
 
 // This is used to perturb data for testing
-#define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
+#define one_plus_pert(perturb) (1 + (perturb*(CCTK_REAL)rand() / RAND_MAX))
 
 // The inner two points of the interpolation function use
 // the value of A_in, and the outer two points use A_out.
@@ -76,8 +76,8 @@ void GRHayLMHD_reconstruction_loop(
       const int flux_dir,
       const int num_vars,
       const int *restrict var_indices,
-      const double *pressure,
-      const double *v_flux,
+      const CCTK_REAL *pressure,
+      const CCTK_REAL *v_flux,
       const CCTK_REAL **in_prims,
       CCTK_REAL **out_prims_r,
       CCTK_REAL **out_prims_l);

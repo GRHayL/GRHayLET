@@ -53,7 +53,6 @@ void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS) {
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");
-  //***********************************************
 
   //***********************************************
   // Next register ADMBase variables needed by
