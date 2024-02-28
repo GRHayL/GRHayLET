@@ -14,20 +14,20 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_HydroBase_to_GRHayLMHD;
   DECLARE_CCTK_PARAMETERS;
 
-  const double mag_factor = rescale_magnetics ? 1.0/sqrt(4.0*M_PI) : 1;
+  const double mag_factor = rescale_magnetics ? 1.0 / sqrt(4.0 * M_PI) : 1;
 
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
 #pragma omp parallel for
-  for(int k=0; k<kmax; k++) {
-    for(int j=0; j<jmax; j++) {
-      for(int i=0; i<imax; i++) {
-        const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-        const int ind0=CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
-        const int ind1=CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
-        const int ind2=CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
+  for (int k = 0; k < kmax; k++) {
+    for (int j = 0; j < jmax; j++) {
+      for (int i = 0; i < imax; i++) {
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+        const int ind0 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 0);
+        const int ind1 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 1);
+        const int ind2 = CCTK_VECTGFINDEX3D(cctkGH, i, j, k, 2);
 
         rho_b[index] = rho[index];
         pressure[index] = press[index];
@@ -36,12 +36,7 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         const double ETvy = vel[ind1];
         const double ETvz = vel[ind2];
 
-        Ax[index] = mag_factor*Avec[ind0];
-        Ay[index] = mag_factor*Avec[ind1];
-        Az[index] = mag_factor*Avec[ind2];
-        phitilde[index] = Aphi[index];
-
-        // IllinoisGRMHD defines v^i = u^i/u^0.
+        // GRHayLHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
         // formalism, splits the 4 velocity into a purely spatial part
@@ -63,9 +58,15 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         //     = \alpha ( U^i - \beta^i / \alpha )
         //     = \alpha U^i - \beta^i
 
-        vx[index] = alp[index]*ETvx - betax[index];
-        vy[index] = alp[index]*ETvy - betay[index];
-        vz[index] = alp[index]*ETvz - betaz[index];
+        vx[index] = alp[index] * ETvx - betax[index];
+        vy[index] = alp[index] * ETvy - betay[index];
+        vz[index] = alp[index] * ETvz - betaz[index];
+
+        // Magnetic four-potential
+        phitilde[index] = Aphi[index];
+        Ax[index] = mag_factor * Avec[ind0];
+        Ay[index] = mag_factor * Avec[ind1];
+        Az[index] = mag_factor * Avec[ind2];
       }
     }
   }
