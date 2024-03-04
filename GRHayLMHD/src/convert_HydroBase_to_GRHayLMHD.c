@@ -28,7 +28,7 @@ void convert_HydroBase_to_GRHayLMHD(CCTK_ARGUMENTS) {
         Az[index] = mag_factor*Avec[ind2];
         phitilde[index] = Aphi[index];
 
-        // GRHayLHD defines v^i = u^i/u^0.
+        // GRHayLMHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
         // formalism, splits the 4 velocity into a purely spatial part

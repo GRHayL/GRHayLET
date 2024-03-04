@@ -24,16 +24,16 @@ void GRHayLMHD_InitSymBound(CCTK_ARGUMENTS)
 
     sym[0] = 1; sym[1] = 1; sym[2] = 1;
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::grmhd_conservatives");
-    SetCartSymGN(cctkGH, sym, "GRHayLMHD::grmhd_primitives_allbutBi");
+    SetCartSymGN(cctkGH, sym, "GRHayLMHD::grmhd_velocities");
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::grmhd_B_center");
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::Ax");
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::Ay");
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::Az");
     SetCartSymGN(cctkGH, sym, "GRHayLMHD::phitilde");
     if(ghl_params->evolve_entropy)
-      SetCartSymGN(cctkGH, sym, "GRHayLHD::ent_star");
+      SetCartSymGN(cctkGH, sym, "GRHayLMHD::ent_star");
     if(ghl_eos->eos_type == ghl_eos_tabulated)
-      SetCartSymGN(cctkGH, sym, "GRHayLHD::Ye_star");
+      SetCartSymGN(cctkGH, sym, "GRHayLMHD::Ye_star");
 
     if(CCTK_EQUALS(Symmetry, "equatorial")) {
       sym[2] = -Sym_Bz;

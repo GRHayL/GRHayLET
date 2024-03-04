@@ -12,7 +12,7 @@ void GRHayLMHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
   if(CCTK_EQUALS(Symmetry, "equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr = 0;
-    ierr += CartSymGN(cctkGH, "GRHayLHD::grmhd_velocities");
+    ierr += CartSymGN(cctkGH, "GRHayLMHD::grmhd_velocities");
     // FIXME: UGLY. Filling metric ghostzones is needed for, e.g., Cowling runs.
     ierr += CartSymGN(cctkGH, "lapse::lapse_vars");
     ierr += CartSymGN(cctkGH, "bssn::BSSN_vars");
