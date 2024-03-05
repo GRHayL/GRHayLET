@@ -184,17 +184,20 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
 
             if( isnan(R_sourceL*Q_sourceL*kappaL.nue[0]*kappaL.nue[1]*kappaL.anue[0]*kappaL.anue[1]*kappaL.nux[0]*kappaL.nux[1]*
                       Y_e_star_rhs[index]*tau_rhs[index]*Stildex_rhs[index]*Stildey_rhs[index]*Stildez_rhs[index]) ) {
+              // clang-format off
               CCTK_VINFO("****************************");
               CCTK_VINFO("NAN found:");
               CCTK_VINFO("rho Ye T: %e %e %e",rhoL,Y_eL,temperatureL);
               CCTK_VINFO("vx vy vz: %e %e %e",vxL,vyL,vzL);
               CCTK_VINFO("u^{mu}  : %e %e %e %e",u0L,uxL,uyL,uzL);
               CCTK_VINFO("alp beta: %e , %e %e %e",alpL,betaxL,betayL,betazL);
-              CCTK_VINFO("R, Q | kappas: %e %e | %e %e , %e %e , %e %e",
-                         R_sourceL,Q_sourceL,kappaL.nue[0],kappaL.nue[1],kappaL.anue[0],kappaL.anue[1],kappaL.nux[0],kappaL.nux[1]);
+              CCTK_VINFO("taus: %e %e, %e %e, %e %e", tauL.nue[0], tauL.nue[1], tauL.anue[0], tauL.anue[1], tauL.nux[0], tauL.nux[1]);
+              CCTK_VINFO("kappas: %e %e, %e %e, %e %e", kappaL.nue[0], kappaL.nue[1], kappaL.anue[0], kappaL.anue[1], kappaL.nux[0], kappaL.nux[1]);
+              CCTK_VINFO("R, Q: %e, %e", R_sourceL,Q_sourceL);
               CCTK_VINFO("rhss: %e %e %e %e %e",Y_e_star_rhs[index],tau_rhs[index],Stildex_rhs[index],Stildey_rhs[index],Stildez_rhs[index]);
               CCTK_VINFO("****************************");
               nan_found++;
+              // clang-format on
             }
 
             // Step 4.i: Compute MHD right-hand sides
