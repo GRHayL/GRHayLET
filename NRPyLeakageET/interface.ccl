@@ -42,3 +42,6 @@ USES FUNCTION GetRefinementLevel
 
 CCTK_INT FUNCTION EnableProlongating(CCTK_INT IN Status)
 USES FUNCTION EnableProlongating
+
+CCTK_INT FUNCTION MoLRegisterConstrainedGroup(CCTK_INT IN ConstrainedIndex)
+USES FUNCTION MoLRegisterConstrainedGroup
