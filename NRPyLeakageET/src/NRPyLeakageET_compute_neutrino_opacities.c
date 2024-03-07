@@ -17,7 +17,7 @@ void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS) {
 
   if(verbosity_level>1) CCTK_VINFO("Computing opacities at ref. lvl. %d...",GetRefinementLevel(cctkGH));
 
-#pragma omp parallel
+#pragma omp parallel for
   for(int k=0;k<cctk_lsh[2];k++) {
     for(int j=0;j<cctk_lsh[1];j++) {
       for(int i=0;i<cctk_lsh[0];i++) {

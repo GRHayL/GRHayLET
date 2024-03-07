@@ -43,7 +43,7 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
 
   const CCTK_REAL dxx[3] = {CCTK_DELTA_SPACE(0), CCTK_DELTA_SPACE(1), CCTK_DELTA_SPACE(2)};
 
-#pragma omp parallel
+#pragma omp parallel for
   for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
     for(int j=cctk_nghostzones[1];j<cctk_lsh[1]-cctk_nghostzones[1];j++) {
       for(int i=cctk_nghostzones[0];i<cctk_lsh[0]-cctk_nghostzones[0];i++) {
