@@ -27,6 +27,13 @@ void NRPyLeakageET_optical_depths_initialize_to_zero(CCTK_ARGUMENTS) {
         tau_0_nux_p [index] = kappa_0_nux_p [index] = 0.0;
         tau_1_nux_p [index] = kappa_1_nux_p [index] = 0.0;
 
+        tau_0_nue_p_p [index] = kappa_0_nue_p_p [index] = 0.0;
+        tau_1_nue_p_p [index] = kappa_1_nue_p_p [index] = 0.0;
+        tau_0_anue_p_p[index] = kappa_0_anue_p_p[index] = 0.0;
+        tau_1_anue_p_p[index] = kappa_1_anue_p_p[index] = 0.0;
+        tau_0_nux_p_p [index] = kappa_0_nux_p_p [index] = 0.0;
+        tau_1_nux_p_p [index] = kappa_1_nux_p_p [index] = 0.0;
+
         tau_0_nue_aux [index] = 0.0;
         tau_1_nue_aux [index] = 0.0;
         tau_0_anue_aux[index] = 0.0;
@@ -75,6 +82,13 @@ void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCT
         kappa_0_nux_p [index] = kappa_0_nuxL;
         kappa_1_nux_p [index] = kappa_1_nuxL;
 
+        kappa_0_nue_p_p [index] = kappa_0_nueL;
+        kappa_1_nue_p_p [index] = kappa_1_nueL;
+        kappa_0_anue_p_p[index] = kappa_0_anueL;
+        kappa_1_anue_p_p[index] = kappa_1_anueL;
+        kappa_0_nux_p_p [index] = kappa_0_nuxL;
+        kappa_1_nux_p_p [index] = kappa_1_nuxL;
+
         // Step 1.d: Write optical depths to main memory
         tau_0_nue_p [index] = tau_0_nueL;
         tau_1_nue_p [index] = tau_1_nueL;
@@ -82,6 +96,13 @@ void NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCT
         tau_1_anue_p[index] = tau_1_anueL;
         tau_0_nux_p [index] = tau_0_nuxL;
         tau_1_nux_p [index] = tau_1_nuxL;
+
+        tau_0_nue_p_p [index] = tau_0_nueL;
+        tau_1_nue_p_p [index] = tau_1_nueL;
+        tau_0_anue_p_p[index] = tau_0_anueL;
+        tau_1_anue_p_p[index] = tau_1_anueL;
+        tau_0_nux_p_p [index] = tau_0_nuxL;
+        tau_1_nux_p_p [index] = tau_1_nuxL;
       }
     }
   }

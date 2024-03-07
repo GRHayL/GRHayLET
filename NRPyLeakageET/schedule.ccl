@@ -1,5 +1,5 @@
 # Schedule definitions for thorn NRPyLeakageET
-STORAGE: NRPyLeakageET_opacities[2], NRPyLeakageET_optical_depths[2], NRPyLeakageET_auxiliary_optical_depths
+STORAGE: NRPyLeakageET_opacities[3], NRPyLeakageET_optical_depths[3], NRPyLeakageET_auxiliary_optical_depths
 
 schedule NRPyLeakageET_Initialize at CCTK_INITIAL after HydroBase_Prim2ConInitial
 {
@@ -11,12 +11,12 @@ schedule NRPyLeakageET_Initialize at CCTK_INITIAL after HydroBase_Prim2ConInitia
   READS   : HydroBase::rho           (Everywhere)
   READS   : HydroBase::Y_e           (Everywhere)
   READS   : HydroBase::temperature   (Everywhere)
-  WRITES  : NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p
-  WRITES  : NRPyLeakageET::tau_1_nue (Everywhere), tau_1_nue_p
-  WRITES  : NRPyLeakageET::tau_0_anue(Everywhere), tau_0_anue_p
-  WRITES  : NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p
-  WRITES  : NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p
-  WRITES  : NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p
+  WRITES  : NRPyLeakageET::tau_0_nue (Everywhere), tau_0_nue_p , tau_0_nue_p_p
+  WRITES  : NRPyLeakageET::tau_1_nue (Everywhere), tau_1_nue_p , tau_1_nue_p_p
+  WRITES  : NRPyLeakageET::tau_0_anue(Everywhere), tau_0_anue_p, tau_0_anue_p_p
+  WRITES  : NRPyLeakageET::tau_1_anue(Everywhere), tau_1_anue_p, tau_1_anue_p_p
+  WRITES  : NRPyLeakageET::tau_0_nux (Everywhere), tau_0_nux_p , tau_0_nux_p_p
+  WRITES  : NRPyLeakageET::tau_1_nux (Everywhere), tau_1_nux_p , tau_1_nux_p_p
 } "Initialize optical depths and opacities"
 
 schedule NRPyLeakageET_InitSym at BASEGRID after Lapse_InitSymBound
