@@ -4,19 +4,22 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
+  const int imax = cctk_lsh[0];
+  const int jmax = cctk_lsh[1];
+  const int kmax = cctk_lsh[2];
+
   // Diagnostic variables.
   //int failures = 0;
   //int vel_limited_ptcount = 0;
   //int rho_star_fix_applied = 0;
-  //int pointcount = 0;
   //int failures_inhoriz = 0;
   //int pointcount_inhoriz = 0;
   //int backup0 = 0;
   //int backup1 = 0;
   //int backup2 = 0;
-  //double error_int_numer = 0;
-  //double error_int_denom = 0;
   //int n_iter = 0;
+  //int pointcount_avg = 0;
+  //int pointcount_Font = 0;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -30,7 +33,7 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
       [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
-    double local_failure_checker = 0;
+    CCTK_REAL local_failure_checker = 0;
 
     ghl_con2prim_diagnostics diagnostics;
     ghl_initialize_diagnostics(&diagnostics);
@@ -53,7 +56,7 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
     prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
 
     // Read in conservative variables from gridfunctions
-    ghl_conservative_quantities cons, cons_orig;
+    ghl_conservative_quantities cons, cons_undens;
     cons.rho   = rho_star(index); 
     cons.tau   = tau(index);
     cons.SD[0] = Stildex(index);
@@ -61,74 +64,105 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
     cons.SD[2] = Stildez(index);
     cons.Y_e   = Ye_star(index);
 
-    // Here we save the original values of conservative variables in cons_orig for debugging purposes.
-    cons_orig = cons;
-
-    //FIXME: might slow down the code. Was formerly a CCTK_WARN
-    if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2])) {
-      CCTK_VERROR("NaN found at start of C2P kernel!\n"
-                  "position = %e %e %e\n"
-                  "Input variables:\n"
-                  "lapse, shift = %e, %e, %e, %e\n"
-                  "gij = %e, %e, %e, %e, %e, %e\n"
-                  "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
-                  p.x, p.y, p.z,
-                  ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                  ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                  ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                  cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2]);
-    }
+    int check;
 
     /************* Main conservative-to-primitive logic ************/
     if(cons.rho>0.0) {
-      // Apply the tau floor
-      if(ghl_eos->eos_type == ghl_eos_hybrid)
-        ghl_apply_conservative_limits(
-              ghl_params, ghl_eos, &ADM_metric,
-              &prims, &cons, &diagnostics);
-
-      // declare some variables for the C2P routine.
-      ghl_conservative_quantities cons_undens;
-
-      // Set the conserved variables required by the con2prim routine
       ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
       /************* Conservative-to-primitive recovery ************/
-      const int check = ghl_con2prim_multi_method(
+      check = ghl_con2prim_multi_method(
             ghl_params, ghl_eos, &ADM_metric, &metric_aux,
             &cons_undens, &prims, &diagnostics);
+    } else {
+      local_failure_checker += 1;
+      check = 1;
+    }
 
-      if(check==0) {
-        //Check for NAN!
-        if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
-          CCTK_VERROR("***********************************************************\n"
-                      "NAN found after Con2Prim routine %s!\n"
-                      "position = %e %e %e\n"
-                      "Input variables:\n"
-                      "lapse, shift = %e %e %e %e\n"
-                      "gij = %e %e %e %e %e %e\n"
-                      "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
-                      "Undensitized conserved variables:\n"
-                      "D, tau, S_{i}: %e %e %e %e %e\n"
-                      "Output primitive variables:\n"
-                      "rho, P: %e %e\n"
-                      "v: %e %e %e\n"
-                      "***********************************************************",
-                      ghl_get_con2prim_routine_name(diagnostics.which_routine),
-                      p.x, p.y, p.z,
-                      ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                      ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                      ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                      cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
-                      cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
-                      prims.rho, prims.press,
-                      prims.vU[0], prims.vU[1], prims.vU[2]);
-            }
-      } else {
-        //--------------------------------------------------
-        //----------- Primitive recovery failed ------------
-        //--------------------------------------------------
-        local_failure_checker += 100;
+    if(check || isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+                      prims.Y_e)) {
+      //pointcount_avg++;
+      check = 1;
+
+      ghl_conservative_quantities cons_neigh_avg, cons_avg;
+      cons_neigh_avg.rho   = 0.0;
+      cons_neigh_avg.tau   = 0.0;
+      cons_neigh_avg.SD[0] = 0.0;
+      cons_neigh_avg.SD[1] = 0.0;
+      cons_neigh_avg.SD[2] = 0.0;
+      cons_neigh_avg.Y_e   = 0.0;
+
+      // Set minimum index of loop to -1 unless that index is below the minimum index of this tile
+      const int iavg_min = (0 > p.i-1) - 1;
+      const int javg_min = (0 > p.j-1) - 1;
+      const int kavg_min = (0 > p.k-1) - 1;
+      // Set maximum index of loop to +1 unless that index is above the maximum index of this tile
+      const int iavg_max = -(imax < p.i+2) + 1;
+      const int javg_max = -(jmax < p.j+2) + 1;
+      const int kavg_max = -(kmax < p.k+2) + 1;
+
+      int n_avg = 0;
+      // We compute the average of neighboring points once and
+      // reuse it for the various weighted averages.
+      for(int kavg=kavg_min; kavg<kavg_max; kavg++) {
+        for(int javg=javg_min; javg<javg_max; javg++) {
+          for(int iavg=iavg_min; iavg<iavg_max; iavg++) {
+            // Skip this point
+            const Loop::GF3D2index inavg(layout, p.I + iavg*p.DI[0] + javg*p.DI[1] + kavg*p.DI[2]);
+            if((iavg==p.i && javg==p.j && kavg==p.k))
+              continue;
+            cons_neigh_avg.rho   += rho_star(inavg);
+            cons_neigh_avg.tau   += tau(inavg);
+            cons_neigh_avg.SD[0] += Stildex(inavg);
+            cons_neigh_avg.SD[1] += Stildey(inavg);
+            cons_neigh_avg.SD[2] += Stildez(inavg);
+            cons_neigh_avg.Y_e   += Ye_star(inavg);
+            n_avg++;
+          }
+        }
+      }
+
+      int avg_weight = 1;
+      while(check && avg_weight < 5) {
+        check = 0;
+        // last point doesn't add central point and has 1 less point
+        // being averaged.
+        n_avg += (avg_weight!=4);
+
+        const CCTK_REAL wfac = avg_weight/4.0;
+        const CCTK_REAL cfac = 1.0 - wfac;
+        cons_avg.rho   = wfac*cons_neigh_avg.rho     + cfac*cons.rho;
+        cons_avg.tau   = wfac*cons_neigh_avg.tau     + cfac*cons.tau;
+        cons_avg.SD[0] = wfac*cons_neigh_avg.SD[0]   + cfac*cons.SD[0];
+        cons_avg.SD[1] = wfac*cons_neigh_avg.SD[1]   + cfac*cons.SD[1];
+        cons_avg.SD[2] = wfac*cons_neigh_avg.SD[2]   + cfac*cons.SD[2];
+        cons_avg.Y_e   = wfac*cons_neigh_avg.Y_e     + cfac*cons.Y_e;
+
+        cons_avg.rho   /= n_avg;
+        cons_avg.tau   /= n_avg;
+        cons_avg.SD[0] /= n_avg;
+        cons_avg.SD[1] /= n_avg;
+        cons_avg.SD[2] /= n_avg;
+        cons_avg.Y_e   /= n_avg;
+
+        ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
+
+        /************* Conservative-to-primitive recovery ************/
+        check = ghl_con2prim_multi_method(
+              ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+              &cons_undens, &prims, &diagnostics);
+
+        avg_weight++;
+        if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+                 prims.Y_e*prims.temperature) )
+          check = 1;
+      }
+      if(check) {
+        // We are still failing after exhausting the averaging options.
+        // We'll surrender and resort to atmospheric reset...
+
+        failure_checker(index) += 100;
+
         ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
         //failures++;
@@ -136,22 +170,22 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
           //failures_inhoriz++;
           //pointcount_inhoriz++;
         }
-        CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n"
+        CCTK_VINFO("***********************************************************\n"
+                   "Con2Prim and averaging backups failed! Resetting to atmosphere...\n"
                    "position = %e %e %e\n"
                    "lapse, shift = %e, %e, %e, %e\n"
                    "gij = %e, %e, %e, %e, %e, %e\n"
-                   "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
+                   "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
+                   "~DYe: %e\n"
+                   "***********************************************************",
                    p.x, p.y, p.z,
                    ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                    ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
                    ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                   cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2]);
-      }
-    } else {
-      local_failure_checker += 1;
-      ghl_set_prims_to_constant_atm(ghl_eos, &prims);
-      //rho_star_fix_applied++;
-    } // if rho_star>0
+                   cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
+                   cons.Y_e);
+      } // atmospheric backup
+    } // if c2p failed
     /***************************************************************/
 
     //--------------------------------------------------

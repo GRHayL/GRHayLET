@@ -26,7 +26,6 @@ void GRHayLHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
   int failures = 0;
   int vel_limited_ptcount = 0;
   int rho_star_fix_applied = 0;
-  int navg_total = 0;
   int failures_inhoriz = 0;
   int pointcount_inhoriz = 0;
   int backup0 = 0;
@@ -198,7 +197,6 @@ void GRHayLHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
               // We'll surrender and resort to atmospheric reset...
 
               failure_checker[index] += 100;
-
               ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
               failures++;
@@ -212,7 +210,7 @@ void GRHayLHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
                          "lapse, shift = %e, %e, %e, %e\n"
                          "gij = %e, %e, %e, %e, %e, %e\n"
                          "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
-                       "***********************************************************",
+                         "***********************************************************",
                          x[index], y[index], z[index],
                          ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
                          ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
