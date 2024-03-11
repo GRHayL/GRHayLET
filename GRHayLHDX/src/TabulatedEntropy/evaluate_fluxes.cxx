@@ -27,7 +27,7 @@ void GRHayLHDX_tabulated_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
         const ghl_metric_quantities *restrict ADM_metric_face,
         const CCTK_REAL cmin,
         const CCTK_REAL cmax,
-        ghl_conservative_quantities *restrict cons_fluxes);
+        ghl_conservative_quantities *restrict cons_fluxes)
     = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy :
       flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy :
                     &ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy ;

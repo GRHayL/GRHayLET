@@ -1,13 +1,3 @@
-/********************************
- * CONVERT ET ID TO IllinoisGRMHD
- *
- * Written in 2014 by Zachariah B. Etienne
- *
- * Sets metric & MHD variables needed
- * by IllinoisGRMHD, converting from
- * HydroBase and ADMBase.
- ********************************/
-
 #include "GRHayLHDX.h"
 
 extern "C" void GRHayLHDX_tabulated_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
@@ -53,6 +43,7 @@ extern "C" void GRHayLHDX_tabulated_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
     rho(index)         = prims.rho;
     press(index)       = prims.press;
     eps(index)         = prims.eps;
+    u0(index)          = prims.u0;
     vx(index)          = prims.vU[0];
     vy(index)          = prims.vU[1];
     vz(index)          = prims.vU[2];

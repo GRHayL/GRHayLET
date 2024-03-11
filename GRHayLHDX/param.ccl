@@ -11,6 +11,10 @@ INT Convert_to_HydroBase_every "How often to convert GRHayLHDX primitive variabl
  0:* :: "zero (disable) or positive (every N iterations)"
 } 0
 
+CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=ALWAYS
+{
+} "yes"
+
 #########################################################
 
 # OUTER BOUNDARY CONDITION CHOICE

@@ -76,5 +76,5 @@ IO::out_every = 10
 CarpetX::out_tsv_vars = "
   HydroBaseX::rho
   HydroBaseX::press
-  GRHayLHDX::grmhd_velocities
+  GRHayLHDX::grhd_velocities
 "

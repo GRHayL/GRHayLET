@@ -160,7 +160,7 @@ if (!evolve_entropy) {
 
 if(CCTK_IsThornActive("NRPyLeakageET"))
 {
-  schedule convert_GRHayLHDX_to_HydroBase in GRHayLHD_RHS after GRHayLHD_evaluate_fluxes_rhs
+  schedule convert_GRHayLHDX_to_HydroBase in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes_rhs
   {
     LANG: C
     READS:  ccc_spacetime, grhd_velocities
@@ -205,7 +205,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grhd_conservatives(everywhere), ent_star(everywhere),
               HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
               HydroBaseX::eps(everywhere), HydroBaseX::entropy(everywhere)
-      SYNC:   grmd_conservatives, ent_star
+      SYNC:   grhd_conservatives, ent_star
     } "Entropy+Hybrid version of GRHayLHDX_prims_to_conservs"
 
     schedule GRHayLHDX_hybrid_entropy_conservs_to_prims in GRHayLHDX_conservs_to_prims
@@ -335,7 +335,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       WRITES: u0(everywhere), grhd_velocities(everywhere), grhd_conservatives(everywhere),
               ent_star(everywhere), Ye_star(everywhere),
               HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
       SYNC:   grhd_conservatives, ent_star, Ye_star
     } "Entropy+Tabulated version of GRHayLHDX_prims_to_conservs"
 
@@ -410,7 +410,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       WRITES: u0(everywhere), grhd_velocities(everywhere),
               grhd_conservatives(everywhere), Ye_star(everywhere),
               HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
       SYNC:   grhd_conservatives, Ye_star
     } "Tabulated version of GRHayLHDX_prims_to_conservs"
 
@@ -421,7 +421,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       WRITES: grhd_conservatives(everywhere), Ye_star(everywhere),
               u0(everywhere), grhd_velocities(everywhere), failure_checker(everywhere),
               HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
     } "Tabulated version of GRHayLHDX_conservs_to_prims"
 
     schedule GRHayLHDX_tabulated_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
