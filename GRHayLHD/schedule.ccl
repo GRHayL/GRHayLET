@@ -34,7 +34,7 @@ schedule GRHayLHD_InitSymBound at BASEGRID after Lapse_InitSymBound
 # Fill GRHayLHD grid functions using initial data from ADMBase and HydroBase
 schedule group GRHayLHD_Prim2Con2Prim in HydroBase_Prim2ConInitial
 {
-} "Convert HydroBase initial data to GRHayLHD variables"
+} "Initialize GRHayLHDX variables using HydroBaseX initial data"
 
 # Runs everywhere. Shouldn't need to sync
 schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
@@ -44,7 +44,7 @@ schedule convert_HydroBase_to_GRHayLHD in GRHayLHD_Prim2Con2Prim
   READS:  HydroBase::vel
   WRITES: grhd_velocities(everywhere)
   SYNC: grhd_velocities
-} "Convert HydroBase initial data (ID) to GRHayLHD variables"
+} "Convert HydroBase initial data to GRHayLHD variables"
 
 if(perturb_initial_data) {
   schedule group GRHayLHD_perturb_primitives in GRHayLHD_Prim2Con2Prim after convert_HydroBase_to_GRHayLHD before GRHayLHD_prims_to_conservs
@@ -105,16 +105,18 @@ schedule group GRHayLHD_outer_boundaries in GRHayLHD_Con2Prim after GRHayLHD_con
 # Stress-energy Tensor
 #########################################################
 
-schedule GRHayLHD_compute_Tmunu in AddToTmunu
-{
-  LANG: C
-  READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-          HydroBase::rho, HydroBase::press, HydroBase::eps,
-          grhd_velocities, u0
-  WRITES: TmunuBase::stress_energy_scalar(everywhere),
-          TmunuBase::stress_energy_vector(everywhere),
-          TmunuBase::stress_energy_tensor(everywhere)
-} "Compute stress-energy tensor"
+if(update_Tmunu) {
+  schedule GRHayLHD_compute_Tmunu in AddToTmunu
+  {
+    LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            HydroBase::rho, HydroBase::press, HydroBase::eps,
+            grhd_velocities, u0
+    WRITES: TmunuBase::stress_energy_scalar(everywhere),
+            TmunuBase::stress_energy_vector(everywhere),
+            TmunuBase::stress_energy_tensor(everywhere)
+  } "Compute stress-energy tensor"
+}
 
 #########################################################
 # RHS EVALUATION
@@ -183,8 +185,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              HydroBase::rho(everywhere), HydroBase::press(everywhere),
-              HydroBase::entropy, grhd_conservatives, ent_star
+              grhd_conservatives, ent_star
       WRITES: grhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
               u0(everywhere), grhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
@@ -319,7 +320,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               ent_star(everywhere), Ye_star(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
-      SYNC: grhd_conservatives, Ye_star, ent_star
+      SYNC: grhd_conservatives, ent_star, Ye_star
     } "Entropy+Tabulated version of GRHayLHD_prims_to_conservs"
 
     schedule GRHayLHD_tabulated_entropy_conservs_to_prims in GRHayLHD_conservs_to_prims
@@ -409,7 +410,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              grhd_conservatives, grhd_velocities, Ye_star
+              grhd_conservatives, Ye_star
       WRITES: grhd_conservatives(everywhere), Ye_star(everywhere),
               u0(everywhere), grhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
