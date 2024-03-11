@@ -1,11 +1,5 @@
 #include "GRHayLHDX.h"
 
-static inline CCTK_REAL get_Gamma_eff(
-      const CCTK_REAL rho_in,
-      const CCTK_REAL press_in) {
-  return 1.0;
-}
-
 template <int flux_dir>
 void GRHayLHDX_tabulated_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_evaluate_fluxes;
@@ -26,9 +20,7 @@ void GRHayLHDX_tabulated_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
       flux_dir==1 ? &ghl_calculate_characteristic_speed_dirn1 :
                     &ghl_calculate_characteristic_speed_dirn2 ;
 
-  // I used constexpr with ternary operators elsewhere, but here there would be way too
-  // many operators here, so I resort to if statements.
-  void (*calculate_HLLE_fluxes)(
+  constexpr void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
@@ -36,10 +28,9 @@ void GRHayLHDX_tabulated_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
         const CCTK_REAL cmin,
         const CCTK_REAL cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
-
-  calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_tabulated :
-                          flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_tabulated :
-                                        &ghl_calculate_HLLE_fluxes_dirn2_tabulated ;
+    = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_tabulated :
+      flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_tabulated :
+                    &ghl_calculate_HLLE_fluxes_dirn2_tabulated ;
 
   Loop::GF3D2<const CCTK_REAL> v_flux_dir = flux_dir==0 ? vx :
                                             flux_dir==1 ? vy : vz;
@@ -101,8 +92,7 @@ void GRHayLHDX_tabulated_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
     CCTK_REAL ftilde[2];
     ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-    const CCTK_REAL Gamma = get_Gamma_eff(rho(index), press(index));
-    ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
+    ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
     ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
     ghl_ppm_reconstruction(ftilde, vx_stencil, &prims_r.vU[0], &prims_l.vU[0]);
@@ -133,11 +123,11 @@ void GRHayLHDX_tabulated_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
     calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
     rho_star_flux(ind_flux) = cons_fluxes.rho;
-    tau_flux(ind_flux) = cons_fluxes.tau;
-    Sx_flux(ind_flux)  = cons_fluxes.SD[0];
-    Sy_flux(ind_flux)  = cons_fluxes.SD[1];
-    Sz_flux(ind_flux)  = cons_fluxes.SD[2];
-    Ye_flux (ind_flux) = cons_fluxes.Y_e;
+    tau_flux(ind_flux)      = cons_fluxes.tau;
+    Sx_flux(ind_flux)       = cons_fluxes.SD[0];
+    Sy_flux(ind_flux)       = cons_fluxes.SD[1];
+    Sz_flux(ind_flux)       = cons_fluxes.SD[2];
+    Ye_flux (ind_flux)      = cons_fluxes.Y_e;
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 

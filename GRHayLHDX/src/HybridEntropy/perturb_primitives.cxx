@@ -11,11 +11,11 @@ extern "C" void GRHayLHDX_hybrid_entropy_perturb_primitives(CCTK_ARGUMENTS) {
       grid.nghostzones,
       [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
-    rho        (index) *= one_plus_pert(random_pert);
-    press      (index) *= one_plus_pert(random_pert);
-    vx         (index) *= one_plus_pert(random_pert);
-    vy         (index) *= one_plus_pert(random_pert);
-    vz         (index) *= one_plus_pert(random_pert);
-    entropy    (index) *= one_plus_pert(random_pert);
+    rho(index)     *= one_plus_pert(random_pert);
+    press(index)   *= one_plus_pert(random_pert);
+    vx(index)      *= one_plus_pert(random_pert);
+    vy(index)      *= one_plus_pert(random_pert);
+    vz(index)      *= one_plus_pert(random_pert);
+    entropy(index) *= one_plus_pert(random_pert);
   }); // ccc loop everywhere
 }

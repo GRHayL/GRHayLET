@@ -1,10 +1,5 @@
 #include "GRHayLHDX.h"
 
-  /*
-   *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
-   *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
-   *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
-   */
 template <int flux_dir>
 void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_evaluate_fluxes_rhs;
@@ -14,10 +9,6 @@ void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
 
   constexpr std::array<int, Loop::dim> facetype = {flux_dir!=0, flux_dir!=1, flux_dir!=2};
   const Loop::GF3D2layout flux_layout(cctkGH, facetype);
-
-  // These nested condtional ternary operators let us tell the compiler that
-  // these pointers can be set at compiler time while making the templated functions
-  // instead of using a switch statement at runtime.
 
   Loop::GF3D2<const CCTK_REAL> rho_star_flux = flux_dir==0 ? rho_star_flux_x :
                                                flux_dir==1 ? rho_star_flux_y : rho_star_flux_z;
@@ -42,12 +33,7 @@ void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
   grid.loop_int_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    const Loop::GF3D2index indm2(ccc_layout, p.I - 2*p.DI[flux_dir]);
-    const Loop::GF3D2index indm1(ccc_layout, p.I - p.DI[flux_dir]);
     const Loop::GF3D2index index(ccc_layout, p.I);
-    const Loop::GF3D2index indp1(ccc_layout, p.I + p.DI[flux_dir]);
-    const Loop::GF3D2index indp2(ccc_layout, p.I + 2*p.DI[flux_dir]);
-
     const Loop::GF3D2index ind_flux(flux_layout, p.I);
     const Loop::GF3D2index ind_flp1(flux_layout, p.I + p.DI[flux_dir]);
 
