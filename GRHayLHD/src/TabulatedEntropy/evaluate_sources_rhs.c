@@ -41,16 +41,17 @@ void GRHayLHD_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         ghl_primitive_quantities prims;
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-        prims.rho   = rho[index];
-        prims.press = press[index];
-        prims.vU[0] = vx[index];
-        prims.vU[1] = vy[index];
-        prims.vU[2] = vz[index];
-        prims.entropy = entropy[index];
-        prims.Y_e   = Y_e[index];
+        prims.rho         = rho[index];
+        prims.press       = press[index];
+        prims.vU[0]       = vx[index];
+        prims.vU[1]       = vy[index];
+        prims.vU[2]       = vz[index];
+        prims.entropy     = entropy[index];
+        prims.Y_e         = Y_e[index];
         prims.temperature = temperature[index];
 
-        const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
+        const int speed_limited CCTK_ATTRIBUTE_UNUSED =
+              ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
 
         ghl_metric_quantities ADM_metric_derivs_x;
         GRHayLHD_compute_metric_derivs(
@@ -87,7 +88,7 @@ void GRHayLHD_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               &ADM_metric_derivs_z,
               &curv, &cons_source);
 
-        tau_rhs    [index] = cons_source.tau;
+        tau_rhs[index]     = cons_source.tau;
         Stildex_rhs[index] = cons_source.SD[0];
         Stildey_rhs[index] = cons_source.SD[1];
         Stildez_rhs[index] = cons_source.SD[2];

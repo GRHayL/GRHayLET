@@ -7,9 +7,7 @@
 #include "GRHayLHD.h"
 #include "Symmetry.h"
 
-void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
-{
-  DECLARE_CCTK_ARGUMENTS_GRHayLHD_RegisterVars;
+void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
   CCTK_INT ierr = 0, var, rhs;
@@ -39,14 +37,13 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS)
     ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::temperature"));
   }
 
-  if(stress_energy_at_RHS) {
+  if(update_Tmunu) {
     MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_scalar"));
     MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_vector"));
     MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_tensor"));
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");
-  //***********************************************
 
   //***********************************************
   // Next register ADMBase variables needed by
