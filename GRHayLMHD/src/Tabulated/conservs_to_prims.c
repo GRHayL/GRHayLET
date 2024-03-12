@@ -27,7 +27,6 @@ void GRHayLMHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
   int failures = 0;
   int vel_limited_ptcount = 0;
   int rho_star_fix_applied = 0;
-  int navg_total = 0;
   int failures_inhoriz = 0;
   int pointcount_inhoriz = 0;
   int backup0 = 0;
