@@ -12,7 +12,8 @@ void GRHayLMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   if(CCTK_EQUALS(Symmetry, "equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr = 0;
-    ierr += CartSymGN(cctkGH, "GRHayLMHD::grmhd_velocities");
+    ierr += CartSymGN(cctkGH, "GRHayLMHD::grmhd_conservatives");
+    ierr += CartSymGN(cctkGH, "GRHayLMHD::ent_star");
     // FIXME: UGLY. Filling metric ghostzones is needed for, e.g., Cowling runs.
     ierr += CartSymGN(cctkGH, "lapse::lapse_vars");
     ierr += CartSymGN(cctkGH, "bssn::BSSN_vars");
@@ -85,10 +86,7 @@ void GRHayLMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         int check;
 
         /************* Main conservative-to-primitive logic ************/
-        if (cons.rho > 0.0 &&
-            isfinite(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2]*
-                     prims.BU[0]*prims.BU[1]*prims.BU[2]*cons.entropy)) {
-
+        if(cons.rho>0.0) {
           ghl_apply_conservative_limits(
               ghl_params, ghl_eos, &ADM_metric,
               &prims, &cons, &diagnostics);
