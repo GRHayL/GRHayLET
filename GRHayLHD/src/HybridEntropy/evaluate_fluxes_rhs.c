@@ -9,11 +9,6 @@ static inline CCTK_REAL get_Gamma_eff(
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
-/*
- *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
- *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
- *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
-*/
 void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
@@ -74,7 +69,7 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
     for(int k=kmin; k<kmax+1; k++) {
       for(int j=jmin; j<jmax+1; j++) {
         for(int i=imin; i<imax+1; i++) {
-          const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
+          const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
           ghl_metric_quantities ADM_metric_face;
           GRHayLHD_interpolate_metric_to_face(
@@ -126,16 +121,16 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
           rho_star_flux[index] = cons_fluxes.rho;
-          tau_flux     [index] = cons_fluxes.tau;
-          Stildex_flux [index] = cons_fluxes.SD[0];
-          Stildey_flux [index] = cons_fluxes.SD[1];
-          Stildez_flux [index] = cons_fluxes.SD[2];
+          tau_flux[index]      = cons_fluxes.tau;
+          Stildex_flux[index]  = cons_fluxes.SD[0];
+          Stildey_flux[index]  = cons_fluxes.SD[1];
+          Stildez_flux[index]  = cons_fluxes.SD[2];
           ent_star_flux[index] = cons_fluxes.entropy;
         }
       }
     }
 
-    CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
+    const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(flux_dir);
 
 #pragma omp parallel for
     for(int k=kmin; k<kmax; k++) {
@@ -145,10 +140,10 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
           rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-          tau_rhs     [index] += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-          Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
-          Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
-          Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+          tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+          Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+          Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+          Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
           ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
         }
       }

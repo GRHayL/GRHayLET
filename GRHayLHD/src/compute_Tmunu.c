@@ -8,7 +8,7 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities

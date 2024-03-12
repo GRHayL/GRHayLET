@@ -1,15 +1,13 @@
-# Main make.code.defn file for thorn GRHayL
+# Main make.code.defn file for thorn GRHayLHD
 
 # Subdirectories containing source files
-SUBDIRS = Hybrid HybridEntropy #Tabulated TabulatedEntropy
+SUBDIRS = Hybrid HybridEntropy Tabulated TabulatedEntropy
 
 # Source files in this directory
 SRCS = compute_metric_derivs.c         \
        compute_Tmunu.c                 \
-       convert_for_NRPyLeakage.c       \
        convert_HydroBase_to_GRHayLHD.c \
        convert_GRHayLHD_to_HydroBase.c \
        InitSymBound.c                  \
        interpolate_metric_to_face.c    \
-       MoL_registration.c \
-       no_tabulated.c
+       MoL_registration.c

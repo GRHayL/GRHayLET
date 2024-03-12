@@ -1,23 +1,14 @@
 # Parameter definitions for thorn GRHayLHD
 
-#TODO: only needed if we keep the STORAGE for ADMBase in the schedule
-shares: ADMBase
-USES CCTK_INT lapse_timelevels
-USES CCTK_INT shift_timelevels
-USES CCTK_INT metric_timelevels
-
 shares: GRHayLib
 USES KEYWORD EOS_type
 USES CCTK_BOOLEAN evolve_entropy
-
-shares: TmunuBase
-USES CCTK_BOOLEAN stress_energy_at_RHS
 
 #########################################################
 
 INT Convert_to_HydroBase_every "How often to convert GRHayLHD primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure GRHayLHD runs."
 {
- 0:* :: "zero (disable) or positive (every N iterations)"
+  0:* :: "zero (disable) or positive (every N iterations)"
 } 0
 
 CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=ALWAYS
