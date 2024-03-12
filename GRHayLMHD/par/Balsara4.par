@@ -66,25 +66,26 @@ HydroBase::timelevels          = 2
 
 GRHayLib::Psi6threshold = 1e100
 GRHayLib::Lorenz_damping_factor = 0.1
+GRHayLib::max_Lorentz_factor = 25
 
 GRHayLib::rho_b_atm = 1.292852735094440e-10
 GRHayLib::rho_b_min = 1.292852735094440e-10
 
 GRHayLib::EOS_type = "Simple"
-GRHayLib::Gamma    = 2.0
+GRHayLib::Gamma    = 5.0/3.0
 GRHayLib::P_atm    = 1.671468e-20
 
 GRHayLMHD::rescale_magnetics = no
 GRHayLMHD::Matter_BC = "copy"
 
 ActiveThorns = "GRHayLID"
-GRHayLID::initial_data_1D = "Balsara1"
+GRHayLID::initial_data_1D = "Balsara4"
 GRHayLID::shock_direction = "x"
 GRHayLID::discontinuity_position = 0.000001
 
 # I/O
 
-IOUtil::out_dir       = "output/grhayl1"
+IOUtil::out_dir       = "output/grhayl4"
 IOUtil::parfile_write = "generate"
 
 IOBasic::outInfo_every = 1
