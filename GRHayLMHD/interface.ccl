@@ -137,9 +137,12 @@ CCTK_INT FUNCTION MoLRegisterEvolved(
 CCTK_INT FUNCTION MoLRegisterEvolvedGroup(
       CCTK_INT IN EvolvedIndex,
       CCTK_INT IN RHSIndex)
+CCTK_INT FUNCTION MoLRegisterConstrainedGroup(
+      CCTK_INT IN ConstrainedIndex)
 CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(
       CCTK_INT IN SandRIndex)
 
 USES FUNCTION MoLRegisterEvolved
 USES FUNCTION MoLRegisterEvolvedGroup
+Uses FUNCTION MoLRegisterConstrainedGroup
 USES FUNCTION MoLRegisterSaveAndRestoreGroup

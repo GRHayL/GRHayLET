@@ -40,16 +40,29 @@ void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS) {
   rhs = CCTK_GroupIndex("GRHayLMHD::grmhd_conservatives_rhs");
   ierr += MoLRegisterEvolvedGroup(group, rhs);
 
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::rho"));
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::press"));
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::eps"));
+
   if(ghl_params->evolve_entropy) {
     group = CCTK_GroupIndex("GRHayLMHD::ent_star");
     rhs = CCTK_GroupIndex("GRHayLMHD::ent_star_rhs");
     ierr += MoLRegisterEvolvedGroup(group, rhs);
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::entropy"));
   }
 
   if(ghl_eos->eos_type == ghl_eos_tabulated) {
     group = CCTK_GroupIndex("GRHayLMHD::Ye_star");
     rhs = CCTK_GroupIndex("GRHayLMHD::Ye_star_rhs");
     ierr += MoLRegisterEvolvedGroup(group, rhs);
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::Y_e"));
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::temperature"));
+  }
+
+  if(update_Tmunu) {
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_scalar"));
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_vector"));
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_tensor"));
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");
@@ -62,9 +75,9 @@ void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS) {
   //    e.g., recomputed from BSSN variables
   //    in the BSSN solver, like Baikal or
   //    ML_BSSN)
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::lapse"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::shift"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::metric"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::curv"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::lapse"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::shift"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::metric"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::curv"));
   if (ierr) CCTK_ERROR("Problems registering with MoLRegisterSaveAndRestoreGroup");
 }
