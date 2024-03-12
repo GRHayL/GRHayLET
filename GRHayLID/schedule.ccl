@@ -61,7 +61,8 @@ if (CCTK_EQUALS(initial_entropy, "GRHayLID")) {
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::Y_e, HydroBase::temperature
-      WRITES: HydroBase::rho(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere), HydroBase::entropy(everywhere)
+      WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
+              HydroBase::entropy(everywhere), HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Computes entropy from density, Y_e, and temperature using Tabulated EOS"
   }
 }
