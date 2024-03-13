@@ -45,6 +45,5 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
       }
     }
   }
-  free(ghl_eos->Ye_of_lr);
   CCTK_INFO("Finished imposing neutrino free beta-equilibrium");
 }
