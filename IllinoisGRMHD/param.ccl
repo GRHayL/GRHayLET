@@ -1,0 +1,79 @@
+# Parameter definitions for thorn IllinoisGRMHD
+
+shares: GRHayLib
+USES KEYWORD EOS_type
+USES CCTK_BOOLEAN evolve_entropy
+
+#########################################################
+
+INT Convert_to_HydroBase_every "How often to convert IllinoisGRMHD primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure IllinoisGRMHD runs."
+{
+ 0:* :: "zero (disable) or positive (every N iterations)"
+} 0
+
+CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=ALWAYS
+{
+} "yes"
+
+CCTK_BOOLEAN rescale_magnetics "Rescale magnetic data to match original IllinoisGRMHD definitions"
+{
+} "yes"
+
+#########################################################
+
+# Symmetry boundary params. Needed for handling staggered gridfunctions.
+KEYWORD Symmetry "Currently only no symmetry supported, though work has begun in adding equatorial-symmetry support."
+{
+  "none"       :: "no symmetry, full 3d domain"
+} "none"
+
+REAL Sym_Bz "In-progress equatorial symmetry support: Symmetry parameter across z axis for magnetic fields = +/- 1"
+{
+ -1.0:1.0 :: "Set to +1 or -1."
+} 1.0
+
+#########################################################
+
+# OUTER BOUNDARY CONDITION CHOICE
+KEYWORD Matter_BC "Chosen Matter boundary condition"
+{
+  "copy"    :: "Copy BCs"
+  "outflow" :: "Copy BCs with additional outflow BC for velocities"
+  "frozen"  :: "Frozen boundaries"
+} "outflow"
+
+KEYWORD EM_BC "EM field boundary condition"
+{
+  "copy"    :: "Copy data from nearest boundary point"
+  "frozen"  :: "Frozen boundaries"
+} "copy"
+
+#########################################################
+
+# Verbosity Level
+KEYWORD verbose "Determines how much evolution information is output" STEERABLE=ALWAYS
+{
+  "no"  :: "Complete silence"
+  "yes" :: "Outputs information about conservative-to-primitive fixes, failures, etc."
+} "yes"
+
+#########################################################
+
+# Parameters for perturbing the initial data from HydroBase
+INT random_seed "Random seed for random, generally roundoff-level perturbation on initial data. Seeds srand(), and rand() is used for the RNG."
+{
+ 0:99999999 :: "Anything unsigned goes."
+} 0
+
+REAL random_pert "Magnitude of random perturbations"
+{
+ *:* :: "Anything goes."
+} 0
+
+CCTK_BOOLEAN perturb_initial_data "Random perturbation to initial data"
+{
+} "no"
+
+CCTK_BOOLEAN perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+{
+} "no"
