@@ -24,14 +24,14 @@
 % START CACTUS THORNGUIDE
 
 \begin{abstract}
-Provides a hydrodynamic evolution code using \grhayl via the
-\glib thorn. This is a trimmed-down version of the \igm thorn
-where magnetic fields are set to zero.
+Provides a general relativistic hydrodynamic (GRHD) evolution code
+using \grhayl via the \glib thorn. This is a trimmed-down version
+of the \igm thorn where magnetic fields are set to zero.
 \end{abstract}
 
 \section{Introduction}
 
-This thorn provides a hydrodynamic evolution code built on
+This thorn provides a GRHD evolution code built on
 the General Relativistic Hydrodynamics Library (\grhayl),
 which is included in the Einstein Toolkit via the \glib
 thorn. The core library inherits or adapts code from the
@@ -51,10 +51,12 @@ advantage of any Con2Prim methods provided by \grhayl.
 
 \section{Parameters}
 
-Most of the behavior of this thorn is controlled by \glib. However,
-there are several parameters in the thorn which control diagnostic
-or debugging features. Most are self-explanatory, but some parameters
-deserve a more detailed explanation.
+Most of the behavior of this thorn is controlled by \glib,
+the thorn that provides \grhayl functionality
+within the Einstein Toolkit. However, there are several
+parameters in the thorn which control diagnostic or debugging
+features. Most are self-explanatory, but some parameters deserve
+a more detailed explanation.
 
 First, many analysis or diagnostic thorns use \hydrobase variables.
 By default, \ghd never copies the data back from \ghd variables
@@ -66,8 +68,9 @@ on the same frequency as the analysis or IO thorn that is using
 the HydroBase variable. We reduced the amount of data copying in \ghd
 by using the HydroBase variables directly, which removes the need
 to copy them back and removes extra grid functions from memory.
-The velocity variables are still in \ghd because we use a different
-velocity than is defined in HydroBase.
+We still use distinct velocity variables because we use a different
+velocity than is defined in HydroBase, so this conversion is still
+necessary.
 
 Next, there are several parameters for debugging or other testing.
 The perturbing parameters give users the ability to affect either
