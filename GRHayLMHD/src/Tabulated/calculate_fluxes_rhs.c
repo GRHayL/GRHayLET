@@ -154,6 +154,7 @@ void GRHayLMHD_tabulated_calculate_flux_dir_rhs(
         CCTK_REAL ftilde[2];
         ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
+        // We use Gamma effective = 1, consistent with the Spritz code
         ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
         ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
