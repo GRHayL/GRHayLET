@@ -8,7 +8,7 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
         // Read in ADM metric quantities from gridfunctions and
         // set auxiliary and ADM metric quantities
@@ -25,13 +25,16 @@ void GRHayLMHD_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // Read in primitive variables from gridfunctions
         ghl_primitive_quantities prims;
-        ghl_initialize_primitives(
-              rho_b[index], pressure[index], eps[index],
-              vx[index], vy[index], vz[index],
-              Bx_center[index], By_center[index], Bz_center[index],
-              entropy[index], Y_e[index], temperature[index], &prims);
-
-        prims.u0 = u0[index];
+        prims.rho   = rho[index];
+        prims.press = press[index];
+        prims.eps   = eps[index];
+        prims.vU[0] = vx[index];
+        prims.vU[1] = vy[index];
+        prims.vU[2] = vz[index];
+        prims.u0    = u0[index];
+        prims.BU[0] = Bx_center[index];
+        prims.BU[1] = By_center[index];
+        prims.BU[2] = Bz_center[index];
 
         ghl_stress_energy Tmunu;
         ghl_compute_TDNmunu(&ADM_metric, &metric_aux, &prims, &Tmunu);

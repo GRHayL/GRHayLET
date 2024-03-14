@@ -13,9 +13,9 @@ void GRHayLMHD_tabulated_entropy_perturb_primitives(CCTK_ARGUMENTS) {
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
-        const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-        rho_b[index]       *= one_plus_pert(random_pert);
-        pressure[index]    *= one_plus_pert(random_pert);
+        const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
+        rho[index]         *= one_plus_pert(random_pert);
+        press[index]       *= one_plus_pert(random_pert);
         vx[index]          *= one_plus_pert(random_pert);
         vy[index]          *= one_plus_pert(random_pert);
         vz[index]          *= one_plus_pert(random_pert);

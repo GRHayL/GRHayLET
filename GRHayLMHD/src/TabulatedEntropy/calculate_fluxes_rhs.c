@@ -18,51 +18,52 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
   const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
-  // Function pointer to allow for loop over fluxes and sources
-  void (*calculate_characteristic_speed)(ghl_primitive_quantities *restrict prims_r,
-                                         ghl_primitive_quantities *restrict prims_l,
-                                         const ghl_eos_parameters *restrict eos,
-                                         const ghl_metric_quantities *restrict ADM_metric_face,
-                                         double *cmin, double *cmax);
+  void (*calculate_characteristic_speed)(
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
+        const ghl_eos_parameters *restrict eos,
+        const ghl_metric_quantities *restrict ADM_metric_face,
+        CCTK_REAL *cmin, CCTK_REAL *cmax);
 
-  void (*calculate_HLLE_fluxes)(ghl_primitive_quantities *restrict prims_r,
-                                ghl_primitive_quantities *restrict prims_l,
-                                const ghl_eos_parameters *restrict eos,
-                                const ghl_metric_quantities *restrict ADM_metric_face,
-                                const double cmin,
-                                const double cmax,
-                                ghl_conservative_quantities *restrict cons_fluxes);
+  void (*calculate_HLLE_fluxes)(
+        ghl_primitive_quantities *restrict prims_r,
+        ghl_primitive_quantities *restrict prims_l,
+        const ghl_eos_parameters *restrict eos,
+        const ghl_metric_quantities *restrict ADM_metric_face,
+        const CCTK_REAL cmin,
+        const CCTK_REAL cmax,
+        ghl_conservative_quantities *restrict cons_fluxes);
 
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
   const int zdir = (flux_dir == 2);
 
-  const CCTK_REAL *v_flux;
+  const CCTK_REAL *v_flux_dir;
   int B_recon[3];
   // Set function pointer to specific function for a given direction
   switch(flux_dir) {
     case 0:
-      v_flux = vx;
+      v_flux_dir = vx;
       B_recon[0] = 0;
       B_recon[1] = 1;
       B_recon[2] = 2;
-      calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn0;
+      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn0;
       calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
       break;
     case 1:
-      v_flux = vy;
+      v_flux_dir = vy;
       B_recon[0] = 1;
       B_recon[1] = 2;
       B_recon[2] = 0;
-      calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn1;
+      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn1;
       calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
       break;
     case 2:
-      v_flux = vz;
+      v_flux_dir = vz;
       B_recon[0] = 2;
       B_recon[1] = 0;
       B_recon[2] = 1;
-      calculate_characteristic_speed = &ghl_calculate_characteristic_speed_dirn2;
+      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn2;
       calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
       break;
     default:
@@ -84,22 +85,22 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
       for(int i=vimin; i<vimax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
-        CCTK_REAL press_stencil[6], v_flux_dir[6];
+        CCTK_REAL press_stencil[6], v_flux[6];
         CCTK_REAL vx_data[6], vy_data[6], vz_data[6];
         CCTK_REAL vxr, vxl, vyr, vyl, vzr, vzl;
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
           const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux_dir[ind] = v_flux[stencil]; // Could be smaller; doesn't use full stencil
-          press_stencil[ind] = pressure[stencil];
+          v_flux[ind] = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
+          press_stencil[ind] = press[stencil];
           vx_data[ind] = vx[stencil];
           vy_data[ind] = vy[stencil];
           vz_data[ind] = vz[stencil];
         }
 
-        double ftilde[2];
-        ghl_compute_ftilde(ghl_params, press_stencil, v_flux_dir, ftilde);
+        CCTK_REAL ftilde[2];
+        ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
         ghl_ppm_reconstruction(ftilde, vx_data, &vxr, &vxl);
         ghl_ppm_reconstruction(ftilde, vy_data, &vyr, &vyl);
@@ -135,27 +136,26 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
               gyy, gyz, gzz,
               &ADM_metric_face);
 
-        CCTK_REAL rho_stencil[6], press_stencil[6], v_flux_dir[6];
+        CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
         CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6];
         ghl_primitive_quantities prims_r, prims_l;
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
           const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux_dir[ind]    = v_flux[stencil]; // Could be smaller; doesn't use full stencil
-          rho_stencil[ind]   = rho_b[stencil];
-          press_stencil[ind] = pressure[stencil];
+          v_flux[ind]        = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
+          rho_stencil[ind]   = rho[stencil];
+          press_stencil[ind] = press[stencil];
           B1_stencil[ind]    = B_center[B_recon[1]][stencil];
           B2_stencil[ind]    = B_center[B_recon[2]][stencil];
           ent_stencil[ind]   = entropy[stencil];
           Ye_stencil[ind]    = Y_e[stencil];
         }
 
-        double ftilde[2];
-        ghl_compute_ftilde(ghl_params, press_stencil, v_flux_dir, ftilde);
+        CCTK_REAL ftilde[2];
+        ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-        const CCTK_REAL Gamma = get_Gamma_eff_tabulated(rho_b[index], pressure[index]);
-        ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
+        ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
         ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
         ghl_ppm_reconstruction(ftilde, B1_stencil, &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
@@ -164,8 +164,7 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
 
         // B_stagger is densitized, but B_center is not.
-        prims_r.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
-        prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
+        prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
 
         prims_r.vU[0] = vel_r[0][index];
         prims_r.vU[1] = vel_r[1][index];
@@ -175,11 +174,19 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        prims_r.temperature = temperature[index];
-        prims_l.temperature = temperature[index];
+        prims_r.temperature = prims_l.temperature = temperature[index];
 
         int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
         speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
+
+        // We must now compute eps and T
+        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
+        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+                                           &prims_r.eps, &prims_r.temperature);
+
+        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
+        ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+                                           &prims_l.eps, &prims_l.temperature);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
@@ -206,12 +213,12 @@ void GRHayLMHD_tabulated_entropy_calculate_flux_dir_rhs(
         const int indp1 = CCTK_GFINDEX3D(cctkGH, i+xdir, j+ydir, k+zdir);
 
         rho_star_rhs[index] += dxi*(rho_star_flux[index] - rho_star_flux[indp1]);
-        tau_rhs     [index] += dxi*(tau_flux     [index] - tau_flux     [indp1]);
-        Stildex_rhs [index] += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
-        Stildey_rhs [index] += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
-        Stildez_rhs [index] += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
+        tau_rhs[index]      += dxi*(tau_flux     [index] - tau_flux     [indp1]);
+        Stildex_rhs[index]  += dxi*(Stildex_flux [index] - Stildex_flux [indp1]);
+        Stildey_rhs[index]  += dxi*(Stildey_flux [index] - Stildey_flux [indp1]);
+        Stildez_rhs[index]  += dxi*(Stildez_flux [index] - Stildez_flux [indp1]);
         ent_star_rhs[index] += dxi*(ent_star_flux[index] - ent_star_flux[indp1]);
-        Ye_star_rhs [index] += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
+        Ye_star_rhs[index]  += dxi*(Ye_star_flux [index] - Ye_star_flux [indp1]);
       }
     }
   }
