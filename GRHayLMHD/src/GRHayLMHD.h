@@ -25,14 +25,6 @@ enum recon_indices{
 #define B_in  2.0/3.0
 #define COMPUTE_DERIV(Varm2,Varm1,Varp1,Varp2) (B_in*(Varp1 - Varm1) + B_out*(Varp2 - Varm2))
 
-CCTK_REAL get_Gamma_eff_hybrid(
-      const CCTK_REAL rho_in,
-      const CCTK_REAL press_in);
-
-CCTK_REAL get_Gamma_eff_tabulated(
-      const CCTK_REAL rho_in,
-      const CCTK_REAL press_in);
-
 void GRHayLMHD_interpolate_metric_to_face(
       const cGH *cctkGH,
       const int i, const int j, const int k,
@@ -84,7 +76,6 @@ void GRHayLMHD_reconstruction_loop(
       const int flux_dir,
       const int num_vars,
       const int *restrict var_indices,
-      const CCTK_REAL *rho_b,
       const CCTK_REAL *pressure,
       const CCTK_REAL *v_flux,
       const CCTK_REAL **in_prims,

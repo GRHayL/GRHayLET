@@ -1,11 +1,34 @@
 TEST TOV
 { 
-  NPROCS 2
   RELTOL 1e-11
 }
 
 TEST Balsara1
 { 
-  NPROCS 2
+  NPROCS 1
+  RELTOL 1e-12
+}
+
+TEST Balsara2
+{ 
+  NPROCS 1
+  RELTOL 1e-12
+}
+
+TEST Balsara3
+{ 
+  NPROCS 1
+  RELTOL 1e-12
+}
+
+TEST Balsara4
+{ 
+  NPROCS 1
+  RELTOL 1e-12
+}
+
+TEST Balsara5
+{ 
+  NPROCS 1
   RELTOL 1e-12
 }

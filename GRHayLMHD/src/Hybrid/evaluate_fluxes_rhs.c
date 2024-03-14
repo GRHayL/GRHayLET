@@ -50,26 +50,6 @@ void GRHayLMHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLMHD_hybrid_evaluate_fluxes_rhs;
   DECLARE_CCTK_PARAMETERS;
 
-  const int imin = cctk_nghostzones[0];
-  const int jmin = cctk_nghostzones[1];
-  const int kmin = cctk_nghostzones[2];
-  const int imax = cctk_lsh[0] - cctk_nghostzones[0];
-  const int jmax = cctk_lsh[1] - cctk_nghostzones[1];
-  const int kmax = cctk_lsh[2] - cctk_nghostzones[2];
-#pragma omp parallel for
-  for(int k=kmin; k<kmax; k++) {
-    for(int j=jmin; j<jmax; j++) {
-      for(int i=imin; i<imax; i++) {
-        const int index = CCTK_GFINDEX3D(cctkGH, i, j ,k);
-        rho_star_rhs[index] = 0.0;
-        phitilde_rhs[index] = 0.0;
-        Ax_rhs[index]       = 0.0;
-        Ay_rhs[index]       = 0.0;
-        Az_rhs[index]       = 0.0;
-      }
-    }
-  }
-
   // in_prims,out_prims_r, and out_prims_l are arrays of pointers to the actual gridfunctions.
   // Most pointers are passed explicitly. However, we need to programmatically choose gridfunctions
   // for the A_i reconstructions.
@@ -123,14 +103,14 @@ void GRHayLMHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[1] = {BY_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 1, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   flux_dir=1;
 
   {
     const int var_indices[6] = {VXR, VYR, VXL, VYL, BX_STAGGER, BZ_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -177,7 +157,7 @@ void GRHayLMHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[6] = {VYR, VZR, VYL, VZL, BX_STAGGER, BY_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 6, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
   /*
@@ -221,7 +201,7 @@ void GRHayLMHD_hybrid_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   */
   {
     const int var_indices[5] = {VXR, VZR, VXL, VZL, BZ_STAGGER};
-    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, rho_b, pressure, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
+    GRHayLMHD_reconstruction_loop(cctkGH, flux_dir, 5, var_indices, press, ghl_vel[flux_dir], in_prims, out_prims_r, out_prims_l);
   }
 
 

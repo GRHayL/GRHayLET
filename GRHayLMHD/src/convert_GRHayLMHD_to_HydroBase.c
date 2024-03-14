@@ -18,10 +18,6 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         const int index4D1 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int index4D2 = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
 
-        /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
-        rho[index]   = rho_b[index];
-        press[index] = pressure[index];
-
         // IllinoisGRMHD defines v^i = u^i/u^0.
 
         // Meanwhile, the ET/HydroBase formalism, called the Valencia
@@ -68,12 +64,14 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         const CCTK_REAL gyzL = gyz[index];
         const CCTK_REAL gzzL = gzz[index];
 
-        const CCTK_REAL one_minus_invW_squared = (gxxL* SQR(utU[0]) +
-                                               2.0*gxyL*(utU[0])*(utU[1]) +
-                                               2.0*gxzL*(utU[0])*(utU[2]) +
-                                               gyyL* SQR(utU[1]) +
-                                               2.0*gyzL*(utU[1])*(utU[2]) +
-                                               gzzL* SQR(utU[2]) )*SQR(lapseL_inv);
+        const CCTK_REAL one_minus_invW_squared =
+              (gxxL* SQR(utU[0]) +
+               gyyL* SQR(utU[1]) + 
+               gzzL* SQR(utU[2]) +
+               2.0*(gxyL*(utU[0])*(utU[1]) +
+                    gxzL*(utU[0])*(utU[2]) +
+                    gyzL*(utU[1])*(utU[2])
+               ))*SQR(lapseL_inv);
         /*** Check for superluminal velocity ***/
         //FIXME: Instead of >1.0, should be one_minus_one_over_alpha_u0_squared > ONE_MINUS_ONE_OVER_GAMMA_SPEED_LIMIT_SQUARED, for consistency with conserv_to_prims routines
 
@@ -82,9 +80,8 @@ void convert_GRHayLMHD_to_HydroBase(CCTK_ARGUMENTS) {
         }
 
         const CCTK_REAL W = 1.0/sqrt(1.0-one_minus_invW_squared);
-        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e", W, lapseL_inv, one_minus_invW_squared);
+        if(isnan(W*lapseL_inv)) CCTK_VINFO("BAD FOUND NAN ALPHAU0 CALC: %.15e %.15e %.15e\n", W, lapseL_inv, one_minus_invW_squared);
 
-        // u0 = W/alpha
         w_lorentz[index] = W;
 
         Bvec[index4D0] = Bx_center[index]*mag_factor;

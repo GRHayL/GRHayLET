@@ -7,56 +7,66 @@
 #include "GRHayLMHD.h"
 #include "Symmetry.h"
 
-void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS)
-{
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHD_RegisterVars;
+void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
 
-  CCTK_INT ierr = 0, var, rhs;
+  CCTK_INT ierr = 0, group, rhs;
 
   //***********************************************
   // Register evolution & RHS gridfunction variables
 
   /* Ax and Ax_rhs */
-  var = CCTK_VarIndex("GRHayLMHD::Ax");
+  group = CCTK_VarIndex("GRHayLMHD::Ax");
   rhs = CCTK_VarIndex("GRHayLMHD::Ax_rhs");
-  ierr += MoLRegisterEvolved(var, rhs);
+  ierr += MoLRegisterEvolved(group, rhs);
 
   /* Ay and Ay_rhs */
-  var = CCTK_VarIndex("GRHayLMHD::Ay");
+  group = CCTK_VarIndex("GRHayLMHD::Ay");
   rhs = CCTK_VarIndex("GRHayLMHD::Ay_rhs");
-  ierr += MoLRegisterEvolved(var, rhs);
+  ierr += MoLRegisterEvolved(group, rhs);
 
   /* Az and Az_rhs */
-  var = CCTK_VarIndex("GRHayLMHD::Az");
+  group = CCTK_VarIndex("GRHayLMHD::Az");
   rhs = CCTK_VarIndex("GRHayLMHD::Az_rhs");
-  ierr += MoLRegisterEvolved(var, rhs);
+  ierr += MoLRegisterEvolved(group, rhs);
 
   /* phitilde and phitilde_rhs */
-  var = CCTK_VarIndex("GRHayLMHD::phitilde");
+  group = CCTK_VarIndex("GRHayLMHD::phitilde");
   rhs = CCTK_VarIndex("GRHayLMHD::phitilde_rhs");
-  ierr += MoLRegisterEvolved(var, rhs);
+  ierr += MoLRegisterEvolved(group, rhs);
 
   /* ALL OTHER EVOLVED VARIABLES (rho_star,tau,Stilde_x,Stilde_y,Stilde_z) */
-  var = CCTK_GroupIndex("GRHayLMHD::grmhd_conservatives");
+  group = CCTK_GroupIndex("GRHayLMHD::grmhd_conservatives");
   rhs = CCTK_GroupIndex("GRHayLMHD::grmhd_conservatives_rhs");
-  ierr += MoLRegisterEvolvedGroup(var, rhs);
+  ierr += MoLRegisterEvolvedGroup(group, rhs);
+
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::rho"));
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::press"));
+  ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::eps"));
 
   if(ghl_params->evolve_entropy) {
-    var = CCTK_VarIndex("GRHayLMHD::ent_star");
-    rhs = CCTK_VarIndex("GRHayLMHD::ent_star_rhs");
-    ierr += MoLRegisterEvolved(var, rhs);\
+    group = CCTK_GroupIndex("GRHayLMHD::ent_star");
+    rhs = CCTK_GroupIndex("GRHayLMHD::ent_star_rhs");
+    ierr += MoLRegisterEvolvedGroup(group, rhs);
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::entropy"));
   }
 
   if(ghl_eos->eos_type == ghl_eos_tabulated) {
-    var = CCTK_VarIndex("GRHayLMHD::Ye_star");
-    rhs = CCTK_VarIndex("GRHayLMHD::Ye_star_rhs");
-    ierr += MoLRegisterEvolved(var, rhs);
+    group = CCTK_GroupIndex("GRHayLMHD::Ye_star");
+    rhs = CCTK_GroupIndex("GRHayLMHD::Ye_star_rhs");
+    ierr += MoLRegisterEvolvedGroup(group, rhs);
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::Y_e"));
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::temperature"));
+  }
+
+  if(update_Tmunu) {
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_scalar"));
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_vector"));
+    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_tensor"));
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");
-  //***********************************************
-  //SC: GiRaFFE doesn't do this. Is this really needed?
+
   //***********************************************
   // Next register ADMBase variables needed by
   //    GRHayLMHD as SaveAndRestore, so that
@@ -65,9 +75,9 @@ void GRHayLMHD_RegisterVars(CCTK_ARGUMENTS)
   //    e.g., recomputed from BSSN variables
   //    in the BSSN solver, like Baikal or
   //    ML_BSSN)
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::lapse"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::shift"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::metric"));
-  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("admbase::curv"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::lapse"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::shift"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::metric"));
+  ierr += MoLRegisterSaveAndRestoreGroup(CCTK_GroupIndex("ADMBase::curv"));
   if (ierr) CCTK_ERROR("Problems registering with MoLRegisterSaveAndRestoreGroup");
 }
