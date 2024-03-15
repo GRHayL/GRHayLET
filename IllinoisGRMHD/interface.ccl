@@ -10,9 +10,6 @@ USES INCLUDE: GRHayLib.h
 #########################################################
 
 # Primitive variables
-# The variables rho_b and pressure are identical to the HydroBase variables. However,
-# GRHayL uses the velocity v^i = u^i/u^0, while HydroBase uses the Valencia velocity, so
-# these velocities differ from HydroBase.
 CCTK_REAL grmhd_velocities type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
   vx, vy, vz
@@ -118,6 +115,22 @@ CCTK_REAL grmhd_primitives_reconstructed_temps type = GF TAGS='prolongation="non
 CCTK_REAL failure_checker type = GF TAGS='prolongation="none" Checkpoint="no" InterpNumTimelevels=1' "Gridfunction to track conservative-to-primitives solver fixes. Beware that this gridfunction is overwritten at each RK substep."
 
 ###########################################################################
+
+#########################################
+# backward compatibility
+#########################################
+cctk_real em_psi6phi type = GF Timelevels=3 tags='Prolongation="STAGGER111"'
+{
+  psi6phi
+} "Deprecated variable"
+cctk_real grmhd_primitives_allbutBi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+  rho_b, P
+} "Deprecated variables"
+cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+  Bx,By,Bz
+} "Deprecated variables"
 
 #########################################
 ###  Aliased functions from Carpet    ###

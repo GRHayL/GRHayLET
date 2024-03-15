@@ -6,12 +6,12 @@ USES CCTK_BOOLEAN evolve_entropy
 
 #########################################################
 
-INT Convert_to_HydroBase_every "How often to convert IllinoisGRMHD primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure IllinoisGRMHD runs."
+INT Convert_to_HydroBase_every "How often to convert IllinoisGRMHD primitive variables to HydroBase (Valencia formulation) primitive variables? Needed for some ET-based diagnostics. NOT needed for pure IllinoisGRMHD runs." STEERABLE=RECOVER
 {
  0:* :: "zero (disable) or positive (every N iterations)"
 } 0
 
-CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=ALWAYS
+CCTK_BOOLEAN update_Tmunu "Update Tmunu, for RHS of Einstein's equations?" STEERABLE=RECOVER
 {
 } "yes"
 
@@ -55,17 +55,19 @@ KEYWORD verbose "Determines how much evolution information is output" STEERABLE=
 {
   "no"  :: "Complete silence"
   "yes" :: "Outputs information about conservative-to-primitive fixes, failures, etc."
+  "essential" :: "Deprecated option."
+  "essential+iteration output" :: "Deprecated option."
 } "yes"
 
 #########################################################
 
 # Parameters for perturbing the initial data from HydroBase
-INT random_seed "Random seed for random, generally roundoff-level perturbation on initial data. Seeds srand(), and rand() is used for the RNG."
+INT random_seed "Random seed for random, generally roundoff-level perturbation on initial data. Seeds srand(), and rand() is used for the RNG." STEERABLE=ALWAYS
 {
  0:99999999 :: "Anything unsigned goes."
 } 0
 
-REAL random_pert "Magnitude of random perturbations"
+REAL random_pert "Magnitude of random perturbations" STEERABLE=ALWAYS
 {
  *:* :: "Anything goes."
 } 0
@@ -74,6 +76,61 @@ CCTK_BOOLEAN perturb_initial_data "Random perturbation to initial data"
 {
 } "no"
 
-CCTK_BOOLEAN perturb_every_con2prim "Random perturbation applied every time con2prim runs"
+CCTK_BOOLEAN perturb_every_con2prim "Random perturbation applied every time con2prim runs" STEERABLE=ALWAYS
 {
 } "no"
+
+#########################################################
+
+# Deprecated parameters for backward compatibility
+REAL GAMMA_SPEED_LIMIT "Deprecated. Please use GRHayLib."
+{
+ 1:* :: "Positive > 1, though you'll likely have troubles far above 10."
+} 10.0
+
+REAL tau_atm "Deprecated. Please use GRHayLib." STEERABLE=ALWAYS
+{
+ 0:* :: "Positive"
+} 1e100
+
+REAL rho_b_atm "Deprecated. Please use GRHayLib." STEERABLE=ALWAYS
+{
+ *:* :: "Allow for negative values.  This enables us to debug the code and verify if rho_b_atm is properly set."
+} 1e200
+
+REAL rho_b_max "Deprecated. Please use GRHayLib." STEERABLE=ALWAYS
+{
+ 0:* :: "Note that you will have problems unless rho_b_atm<rho_b_max"
+} 1e300
+
+INT conserv_to_prims_debug "Deprecated." STEERABLE=ALWAYS
+{
+ 0:1 :: "zero (no) or one (yes)"
+} 0
+
+REAL Psi6threshold "Deprecated. Please use GRHayLib." STEERABLE=ALWAYS
+{
+ *:* :: "Can set to anything"
+} 1e100
+
+INT neos "Deprecated. Please use GRHayLib."
+{
+ 1:10 :: "Any integer between 1 and 10"
+} 1
+
+REAL gamma_th "Deprecated. Please use GRHayLib."
+{
+ 0:* :: "Physical values"
+-1   :: "forbidden value to make sure it is explicitly set in the parfile"
+} -1
+
+REAL K_poly "Deprecated. Please use GRHayLib."
+{
+ 0:* :: "Positive"
+} 1.0
+
+REAL damp_lorenz "Deprecated. Please use GRHayLib." STEERABLE=ALWAYS
+{
+ *:* :: "any real"
+} 0.0
+#########################################################

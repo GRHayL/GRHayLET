@@ -4,18 +4,20 @@
 SUBDIRS = Hybrid HybridEntropy Tabulated TabulatedEntropy
 
 # Source files in this directory
-SRCS = A_flux_rhs.c                        \
-       A_i_outer_boundaries.c              \
-       compute_B_and_Bstagger_from_A.c     \
-       compute_metric_derivs.c             \
-       compute_Tmunu.c                     \
-       convert_HydroBase_to_IllinoisGRMHD.c    \
-       convert_IllinoisGRMHD_to_HydroBase.c    \
-       evaluate_phitilde_and_A_gauge_rhs.c \
-       InitSymBound.c                      \
-       interpolate_metric_to_face.c        \
-       MoL_registration.c                  \
-       reconstruction_loop.c               \
-       set_gz_symmetries.c                 \
-       symmetry_gzs_staggered.c            \
+SRCS = A_flux_rhs.c                         \
+       A_i_outer_boundaries.c               \
+       compute_B_and_Bstagger_from_A.c      \
+       compute_metric_derivs.c              \
+       compute_Tmunu.c                      \
+       convert_HydroBase_to_IllinoisGRMHD.c \
+       convert_IllinoisGRMHD_to_HydroBase.c \
+       evaluate_phitilde_and_A_gauge_rhs.c  \
+       InitSymBound.c                       \
+       interpolate_metric_to_face.c         \
+       MoL_registration.c                   \
+       reconstruction_loop.c                \
+       set_gz_symmetries.c                  \
+       symmetry_gzs_staggered.c             \
+       backward_compatible_data.c           \
+       backward_compatible_initialize.c     \
        sync.c
