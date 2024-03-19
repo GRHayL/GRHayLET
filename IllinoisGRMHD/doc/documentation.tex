@@ -1,0 +1,201 @@
+\documentclass{article}
+
+% Use the Cactus ThornGuide style file
+% (Automatically used from Cactus distribution, if you have a 
+%  thorn without the Cactus Flesh download this from the Cactus
+%  homepage at www.cactuscode.org)
+\usepackage{../../../../doc/latex/cactus}
+\usepackage{xspace}
+\newcommand{\grhayl}{\texttt{GRHayL}\xspace}
+\newcommand{\glib}{\texttt{GRHayLib}\xspace}
+\newcommand{\ghd}{\texttt{GRHayLHD}\xspace}
+\newcommand{\igm}{\texttt{IllinoisGRMHD}\xspace}
+\newcommand{\hydrobase}{\texttt{HydroBase}\xspace}
+
+\begin{document}
+
+\title{IllinoisGRMHD}
+\author{Samuel Cupp \\ Leonardo Rosa Werneck \\ Terrence Pierre Jacques \\ Zachariah Etienne}
+\date{$ $Date$ $}
+
+\maketitle
+
+% Do not delete next line
+% START CACTUS THORNGUIDE
+
+\begin{abstract}
+\igm solves the equations of general relativistic
+magneto-hydrodynamics (GRMHD) using the General Relativistic
+Hydrodynamics Library (\grhayl), which is included in the
+Einstein Toolkit via the \glib thorn. The core library
+inherits or adapts code from the original \igm thorn into a
+modular, infrastructure-agnostic library. This original thorn
+is itself a rewrite of the Illinois Numerical Relativity (ILNR)
+group's GRMHD  code (ca. 2009--2014), which was used in their
+modeling of the following systems:
+\begin{enumerate}
+\item Magnetized circumbinary disk accretion onto binary black holes
+\item Magnetized black hole--neutron star mergers
+\item Magnetized Bondi flow, Bondi-Hoyle-Littleton accretion
+\item White dwarf--neutron star mergers
+\end{enumerate}
+
+The improved \grhayl-based \igm incorporates more options
+for controlling the evolution, most notably the addition
+of new conservative-to-primitive solvers and nuclear equations of
+state.
+\end{abstract}
+
+\section{Introduction}
+
+This thorn provides a GRMHD evolution code built on
+the General Relativistic Hydrodynamics Library (\grhayl),
+which is included in the Einstein Toolkit via the \glib
+thorn. The core library inherits or adapts code from the
+original \igm thorn into a modular, infrastructure-agnostic
+library.
+
+The new and improved \igm provides support for hybrid and
+tabulated EOS, both with and without entropy. The core functions
+all come from \glib, ensuring that any improvements or updates
+to the library can be easily adopted by the thorn. The
+conservative-to-primitive solver is selected at runtime, allowing
+for users to take advantage of any Con2Prim methods provided by \grhayl.
+
+\section{Parameters}
+
+Most of the behavior of this thorn is controlled by \glib,
+the thorn that provides \grhayl functionality
+within the Einstein Toolkit. However, there are several
+parameters in the thorn which control diagnostic or debugging
+features. Most are self-explanatory, but some parameters deserve
+a more detailed explanation.
+
+First, many analysis or diagnostic thorns use \hydrobase variables.
+By default, \igm never copies the data back from \igm variables
+to \hydrobase variables, which would prevent the usage of these
+thorns. The \textbf{Convert\_to\_HydroBase\_every} parameter
+sets how often to copy back this data. Naturally, copying more
+frequently will slow down the simulation, so this should be set
+on the same frequency as the analysis or IO thorn that is using
+the HydroBase variable. We reduced the amount of data copying in \igm
+by using the HydroBase variables directly, which removes the need
+to copy them back and removes extra grid functions from memory.
+We still use distinct velocity variables because we use a different
+velocity than is defined in HydroBase, so this conversion is still
+necessary.
+
+Next, there are several parameters for debugging or other testing.
+The perturbing parameters give users the ability to affect either
+the initial data or evolution data at runtime without slowing down
+standard simulations. The \textbf{perturb\_initial\_data} parameter
+controls whether the initial data from HydroBase is perturbed, and
+the \textbf{perturb\_every\_con2prim} parameter controls whether
+the conservative variables are perturbed before every con2prim call.
+The magnitude of these perturbations is set by \textbf{random\_pert}.
+
+\section{Updating Old Parfiles}
+
+With the many changes to improve the code and transition to using \glib,
+parfile setups have changed significantly. To this end, we provide a
+guide to updating parfiles from old \igm to the \grhayl-based \igm.
+Old parfiles are temporarily supported via backward compatibility
+patch, but this support ends in the ET\_2024\_11 release.
+
+First, the two thorns ID\_converter\_ILGRMHD and Convert\_to\_HydroBase
+are entirely deprecated and will be removed. As such, these thorns and
+all their parameters should be removed from the parfile. Their equivalent
+parameters are as follows:
+%
+\begin{center}
+\begin{tabular}{|l l|}
+ \multicolumn{1}{|c}{Old} & \multicolumn{1}{c|}{New} \\\hline
+ ID\_converter\_ILGRMHD::Gamma\_Initial & GRHayLib::Gamma\_ppoly\_in[0] \\ 
+ ID\_converter\_ILGRMHD::random\_seed   & IllinoisGRMHD::random\_seed \\  
+ ID\_converter\_ILGRMHD::random\_pert   & IllinoisGRMHD::random\_pert \\
+ ID\_converter\_ILGRMHD::K\_Initial     & GRHayLib::k\_ppoly0 \\
+ Convert\_to\_HydroBase::Convert\_to\_HydroBase\_every & IllinoisGRMHD::Convert\_to\_HydroBase\_every \\\hline
+\end{tabular}
+\end{center}
+%
+The parameter ID\_converter\_ILGRMHD::pure\_hydro\_run is entirely
+deprecated, as the \ghd thorn provides this functionaility. Additionally,
+to properly trigger the random perturbation the new parameter
+IllinoisGRMHD::perturb\_initial\_data should be set.
+
+The parameters in \igm have also changed significantly, with many
+moving to the \glib thorn. These changes are as follows:
+%
+\begin{center}
+\begin{tabular}{|l l|}
+ \multicolumn{1}{|c}{Old} & \multicolumn{1}{c|}{New} \\\hline
+ IllinoisGRMHD::GAMMA\_SPEED\_LIMIT & GRHayLib::max\_Lorentz\_factor \\
+ IllinoisGRMHD::K\_poly             & GRHayLib::k\_ppoly0 \\
+ IllinoisGRMHD::rho\_b\_atm         & GRHayLib::rho\_b\_atm \\
+ IllinoisGRMHD::rho\_b\_max         & GRHayLib::rho\_b\_max \\
+ IllinoisGRMHD::Psi6threshold       & GRHayLib::Psi6threshold \\
+ IllinoisGRMHD::neos                & GRHayLib::neos \\
+ IllinoisGRMHD::gamma\_th           & GRHayLib::Gamma\_th \\
+ IllinoisGRMHD::damp\_lorenz        & GRHayLib::Lorenz\_damping\_factor \\\hline
+\end{tabular}
+\end{center}
+%
+As seen here, the ID converter and \igm thorns both had a $K$ parameter.
+These are condensed into a single parameter in GRHayLib.
+
+Two parameters are deprecated and marked for removal. These are
+IllinoisGRMHD::tau\_atm and IllinoisGRMHD::conserv\_to\_prims\_debug. The former
+is now automatically computed by \glib, and the latter's feature is no
+longer available.
+
+Other \igm parameter names are unchanged. However, some of their options
+are deprecated and also marked for removal. These are the "essential" and
+"essential+iteration output" options for IllinoisGRMHD::verbose.
+
+Finally, note that the magnetic field quantities have been rescaled by
+$\left(4\pi\right)^{-1/2}$, as this simplifies many equations in \grhayl.
+This definition is consistent with the magnetic field defined by HydroBase
+and GRHydro (which the old \igm did not respect). To maintain support for
+old initial data thorns, we by default assume that the HydroBase $B^i$,
+$A_i$ use the old definition and rescale them when copying into the \igm
+variables. The parameter rescale\_magnetics controls this behavior. If
+the thorns using the old definition (i.e. thorns in wvuthorns and
+wvuthorns\_diagnostics) are updated to use the new definition, this parameter
+will be switch such that the default behaves as expected for these thorns.
+Such a change will be detailed in the Einstein Toolkit release notes prior
+to the release introducing the change.
+
+In addition to these changes, \glib offers new parameter options for
+controlling the simulation, such as a wider range of conservative-to-primitive
+routines, new equation of state options, and control over the PPM reconstruction
+parameters. Please see that thorn's documentation for more information about these
+features, as well as \grhayl's documentation on the library's implementation
+details.
+
+\section{Acknowledgements}
+
+Note that many codes have fed into the \grhayl library. The most prominent is
+the \igm thorn developed primarily by Zachariah Etienne, Yuk Tung Liu, and
+Vasileios Paschalidis~\cite{WVUThorns_IllinoisGRMHD_Etienne:2015cea}. This
+thorn is based on the GRMHD code of the Illinois Numerical Relativity group
+(ca. 2014), written by Matt Duez, Yuk Tung Liu, and Branson Stephens~.
+
+For the full list of contributions and related citations, please use \grhayl's
+\href{https://github.com/GRHayL/GRHayL/wiki/Citation-and-License-Guide}{citation guide}.
+
+\begin{thebibliography}{9}
+
+\bibitem{WVUThorns_IllinoisGRMHD_Etienne:2015cea}
+Z.~B.~Etienne, V.~Paschalidis, R.~Haas, P.~M\"osta and S.~L.~Shapiro,
+``IllinoisGRMHD: An Open-Source, User-Friendly GRMHD Code for Dynamical
+Spacetimes,''
+Class. Quant. Grav. \textbf{32}, 175009 (2015)
+doi:10.1088/0264-9381/32/17/175009
+[\href{https://arxiv.org/abs/1501.07276}{arXiv:1501.07276} [astro-ph.HE]].
+
+\end{thebibliography}
+
+% Do not delete next line
+% END CACTUS THORNGUIDE
+
+\end{document}

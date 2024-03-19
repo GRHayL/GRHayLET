@@ -1,0 +1,2 @@
+# Configuration definition for thorn IllinoisGRMHD
+requires HDF5 GRHayL
