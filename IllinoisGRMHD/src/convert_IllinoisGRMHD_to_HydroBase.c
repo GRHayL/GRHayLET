@@ -4,7 +4,7 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_IllinoisGRMHD_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
 
-  # if/else for backward compatibility
+  // if/else for backward compatibility
   if(CCTK_IsThornActive("Convert_to_HydroBase")) {
     int partype;
     void const *const parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
