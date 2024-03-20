@@ -27,8 +27,15 @@ schedule IllinoisGRMHD_RegisterVars in MoL_Register
   OPTIONS: META
 } "Register evolved, rhs variables in IllinoisGRMHD for MoL"
 
+# Registers boundary conditions with PreSync
+schedule IllinoisGRMHD_specify_driver_BCs in Driver_BoundarySelect
+{
+  LANG: C
+  OPTIONS: META
+} "Register boundary conditions with PreSync"
+
 # Tells the symmetry thorn how to apply symmetries on each gridfunction
-schedule IllinoisGRMHD_InitSymBound at BASEGRID after Lapse_InitSymBound
+schedule IllinoisGRMHD_InitSymBound at BASEGRID
 {
   LANG: C
 } "Schedule symmetries"

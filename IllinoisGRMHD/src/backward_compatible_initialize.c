@@ -19,12 +19,13 @@ void IllinoisGRMHD_backward_compatible_initialize(CCTK_ARGUMENTS) {
   const int main = Noble2D;
   const int backups[3] = {Font1D, None, None};
 
-  const bool evolve_temperature = false;
+  const bool bc_evolve_entropy = false;
+  const bool bc_evolve_temperature = false;
   const bool calc_primitive_guess = true;
 
   ghl_initialize_params(
       main, backups,
-      evolve_entropy, evolve_temperature,
+      bc_evolve_entropy, bc_evolve_temperature,
       calc_primitive_guess, Psi6threshold,
       GAMMA_SPEED_LIMIT, damp_lorenz,
       ghl_params);

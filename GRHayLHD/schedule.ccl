@@ -23,7 +23,7 @@ schedule GRHayLHD_RegisterVars in MoL_Register
 } "Register evolved, rhs variables in GRHayLHD for MoL"
 
 # Tells the symmetry thorn how to apply symmetries on each gridfunction
-schedule GRHayLHD_InitSymBound at BASEGRID after Lapse_InitSymBound
+schedule GRHayLHD_InitSymBound at BASEGRID
 {
   LANG: C
 } "Schedule symmetries"

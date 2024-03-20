@@ -20,4 +20,5 @@ SRCS = A_flux_rhs.c                         \
        symmetry_gzs_staggered.c             \
        backward_compatible_data.c           \
        backward_compatible_initialize.c     \
+       specify_driver_BCs.c                 \
        sync.c

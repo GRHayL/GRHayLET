@@ -136,6 +136,24 @@ cctk_real grmhd_primitives_Bi type = GF TAGS='InterpNumTimelevels=1 prolongation
 ###  Aliased functions from Carpet    ###
 #########################################
 
+CCTK_INT FUNCTION Driver_SelectVarForBC(
+      CCTK_POINTER_TO_CONST IN GH,
+      CCTK_INT IN faces,
+      CCTK_INT IN boundary_width,
+      CCTK_INT IN table_handle,
+      CCTK_STRING IN group_name,
+      CCTK_STRING IN bc_name)
+USES FUNCTION Driver_SelectVarForBC
+
+CCTK_INT FUNCTION Driver_SelectGroupForBC(
+      CCTK_POINTER_TO_CONST IN cctkGH,
+      CCTK_INT IN faces,
+      CCTK_INT IN width,
+      CCTK_INT IN table_handle,
+      CCTK_STRING IN group_name,
+      CCTK_STRING IN bc_name)
+USES FUNCTION Driver_SelectGroupForBC
+
 CCTK_INT FUNCTION GetRefinementLevel(
       CCTK_POINTER_TO_CONST IN cctkGH)
 USES FUNCTION GetRefinementLevel
