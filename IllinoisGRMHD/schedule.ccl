@@ -568,12 +568,14 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
 if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
   STORAGE: em_psi6phi[3], grmhd_primitives_allbutBi, grmhd_primitives_Bi
 
+  # Initialize GRHayL manually
   schedule IllinoisGRMHD_backward_compatible_initialize at CCTK_WRAGH
   {
     LANG: C
     OPTIONS: GLOBAL
   } "Set up the GRHayL structs and read the table for tabulated EOS."
 
+  # Fill deprecated grid functions
   schedule IllinoisGRMHD_backward_compatible_data at CCTK_PostInitial
   {
     LANG: C
@@ -588,6 +590,28 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
     WRITES: grmhd_primitives_allbutBi, psi6phi, grmhd_primitives_Bi
   } "Copy data to deprecated variables"
 
+  # Convert function is always scheduled because we can't use
+  # Convert_to_HydroBase::Convert_to_HydroBase_every
+  schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_Prim2Con2Prim after IllinoisGRMHD_conservs_to_prims
+  {
+    LANG: C
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere),
+            HydroBase::Bvec(everywhere)
+  } "Convert IllinoisGRMHD-native variables to HydroBase"
+
+  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  {
+    LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere),
+            HydroBase::Bvec(everywhere)
+  } "Convert IllinoisGRMHD-native variables to HydroBase"
+
+  # Schedule hybrid functions
   schedule IllinoisGRMHD_hybrid_prims_to_conservs in IllinoisGRMHD_prims_to_conservs
   {
     LANG: C
