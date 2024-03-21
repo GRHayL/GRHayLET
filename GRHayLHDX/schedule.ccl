@@ -53,8 +53,7 @@ schedule group GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after GRHa
 } "Compute primitive variables from conservatives"
 
 # Convert data back to ensure both codes have the same data
-if(Convert_to_HydroBase_every)
-{
+if(Convert_to_HydroBase_every) {
   SCHEDULE convert_GRHayLHDX_to_HydroBase in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_conservs_to_prims
   {
     LANG: C
@@ -76,7 +75,7 @@ schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Con2Pr
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
   WRITES: ccc_spacetime(everywhere)
-  SYNC: grmhd_conservatives
+  SYNC: grmhd_conservatives #, Ye_star, ent_star
 } "Interpolate spacetime quantities to cell centers"
 
 if(perturb_every_con2prim) {
@@ -103,6 +102,20 @@ schedule group GRHayLHDX_conservs_to_prims in GRHayLHDX_Con2Prim after GRHayLHDX
 #} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 #########################################################
+# Stress-energy Tensor
+#########################################################
+
+if(update_Tmunu) {
+  schedule GRHayLHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
+  {
+    LANG: C
+    READS:  ccc_spacetime, grmhd_velocities, u0
+    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps
+    WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
+  } "Compute stress-energy tensor and interpolate to vertices"
+}
+
+#########################################################
 # RHS EVALUATION
 #########################################################
 
@@ -110,7 +123,7 @@ schedule group GRHayLHDX_RHS in ODESolvers_RHS
 {
 } "Evaluate RHSs GRHD equations"
 
-schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS #after GRHayLHDX_enforce_detgtij_eq_1
+schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS
 {
    LANG: C
    READS:  ADMBaseX::curv
@@ -119,15 +132,15 @@ schedule GRHayLHDX_compute_ccc_centered_extrinsic_curvature in GRHayLHDX_RHS #af
 
 schedule group GRHayLHDX_evaluate_sources_rhs in GRHayLHDX_RHS after GRHayLHDX_compute_ccc_centered_extrinsic_curvature
 {
-} "Evaluate source terms of GRHD RHSs"
+} "Evaluate source terms in GRHD RHSs"
 
 schedule group GRHayLHDX_evaluate_fluxes in GRHayLHDX_RHS after GRHayLHDX_evaluate_sources_rhs
 {
-} "Compute GRHD fluxes"
+} "Evaluate fluxes for GRHD RHSs"
 
 schedule group GRHayLHDX_evaluate_fluxes_rhs in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes
 {
-} "Evaluate flux RHSs of GRHD equations"
+} "Evaluate flux terms in GRHD RHSs"
 
 # Needed because I can't turn off evolution of variables
 if (!CCTK_Equals(EOS_type, "Tabulated")) {
@@ -146,25 +159,11 @@ if (!evolve_entropy) {
   } ""
 }
 
-
 #########################################################
-# Compute stress-energy tensor T_munu
-#########################################################
-
-schedule GRHayLHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
-{
-  LANG: C
-  READS:  ccc_spacetime, grmhd_velocities, u0
-  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps
-  WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
-} "Interpolate stress-energy tensor to vertices"
-
-#########################################################
-# Conversion from GRHayLHDX variables to Hydrobase
+# Set HydroBase variables for analysis
 #########################################################
 
-if(Convert_to_HydroBase_every)
-{
+if(Convert_to_HydroBase_every) {
   schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in CCTK_ANALYSIS
   {
      LANG: C
@@ -190,41 +189,43 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     schedule GRHayLHDX_hybrid_entropy_prims_to_conservs in GRHayLHDX_prims_to_conservs
     {
       LANG: C
-      READS:  ccc_spacetime
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+      READS:  ccc_spacetime,
+              HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
               HydroBaseX::entropy, grmhd_velocities
-      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              HydroBaseX::entropy(everywhere), grmhd_velocities(everywhere),
-              grmhd_conservatives(everywhere), ent_star(everywhere)
-      SYNC:   grmhd_conservatives, ent_star
+      WRITES: u0(everywhere), grmhd_velocities(everywhere),
+              grmhd_conservatives(everywhere), ent_star(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+              HydroBaseX::eps(everywhere), HydroBaseX::entropy(everywhere)
+      SYNC: grmhd_conservatives, ent_star
     } "Entropy+Hybrid version of GRHayLHDX_prims_to_conservs"
 
     schedule GRHayLHDX_hybrid_entropy_conservs_to_prims in GRHayLHDX_conservs_to_prims
     {
       LANG: C
       READS:  ccc_spacetime, grmhd_conservatives, ent_star
-      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              HydroBaseX::entropy(everywhere), u0(everywhere), grmhd_velocities(everywhere),
-              grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere)
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+              u0(everywhere), grmhd_velocities(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+              HydroBaseX::eps(everywhere), HydroBaseX::entropy(everywhere)
     } "Entropy+Hybrid version of GRHayLHDX_conservs_to_prims"
 
     schedule GRHayLHDX_hybrid_entropy_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
     {
       LANG: C
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-              HydroBaseX::entropy, ccc_spacetime, ccc_curv, grmhd_velocities
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+              ccc_spacetime, ccc_curv, grmhd_velocities
       WRITES: grmhd_conservatives_rhs, ent_star_rhs
     } "Entropy+Hybrid version of GRHayLHDX_evaluate_sources_rhs"
 
     schedule GRHayLHDX_hybrid_entropy_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
     {
       LANG: C
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-              HydroBaseX::entropy, ccc_spacetime, grmhd_velocities
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+              ccc_spacetime, grmhd_velocities
       WRITES: flux_x, flux_y, flux_z,
               ent_flux_x, ent_flux_y, ent_flux_z
     } "Entropy+Hybrid version of GRHayLHDX_evaluate_fluxes"
-    
+
     schedule GRHayLHDX_hybrid_entropy_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
     {
       LANG: C
@@ -233,13 +234,6 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_conservatives_rhs(interior), ent_star_rhs(interior)
       WRITES: grmhd_conservatives_rhs, ent_star_rhs
     } "Entropy+Hybrid version of GRHayLHDX_evaluate_fluxes_rhs"
-    
-    schedule GRHayLHDX_hybrid_entropy_perturb_conservatives in GRHayLHDX_perturb_conservatives
-    {
-      LANG: C
-      READS:  grmhd_conservatives, ent_star
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere)
-    } "Entropy+Hybrid version of GRHayLHDX_perturb_conservatives"
 
     schedule GRHayLHDX_hybrid_entropy_perturb_primitives in GRHayLHDX_perturb_primitives
     {
@@ -248,9 +242,14 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBaseX::entropy, grmhd_velocities
       WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
               HydroBaseX::entropy(everywhere), grmhd_velocities(everywhere)
-      SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-              HydroBaseX::entropy, grmhd_velocities
     } "Entropy+Hybrid version of GRHayLHDX_perturb_primitives"
+
+    schedule GRHayLHDX_hybrid_entropy_perturb_conservatives in GRHayLHDX_perturb_conservatives
+    {
+      LANG: C
+      READS:  grmhd_conservatives, ent_star
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere)
+    } "Entropy+Hybrid version of GRHayLHDX_perturb_conservatives"
 
   } else {
 
@@ -259,36 +258,36 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ccc_spacetime, HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
               grmhd_velocities
-      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-              grmhd_velocities(everywhere), grmhd_conservatives(everywhere)
-      SYNC:   grmhd_conservatives
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere)
+      SYNC: grmhd_conservatives
     } "Hybrid version of GRHayLHDX_prims_to_conservs"
 
     schedule GRHayLHDX_hybrid_conservs_to_prims in GRHayLHDX_conservs_to_prims
     {
       LANG: C
       READS:  ccc_spacetime, grmhd_conservatives
-      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+      WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
               u0(everywhere), grmhd_velocities(everywhere),
-              grmhd_conservatives(everywhere), failure_checker(everywhere)
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere)
     } "Hybrid version of GRHayLHDX_conservs_to_prims"
 
     schedule GRHayLHDX_hybrid_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
     {
       LANG: C
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+      READS:  HydroBaseX::rho, HydroBaseX::press,
               ccc_spacetime, ccc_curv, grmhd_velocities
       WRITES: grmhd_conservatives_rhs
     } "Hybrid version of GRHayLHDX_evaluate_sources_rhs"
-    
+
     schedule GRHayLHDX_hybrid_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
     {
       LANG: C
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+      READS:  HydroBaseX::rho, HydroBaseX::press,
               ccc_spacetime, grmhd_velocities
       WRITES: flux_x, flux_y, flux_z
     } "Hybrid version of GRHayLHDX_evaluate_fluxes"
-    
+
     schedule GRHayLHDX_hybrid_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
     {
       LANG: C
@@ -296,7 +295,16 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               grmhd_conservatives_rhs(interior)
       WRITES: grmhd_conservatives_rhs
     } "Hybrid version of GRHayLHDX_evaluate_fluxes_rhs"
-   
+
+    schedule GRHayLHDX_hybrid_perturb_primitives in GRHayLHDX_perturb_primitives
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              grmhd_velocities
+      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+              HydroBaseX::eps(everywhere), grmhd_velocities(everywhere)
+    } "Hybrid version of GRHayLHDX_perturb_primitives"
+
     schedule GRHayLHDX_hybrid_perturb_conservatives in GRHayLHDX_perturb_conservatives
     {
       LANG: C
@@ -304,176 +312,153 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       WRITES: grmhd_conservatives(everywhere)
     } "Hybrid version of GRHayLHDX_perturb_conservatives"
 
-    schedule GRHayLHDX_hybrid_perturb_primitives in GRHayLHDX_perturb_primitives
+  }
+} else if (CCTK_Equals(EOS_type, "Tabulated")) {
+  if (evolve_entropy) {
+
+    schedule GRHayLHDX_tabulated_entropy_prims_to_conservs in GRHayLHDX_prims_to_conservs
+    {
+      LANG: C
+      READS:  ccc_spacetime,
+              HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+              grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              ent_star(everywhere), Ye_star(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+      SYNC: grmhd_conservatives, ent_star, Ye_star
+    } "Entropy+Tabulated version of GRHayLHDX_prims_to_conservs"
+
+    schedule GRHayLHDX_tabulated_entropy_conservs_to_prims in GRHayLHDX_conservs_to_prims
+    {
+      LANG: C
+      READS:  ccc_spacetime, grmhd_conservatives, ent_star, Ye_star
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
+              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+    } "Entropy+Tabulated version of GRHayLHDX_conservs_to_prims"
+
+    schedule GRHayLHDX_tabulated_entropy_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+              HydroBaseX::Ye, HydroBaseX::temperature,
+              ccc_spacetime, ccc_curv, grmhd_velocities
+      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+    } "Entropy+Tabulated version of GRHayLHDX_evaluate_sources_rhs"
+
+    schedule GRHayLHDX_tabulated_entropy_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+              HydroBaseX::Ye, HydroBaseX::temperature,
+              ccc_spacetime, grmhd_velocities
+      WRITES: flux_x, flux_y, flux_z,
+              ent_flux_x, ent_flux_y, ent_flux_z,
+              Ye_flux_x, Ye_flux_y, Ye_flux_z
+    } "Entropy+Tabulated version of GRHayLHDX_evaluate_fluxes"
+
+    schedule GRHayLHDX_tabulated_entropy_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
+    {
+      LANG: C
+      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
+              ent_flux_x(interior), ent_flux_y(interior), ent_flux_z(interior),
+              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
+              grmhd_conservatives_rhs(interior), ent_star_rhs(interior),
+              Ye_star_rhs(interior)
+      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+    } "Entropy+Tabulated version of GRHayLHDX_evaluate_fluxes_rhs"
+
+    schedule GRHayLHDX_tabulated_entropy_perturb_primitives in GRHayLHDX_perturb_primitives
     {
       LANG: C
       READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
               grmhd_velocities
       WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
               grmhd_velocities(everywhere)
-      SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-              grmhd_velocities
-    } "Hybrid version of GRHayLHDX_perturb_primitives"
+    } "Entropy+Tabulated version of GRHayLHDX_perturb_primitives"
 
+    schedule GRHayLHDX_tabulated_entropy_perturb_conservatives in GRHayLHDX_perturb_conservatives
+    {
+      LANG: C
+      READS:  grmhd_conservatives, ent_star, Ye_star
+      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere)
+    } "Entropy+Tabulated version of GRHayLHDX_perturb_conservatives"
+
+  } else {
+
+    schedule GRHayLHDX_tabulated_prims_to_conservs in GRHayLHDX_prims_to_conservs
+    {
+      LANG: C
+      READS:  ccc_spacetime
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              HydroBaseX::Ye, HydroBaseX::temperature,
+              grmhd_velocities
+      WRITES: u0(everywhere), grmhd_velocities(everywhere),
+              grmhd_conservatives(everywhere), Ye_star(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+      SYNC: grmhd_conservatives, Ye_star
+    } "Tabulated version of GRHayLHDX_prims_to_conservs"
+
+    schedule GRHayLHDX_tabulated_conservs_to_prims in GRHayLHDX_conservs_to_prims
+    {
+      LANG: C
+      READS:  ccc_spacetime, grmhd_conservatives, Ye_star
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
+              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+    } "Tabulated version of GRHayLHDX_conservs_to_prims"
+
+    schedule GRHayLHDX_tabulated_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::Ye,
+              HydroBaseX::temperature, grmhd_velocities,
+              ccc_spacetime, ccc_curv
+      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
+    } "Tabulated version of GRHayLHDX_evaluate_sources_rhs"
+    
+    schedule GRHayLHDX_tabulated_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              HydroBaseX::Ye, HydroBaseX::temperature,
+              ccc_spacetime, grmhd_velocities
+      WRITES: flux_x, flux_y, flux_z,
+              Ye_flux_x, Ye_flux_y, Ye_flux_z
+    } "Tabulated version of GRHayLHDX_evaluate_fluxes"
+    
+    schedule GRHayLHDX_tabulated_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
+    {
+      LANG: C
+      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
+              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
+              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior)
+      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
+    } "Tabulated version of GRHayLHDX_evaluate_fluxes_rhs"
+
+    schedule GRHayLHDX_tabulated_perturb_primitives in GRHayLHDX_perturb_primitives
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              HydroBaseX::Ye, HydroBaseX::temperature,
+              grmhd_velocities
+      WRITES: grmhd_velocities(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+    } "Tabulated version of GRHayLHDX_perturb_primitives"
+
+    schedule GRHayLHDX_tabulated_perturb_conservatives in GRHayLHDX_perturb_conservatives
+    {
+      LANG: C
+      READS:  grmhd_conservatives, Ye_star
+      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere)
+    } "Tabulated version of GRHayLHDX_perturb_conservatives"
   }
-} else if (CCTK_Equals(EOS_type, "Tabulated")) {
-  schedule GRHayLHDX_no_tabulated AT CCTK_WRAGH before GRHayLib_initialize
-  {
-    LANG: C
-    OPTIONS: GLOBAL
-  } "Tabulated not supported yet"
-#  if (evolve_entropy) {
-#
-#    schedule GRHayLHDX_tabulated_entropy_prims_to_conservs in GRHayLHDX_prims_to_conservs
-#    {
-#      LANG: C
-#      READS:  ccc_spacetime
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
-#              ent_star(everywhere), Ye_star(everywhere)
-#      SYNC:   grmhd_conservatives, ent_star, Ye_star
-#    } "Entropy+Tabulated version of GRHayLHDX_prims_to_conservs"
-#
-#    schedule GRHayLHDX_tabulated_entropy_conservs_to_prims in GRHayLHDX_conservs_to_prims
-#    {
-#      LANG: C
-#      READS:  ccc_spacetime, grmhd_conservatives, ent_star, Ye_star
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              u0(everywhere), grmhd_velocities(everywhere),
-#              grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
-#              failure_checker(everywhere)
-#    } "Entropy+Tabulated version of GRHayLHDX_conservs_to_prims"
-#
-#    schedule GRHayLHDX_tabulated_entropy_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-#              ccc_spacetime, ccc_curv, grmhd_velocities
-#      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
-#    } "Entropy+Tabulated version of GRHayLHDX_evaluate_sources_rhs"
-#    
-#    schedule GRHayLHDX_tabulated_entropy_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-#              ccc_spacetime, grmhd_velocities
-#      WRITES: flux_x, flux_y, flux_z,
-#              ent_flux_x, ent_flux_y, ent_flux_z,
-#              Ye_flux_x, Ye_flux_y, Ye_flux_z
-#    } "Entropy+Tabulated version of GRHayLHDX_evaluate_fluxes"
-#    
-#    schedule GRHayLHDX_tabulated_entropy_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
-#    {
-#      LANG: C
-#      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
-#              ent_flux_x(interior), ent_flux_y(interior), ent_flux_z(interior),
-#              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
-#              grmhd_conservatives_rhs(interior), ent_star_rhs(interior),
-#              Ye_star_rhs(interior)
-#      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
-#    } "Entropy+Tabulated version of GRHayLHDX_evaluate_fluxes_rhs"
-#    
-#    schedule GRHayLHDX_tabulated_entropy_perturb_conservatives in GRHayLHDX_perturb_conservatives
-#    {
-#      LANG: C
-#      READS:  grmhd_conservatives, ent_star, Ye_star
-#      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere)
-#    } "Entropy+Tabulated version of GRHayLHDX_perturb_conservatives"
-#
-#    schedule GRHayLHDX_tabulated_entropy_perturb_primitives in GRHayLHDX_perturb_primitives
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              grmhd_velocities(everywhere)
-#      SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#    } "Entropy+Tabulated version of GRHayLHDX_perturb_primitives"
-#
-#  } else {
-#
-#    schedule GRHayLHDX_tabulated_prims_to_conservs in GRHayLHDX_prims_to_conservs
-#    {
-#      LANG: C
-#      READS:  ccc_spacetime
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
-#              Ye_star(everywhere)
-#      SYNC:   grmhd_conservatives, Ye_star
-#    } "Tabulated version of GRHayLHDX_prims_to_conservs"
-#
-#    schedule GRHayLHDX_tabulated_conservs_to_prims in GRHayLHDX_conservs_to_prims
-#    {
-#      LANG: C
-#      READS:  ccc_spacetime, grmhd_conservatives, Ye_star
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              u0(everywhere), grmhd_velocities(everywhere),
-#              grmhd_conservatives(everywhere), Ye_star(everywhere), failure_checker(everywhere)
-#    } "Tabulated version of GRHayLHDX_conservs_to_prims"
-#
-#    schedule GRHayLHDX_tabulated_evaluate_sources_rhs in GRHayLHDX_evaluate_sources_rhs
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::Ye, HydroBaseX::temperature,
-#              ccc_spacetime, ccc_curv, grmhd_velocities
-#      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
-#    } "Tabulated version of GRHayLHDX_evaluate_sources_rhs"
-#    
-#    schedule GRHayLHDX_tabulated_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::Ye, HydroBaseX::temperature,
-#              ccc_spacetime, grmhd_velocities
-#      WRITES: flux_x, flux_y, flux_z,
-#              Ye_flux_x, Ye_flux_y, Ye_flux_z
-#    } "Tabulated version of GRHayLHDX_evaluate_fluxes"
-#    
-#    schedule GRHayLHDX_tabulated_evaluate_fluxes_rhs in GRHayLHDX_evaluate_fluxes_rhs
-#    {
-#      LANG: C
-#      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
-#              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
-#              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior)
-#      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
-#    } "Tabulated version of GRHayLHDX_evaluate_fluxes_rhs"
-#    
-#    schedule GRHayLHDX_tabulated_perturb_conservatives in GRHayLHDX_perturb_conservatives
-#    {
-#      LANG: C
-#      READS:  grmhd_conservatives, Ye_star
-#      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere)
-#    } "Tabulated version of GRHayLHDX_perturb_conservatives"
-#
-#    schedule GRHayLHDX_tabulated_perturb_primitives in GRHayLHDX_perturb_primitives
-#    {
-#      LANG: C
-#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
-#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
-#              grmhd_velocities(everywhere)
-#      SYNC:   HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-#              HydroBaseX::Ye, HydroBaseX::temperature,
-#              grmhd_velocities
-#    } "Tabulated version of GRHayLHDX_perturb_primitives"
-#  }
 }

@@ -53,7 +53,7 @@ extern "C" void GRHayLHDX_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
     prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
 
     // Read in conservative variables from gridfunctions
-    ghl_conservative_quantities cons, cons_orig;
+    ghl_conservative_quantities cons, cons_undens, cons_orig;
     cons.rho     = rho_star(index); 
     cons.tau     = tau(index);
     cons.SD[0]   = Stildex(index);
@@ -61,74 +61,55 @@ extern "C" void GRHayLHDX_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
     cons.SD[2]   = Stildez(index);
     cons.entropy = ent_star(index);
 
-    // Here we save the original values of conservative variables in cons_orig for debugging purposes.
-    cons_orig = cons;
+    int check;
 
-    //FIXME: might slow down the code. Was formerly a CCTK_WARN
-    if(isnan(cons.rho*cons.tau*cons.SD[0]*cons.SD[1]*cons.SD[2])) {
-      CCTK_VERROR("NaN found at start of C2P kernel!\n"
-                  "position = %e %e %e\n"
-                  "Input variables:\n"
-                  "lapse, shift = %e, %e, %e, %e\n"
-                  "gij = %e, %e, %e, %e, %e, %e\n"
-                  "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
-                  p.x, p.y, p.z,
-                  ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                  ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                  ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                  cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2]);
-    }
+    cons_orig = cons;
 
     /************* Main conservative-to-primitive logic ************/
     if(cons.rho>0.0) {
-      // Apply the tau floor
-      if(ghl_eos->eos_type == ghl_eos_hybrid)
-        ghl_apply_conservative_limits(
-              ghl_params, ghl_eos, &ADM_metric,
-              &prims, &cons, &diagnostics);
+      ghl_apply_conservative_limits(
+            ghl_params, ghl_eos, &ADM_metric,
+            &prims, &cons, &diagnostics);
 
-      // declare some variables for the C2P routine.
-      ghl_conservative_quantities cons_undens;
-
-      // Set the conserved variables required by the con2prim routine
       ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
       /************* Conservative-to-primitive recovery ************/
-      const int check = ghl_con2prim_multi_method(
+      check = ghl_con2prim_multi_method(
+            ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+            &cons_undens, &prims, &diagnostics);
+    } else {
+      local_failure_checker += 1;
+      //rho_star_fix_applied++;
+      ghl_set_prims_to_constant_atm(ghl_eos, &prims);
+      check = 0;
+    }
+
+    //Add averaging here
+    if(check || isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+                      prims.entropy)) {
+      // We are still failing after exhausting the averaging options.
+      // Next, we try Font1D.
+      //pointcount_Font++;
+
+      ghl_apply_conservative_limits(
+          ghl_params, ghl_eos, &ADM_metric,
+          &prims, &cons, &diagnostics);
+
+      ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
+
+      check = ghl_hybrid_Font1D(
             ghl_params, ghl_eos, &ADM_metric, &metric_aux,
             &cons_undens, &prims, &diagnostics);
 
-      if(check==0) {
-        //Check for NAN!
-        if( isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) ) {
-          CCTK_VERROR("***********************************************************\n"
-                      "NAN found after Con2Prim routine %s!\n"
-                      "position = %e %e %e\n"
-                      "Input variables:\n"
-                      "lapse, shift = %e %e %e %e\n"
-                      "gij = %e %e %e %e %e %e\n"
-                      "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
-                      "Undensitized conserved variables:\n"
-                      "D, tau, S_{i}: %e %e %e %e %e\n"
-                      "Output primitive variables:\n"
-                      "rho, P: %e %e\n"
-                      "v: %e %e %e\n"
-                      "***********************************************************",
-                      ghl_get_con2prim_routine_name(diagnostics.which_routine),
-                      p.x, p.y, p.z,
-                      ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                      ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                      ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                      cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
-                      cons_undens.rho, cons_undens.tau, cons_undens.SD[0], cons_undens.SD[1], cons_undens.SD[2],
-                      prims.rho, prims.press,
-                      prims.vU[0], prims.vU[1], prims.vU[2]);
-            }
-      } else {
-        //--------------------------------------------------
-        //----------- Primitive recovery failed ------------
-        //--------------------------------------------------
-        local_failure_checker += 100;
+      if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+               prims.entropy) )
+        check = 1;
+
+      if(check) {
+        // We are still failing after exhausting the averaging options.
+        // We'll surrender and resort to atmospheric reset...
+
+        failure_checker(index) += 100;
         ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
         //failures++;
@@ -136,23 +117,8 @@ extern "C" void GRHayLHDX_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           //failures_inhoriz++;
           //pointcount_inhoriz++;
         }
-        CCTK_VINFO("Con2Prim failed! Resetting to atmosphere...\n"
-                   "position = %e %e %e\n"
-                   "lapse, shift = %e, %e, %e, %e\n"
-                   "gij = %e, %e, %e, %e, %e, %e\n"
-                   "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n",
-                   p.x, p.y, p.z,
-                   ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                   ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                   ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                   cons_orig.rho, cons_orig.tau, cons_orig.SD[0], cons_orig.SD[1], cons_orig.SD[2]);
-      }
-    } else {
-      local_failure_checker += 1;
-      ghl_set_prims_to_constant_atm(ghl_eos, &prims);
-      //rho_star_fix_applied++;
-    } // if rho_star>0
-    /***************************************************************/
+      } // atmospheric backup
+    } // Font1D backup
 
     //--------------------------------------------------
     //---------- Primitive recovery succeeded ----------
