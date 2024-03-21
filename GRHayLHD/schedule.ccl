@@ -415,7 +415,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere)
     } "Tabulated version of GRHayLHD_conservs_to_prims"
-    
+
     schedule GRHayLHD_tabulated_outer_boundaries in GRHayLHD_outer_boundaries
     {
       LANG: C

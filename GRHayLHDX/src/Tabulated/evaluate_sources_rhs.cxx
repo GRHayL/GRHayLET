@@ -16,6 +16,7 @@ void GRHayLHDX_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     const Loop::GF3D2index index(layout, p.I);
 
     rho_star_rhs(index) = 0.0;
+    Ye_star_rhs(index)  = 0.0;
 
     ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(
@@ -33,12 +34,12 @@ void GRHayLHDX_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
     ghl_primitive_quantities prims;
     prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
-    prims.rho   = rho(index);
-    prims.press = press(index);
-    prims.vU[0] = vx(index);
-    prims.vU[1] = vy(index);
-    prims.vU[2] = vz(index);
-    prims.Y_e   = Ye(index);
+    prims.rho         = rho(index);
+    prims.press       = press(index);
+    prims.vU[0]       = vx(index);
+    prims.vU[1]       = vy(index);
+    prims.vU[2]       = vz(index);
+    prims.Y_e         = Ye(index);
     prims.temperature = temperature(index);
 
     const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);

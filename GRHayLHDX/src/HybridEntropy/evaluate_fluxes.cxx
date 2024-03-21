@@ -29,20 +29,17 @@ void GRHayLHDX_hybrid_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
       flux_dir==1 ? &ghl_calculate_characteristic_speed_dirn1 :
                     &ghl_calculate_characteristic_speed_dirn2 ;
 
-  // I used constexpr with ternary operators elsewhere, but here there would be way too
-  // many operators here, so I resort to if statements.
-  void (*calculate_HLLE_fluxes)(
+  constexpr void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
         const CCTK_REAL cmin,
         const CCTK_REAL cmax,
-        ghl_conservative_quantities *restrict cons_fluxes);
-
-  calculate_HLLE_fluxes = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy :
-                          flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy :
-                                        &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy ;
+        ghl_conservative_quantities *restrict cons_fluxes)
+    = flux_dir==0 ? &ghl_calculate_HLLE_fluxes_dirn0_hybrid_entropy :
+      flux_dir==1 ? &ghl_calculate_HLLE_fluxes_dirn1_hybrid_entropy :
+                    &ghl_calculate_HLLE_fluxes_dirn2_hybrid_entropy ;
 
   Loop::GF3D2<const CCTK_REAL> v_flux_dir = flux_dir==0 ? vx :
                                             flux_dir==1 ? vy : vz;

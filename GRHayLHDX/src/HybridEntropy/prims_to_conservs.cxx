@@ -53,6 +53,7 @@ extern "C" void GRHayLHDX_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
     rho(index)     = prims.rho;
     press(index)   = prims.press;
     eps(index)     = prims.eps;
+    u0(index)      = prims.u0;
     vx(index)      = prims.vU[0];
     vy(index)      = prims.vU[1];
     vz(index)      = prims.vU[2];
