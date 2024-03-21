@@ -9,6 +9,7 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
     int partype;
     void const *const parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
     const int old_Convert_to_HydroBase_every = *(CCTK_INT const *)parptr;
+    if(old_Convert_to_HydroBase_every==0) return;
     if(cctk_iteration%old_Convert_to_HydroBase_every!=0) return;
   } else {
     // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
