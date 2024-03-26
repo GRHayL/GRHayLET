@@ -1,7 +1,7 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
 template <int flux_dir>
-void GRHayLMHDX_evaluate_flux_dir(
+void IllinoisGRMHDX_evaluate_flux_dir(
       CCTK_ARGUMENTS,
       const Loop::GF3D5layout local_layout,
       Loop::GF3D5<CCTK_REAL> v1_r,
@@ -15,7 +15,7 @@ void GRHayLMHDX_evaluate_flux_dir(
       Loop::GF3D5<CCTK_REAL> S_x_flux,
       Loop::GF3D5<CCTK_REAL> S_y_flux,
       Loop::GF3D5<CCTK_REAL> S_z_flux) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_evaluate_MHD_rhs;
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_MHD_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;
@@ -125,7 +125,7 @@ void GRHayLMHDX_evaluate_flux_dir(
           &rhor, &rhol, &pressr, &pressl, vars_r, vars_l);
 
     ghl_metric_quantities ADM_metric_face;
-    GRHayLMHDX_interpolate_metric_to_face(
+    IllinoisGRMHDX_interpolate_metric_to_face(
           indm2, indm1, index, indp1,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,
@@ -197,7 +197,7 @@ void GRHayLMHDX_evaluate_flux_dir(
 }
 
 template <int flux_dir>
-void GRHayLMHDX_evaluate_flux_source_rhs_dir(
+void IllinoisGRMHDX_evaluate_flux_source_rhs_dir(
       CCTK_ARGUMENTS,
       const Loop::GF3D5layout local_layout,
       const Loop::GF3D5<CCTK_REAL> rho_flux,
@@ -205,7 +205,7 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(
       const Loop::GF3D5<CCTK_REAL> S_x_flux,
       const Loop::GF3D5<CCTK_REAL> S_y_flux,
       const Loop::GF3D5<CCTK_REAL> S_z_flux) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_evaluate_MHD_rhs;
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_MHD_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;
@@ -264,7 +264,7 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(
 
     ghl_metric_quantities ADM_metric_derivs;
 
-    GRHayLMHDX_compute_metric_derivs(
+    IllinoisGRMHDX_compute_metric_derivs(
           dxi, indm2, indm1, indp1, indp2,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,
@@ -285,8 +285,8 @@ void GRHayLMHDX_evaluate_flux_source_rhs_dir(
   }); // ccc loop interior
 }
 
-extern "C" void GRHayLMHDX_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_evaluate_MHD_rhs;
+extern "C" void IllinoisGRMHDX_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_MHD_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   Arith::vect<int, Loop::dim> imin, imax;
@@ -312,8 +312,8 @@ extern "C" void GRHayLMHDX_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   Loop::GF3D5<CCTK_REAL> S_y_flux_x(make_gfx());
   Loop::GF3D5<CCTK_REAL> S_z_flux_x(make_gfx());
 
-  GRHayLMHDX_evaluate_flux_dir<0>(cctkGH, vcc_layout, vx_xr, vx_xl, vy_xr, vy_xl, cmin_x, cmax_x, rho_flux_x, tau_flux_x, S_x_flux_x, S_y_flux_x, S_z_flux_x);
-  GRHayLMHDX_evaluate_flux_source_rhs_dir<0>(cctkGH, vcc_layout, rho_flux_x, tau_flux_x, S_x_flux_x, S_y_flux_x, S_z_flux_x);
+  IllinoisGRMHDX_evaluate_flux_dir<0>(cctkGH, vcc_layout, vx_xr, vx_xl, vy_xr, vy_xl, cmin_x, cmax_x, rho_flux_x, tau_flux_x, S_x_flux_x, S_y_flux_x, S_z_flux_x);
+  IllinoisGRMHDX_evaluate_flux_source_rhs_dir<0>(cctkGH, vcc_layout, rho_flux_x, tau_flux_x, S_x_flux_x, S_y_flux_x, S_z_flux_x);
 
   // Set up temporary variables with cvc layout including
   // x and z ghostzones
@@ -336,8 +336,8 @@ extern "C" void GRHayLMHDX_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   Loop::GF3D5<CCTK_REAL> S_y_flux_y(make_gfy());
   Loop::GF3D5<CCTK_REAL> S_z_flux_y(make_gfy());
 
-  GRHayLMHDX_evaluate_flux_dir<1>(cctkGH, cvc_layout, vy_yr, vy_yl, vz_yr, vz_yl, cmin_y, cmax_y, rho_flux_y, tau_flux_y, S_x_flux_y, S_y_flux_y, S_z_flux_y);
-  GRHayLMHDX_evaluate_flux_source_rhs_dir<1>(cctkGH, cvc_layout, rho_flux_y, tau_flux_y, S_x_flux_y, S_y_flux_y, S_z_flux_y);
+  IllinoisGRMHDX_evaluate_flux_dir<1>(cctkGH, cvc_layout, vy_yr, vy_yl, vz_yr, vz_yl, cmin_y, cmax_y, rho_flux_y, tau_flux_y, S_x_flux_y, S_y_flux_y, S_z_flux_y);
+  IllinoisGRMHDX_evaluate_flux_source_rhs_dir<1>(cctkGH, cvc_layout, rho_flux_y, tau_flux_y, S_x_flux_y, S_y_flux_y, S_z_flux_y);
 
   // Set up temporary variables with ccv layout including
   // x and y ghostzones
@@ -360,8 +360,8 @@ extern "C" void GRHayLMHDX_evaluate_MHD_rhs(CCTK_ARGUMENTS) {
   Loop::GF3D5<CCTK_REAL> S_y_flux_z(make_gfz());
   Loop::GF3D5<CCTK_REAL> S_z_flux_z(make_gfz());
 
-  GRHayLMHDX_evaluate_flux_dir<2>(cctkGH, ccv_layout, vz_yr, vz_zl, vx_zr, vx_zl, cmin_z, cmax_z, rho_flux_z, tau_flux_z, S_x_flux_z, S_y_flux_z, S_z_flux_z);
-  GRHayLMHDX_evaluate_flux_source_rhs_dir<2>(cctkGH, ccv_layout, rho_flux_z, tau_flux_z, S_x_flux_z, S_y_flux_z, S_z_flux_z);
+  IllinoisGRMHDX_evaluate_flux_dir<2>(cctkGH, ccv_layout, vz_yr, vz_zl, vx_zr, vx_zl, cmin_z, cmax_z, rho_flux_z, tau_flux_z, S_x_flux_z, S_y_flux_z, S_z_flux_z);
+  IllinoisGRMHDX_evaluate_flux_source_rhs_dir<2>(cctkGH, ccv_layout, rho_flux_z, tau_flux_z, S_x_flux_z, S_y_flux_z, S_z_flux_z);
 
   grid.loop_int_device<1, 0, 0>(
       grid.nghostzones,

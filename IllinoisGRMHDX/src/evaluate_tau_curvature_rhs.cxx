@@ -1,7 +1,7 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_evaluate_tau_curvature_rhs;
+extern "C" void IllinoisGRMHDX_evaluate_tau_curvature_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_tau_curvature_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;

@@ -1,6 +1,6 @@
-# Interface definition for thorn GRHayLMHDX
+# Interface definition for thorn IllinoisGRMHDX
 
-implements: GRHayLMHDX
+implements: IllinoisGRMHDX
 
 inherits: ADMBaseX, TmunubaseX, HydroBaseX, GRHayLib
 
@@ -53,22 +53,22 @@ CCTK_REAL u0 type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation=
 #########################################################
 
 # Evolved variables
-CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="GRHayLMHDX::grmhd_conservatives_rhs"'
+CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="IllinoisGRMHDX::grmhd_conservatives_rhs"'
 {
   rho_star, tau, Stildex, Stildey, Stildez # Note that Stildei = \tilde{S}_i.
 } "Evolved mhd variables"
 
 # Ax is defined on the staggered grid (i,j+1/2,k+1/2)
-CCTK_REAL Ax type = GF CENTERING={cvv} Timelevels=1 TAGS='rhs="Ax_rhs" dependents="GRHayLMHDX::Ax_rhs GRHayLMHDX::By_stagger GRHayLMHDX::Bz_stagger"' "x-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Ax type = GF CENTERING={cvv} Timelevels=1 TAGS='rhs="Ax_rhs" dependents="IllinoisGRMHDX::Ax_rhs IllinoisGRMHDX::By_stagger IllinoisGRMHDX::Bz_stagger"' "x-component of the vector potential, evolved when constrained_transport_scheme==3"
 
 # Ay is defined on the staggered grid (i+1/2,j,k+1/2)
-CCTK_REAL Ay type = GF CENTERING={vcv} Timelevels=1 TAGS='rhs="Ay_rhs" dependents="GRHayLMHDX::Ay_rhs GRHayLMHDX::Bx_stagger GRHayLMHDX::Bz_stagger"' "y-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Ay type = GF CENTERING={vcv} Timelevels=1 TAGS='rhs="Ay_rhs" dependents="IllinoisGRMHDX::Ay_rhs IllinoisGRMHDX::Bx_stagger IllinoisGRMHDX::Bz_stagger"' "y-component of the vector potential, evolved when constrained_transport_scheme==3"
 
 # Az is defined on the staggered grid (i+1/2,j+1/2,k)
-CCTK_REAL Az type = GF CENTERING={vvc} Timelevels=1 TAGS='rhs="Az_rhs" dependents="GRHayLMHDX::Az_rhs GRHayLMHDX::Bx_stagger GRHayLMHDX::By_stagger"' "z-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Az type = GF CENTERING={vvc} Timelevels=1 TAGS='rhs="Az_rhs" dependents="IllinoisGRMHDX::Az_rhs IllinoisGRMHDX::Bx_stagger IllinoisGRMHDX::By_stagger"' "z-component of the vector potential, evolved when constrained_transport_scheme==3"
 
 # phitilde (=Phi*psi^6) is defined on the staggered grid (i+1/2,j+1/2,k+1/2)
-CCTK_REAL phitilde type = GF CENTERING={vvv} Timelevels=1 TAGS='rhs="phitilde_rhs" dependents="GRHayLMHDX::phitilde_rhs"' "sqrt{gamma} Phi, where Phi is the scalar potential"
+CCTK_REAL phitilde type = GF CENTERING={vvv} Timelevels=1 TAGS='rhs="phitilde_rhs" dependents="IllinoisGRMHDX::phitilde_rhs"' "sqrt{gamma} Phi, where Phi is the scalar potential"
 
 #########################################################
 

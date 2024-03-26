@@ -1,4 +1,4 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
 /*
  * Compute \partial_t psi6phi = -\partial_i (  \alpha psi^6 A^i - psi6phi \beta^i)
@@ -14,8 +14,8 @@
 //CCTK_REAL sqrtg_Ay type = GF CENTERING={vcv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^y"
 //CCTK_REAL sqrtg_Az type = GF CENTERING={vvc} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^z"
 
-extern "C" void GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs;
+extern "C" void IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout vvv_layout(cctkGH, {0, 0, 0});

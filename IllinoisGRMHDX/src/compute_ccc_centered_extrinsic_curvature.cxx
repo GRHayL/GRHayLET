@@ -1,7 +1,7 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_compute_ccc_centered_extrinsic_curvature(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_compute_ccc_centered_extrinsic_curvature;
+extern "C" void IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature;
   DECLARE_CCTK_PARAMETERS;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};

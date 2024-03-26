@@ -1,5 +1,5 @@
-extern "C" void GRHayLMHDX_reconstruct_velocities(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_reconstruct_velocities;
+extern "C" void IllinoisGRMHDX_reconstruct_velocities(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_reconstruct_velocities;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout ccc_layout(cctkGH, {1,1,1});

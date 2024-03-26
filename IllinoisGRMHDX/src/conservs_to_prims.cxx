@@ -24,10 +24,10 @@
  *  moment, though it would be easy to extend to a piecewise
  *  polytrope. */
 
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_conservs_to_prims(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_conservs_to_prims;
+extern "C" void IllinoisGRMHDX_conservs_to_prims(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;

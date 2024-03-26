@@ -1,7 +1,7 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void convert_GRHayLMHDX_to_HydroBase(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_convert_GRHayLMHDX_to_HydroBase;
+extern "C" void convert_IllinoisGRMHDX_to_HydroBase(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_convert_IllinoisGRMHDX_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
 
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.

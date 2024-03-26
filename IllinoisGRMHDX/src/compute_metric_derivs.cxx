@@ -1,6 +1,6 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_compute_metric_derivs(
+extern "C" void IllinoisGRMHDX_compute_metric_derivs(
       const CCTK_REAL dxi,
       const Loop::GF3D2index indm2,
       const Loop::GF3D2index indm1,

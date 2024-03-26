@@ -8,10 +8,10 @@
  * HydroBase and ADMBase.
  ********************************/
 
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void convert_HydroBase_to_GRHayLMHDX(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_convert_HydroBase_to_GRHayLMHDX;
+extern "C" void convert_HydroBase_to_IllinoisGRMHDX(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_convert_HydroBase_to_IllinoisGRMHDX;
   DECLARE_CCTK_PARAMETERS;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};

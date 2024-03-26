@@ -9,15 +9,15 @@
  * ( 5) (optional) set conservatives on outer boundary.
  *******************************************************/
 
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-void GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index);
+void IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index);
 
 /*********************************************
  * Apply outer boundary conditions on A_{\mu}
  ********************************************/
-void GRHayLMHDX_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_outer_boundaries_on_A_mu;
+void IllinoisGRMHDX_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_outer_boundaries_on_A_mu;
   DECLARE_CCTK_PARAMETERS;
 
   if(CCTK_EQUALS(EM_BC,"frozen")) return;
@@ -143,8 +143,8 @@ void GRHayLMHDX_outer_boundaries_on_A_mu(CCTK_ARGUMENTS) {
  * amplified in con2prim, sometimes leading to unphysical
  * primitives & unnecessary fixes.
  *******************************************************/
-extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz;
+extern "C" void IllinoisGRMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz;
   DECLARE_CCTK_PARAMETERS;
 
   if(CCTK_EQUALS(Matter_BC,"frozen")) return;
@@ -153,7 +153,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
   if(cctk_iteration==0 || levelnumber!=0) return;
 
   if(cctk_nghostzones[0]!=cctk_nghostzones[1] || cctk_nghostzones[0]!=cctk_nghostzones[2])
-    CCTK_VERROR("ERROR: GRHayLMHDX outer BC driver does not support unequal number of ghostzones in different directions!");
+    CCTK_VERROR("ERROR: IllinoisGRMHDX outer BC driver does not support unequal number of ghostzones in different directions!");
   for(int which_bdry_pt=0;which_bdry_pt<cctk_nghostzones[0];which_bdry_pt++) {
 
     /* XMIN & XMAX */
@@ -172,7 +172,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indm1];
           vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -191,7 +191,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indp1];
           vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -212,7 +212,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indm1];
           vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -231,7 +231,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indp1];
           vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -252,7 +252,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indm1];
           vz(index)       = vz[indm1];
           if(vx(index)<0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -271,7 +271,7 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
           vy(index)       = vy[indp1];
           vz(index)       = vz[indp1];
           if(vx(index)>0.) vx(index) = 0.0;
-          GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
+          IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(cctkGH, index);
         }
       }
     }
@@ -280,10 +280,10 @@ extern "C" void GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz(CCTK_ARGUMENTS) 
 
 //argument should probably just be the filled structs; this could remove
 //one memcopy per variable per gridpoint
-void GRHayLMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index) {
+void IllinoisGRMHDX_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index) {
   // We cheat here by using the argument list of the scheduled function
   // instead of explicitly passing all these variables.
-  DECLARE_CCTK_ARGUMENTS_GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz;
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz;
 
   const double poison = 0.0/0.0;
   double dummy1, dummy2, dummy3;

@@ -7,8 +7,8 @@ SRCS = compute_B_and_Bstagger_from_A.cxx             \
        compute_ccc_centered_spacetime_quantities.cxx \
        compute_Tmunu.cxx                             \
        conservs_to_prims.cxx                         \
-       convert_HydroBase_to_GRHayLMHDX.cxx           \
-       convert_GRHayLMHDX_to_HydroBase.cxx           \
+       convert_HydroBase_to_IllinoisGRMHDX.cxx           \
+       convert_IllinoisGRMHDX_to_HydroBase.cxx           \
        evaluate_MHD_rhs.cxx                          \
        evaluate_phitilde_and_A_gauge_rhs.cxx         \
        evaluate_tau_curvature_rhs.cxx                \

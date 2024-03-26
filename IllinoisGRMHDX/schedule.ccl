@@ -1,4 +1,4 @@
-# Schedule for thorn GRHayLMHDX
+# Schedule for thorn IllinoisGRMHDX
 
 STORAGE: grmhd_primitives_allbutBi, u0, grmhd_conservatives
 STORAGE: grmhd_conservatives_rhs
@@ -12,19 +12,19 @@ STORAGE: ccc_spacetime, ccc_curv, ccc_Tmunu
 #########################################################
 # INITIAL DATA CONVERSION
 #########################################################
-# Fill GRHayLMHDX grid functions using initial data from ADMBaseX and HydroBaseX
-schedule group GRHayLMHDX_Prim2Con2Prim in HydroBaseX_PostInitial
+# Fill IllinoisGRMHDX grid functions using initial data from ADMBaseX and HydroBaseX
+schedule group IllinoisGRMHDX_Prim2Con2Prim in HydroBaseX_PostInitial
 {
-} "Translate ET-generated, HydroBaseX-compatible initial data and convert into variables used by GRHayLMHDX"
+} "Translate ET-generated, HydroBaseX-compatible initial data and convert into variables used by IllinoisGRMHDX"
 
-schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities in GRHayLMHDX_Prim2Con2Prim
+schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities in IllinoisGRMHDX_Prim2Con2Prim
 {
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
   WRITES: ccc_spacetime(everywhere)
 } "Interpolate spacetime quantities to cell centers"
 
-schedule convert_HydroBase_to_GRHayLMHDX in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+schedule convert_HydroBase_to_IllinoisGRMHDX in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
   READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
@@ -36,9 +36,9 @@ schedule convert_HydroBase_to_GRHayLMHDX in GRHayLMHDX_Prim2Con2Prim after GRHay
   WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
           Ax(everywhere), Ay(everywhere), Az(everywhere)
   SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
-} "Convert HydroBaseX initial data (ID) to GRHayLMHDX variables and enforce simulation limits on primitives."
+} "Convert HydroBaseX initial data (ID) to IllinoisGRMHDX variables and enforce simulation limits on primitives."
 
-schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLMHDX
+schedule IllinoisGRMHDX_compute_B_and_Bstagger_from_A in IllinoisGRMHDX_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHDX
 {
   LANG: C
   READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
@@ -46,7 +46,7 @@ schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Prim2Con2Prim af
   SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
 } "Compute B and B_stagger from A"
 
-schedule GRHayLMHDX_prims_to_conservs in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_compute_B_and_Bstagger_from_A
+schedule IllinoisGRMHDX_prims_to_conservs in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_compute_B_and_Bstagger_from_A
 {
   LANG: C
   READS:  HydroBaseX::eps(everywhere)
@@ -56,7 +56,7 @@ schedule GRHayLMHDX_prims_to_conservs in GRHayLMHDX_Prim2Con2Prim after GRHayLMH
   WRITES: HydroBaseX::eps(everywhere)
 } "Compute conservative variables from primitives"
 
-schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_prims_to_conservs
+schedule IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_prims_to_conservs
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
@@ -68,24 +68,24 @@ schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Prim2Con2Prim after GRHayLMH
 # Convert data back to ensure both codes have the same data
 if(Convert_to_HydroBase_every)
 {
-  SCHEDULE convert_GRHayLMHDX_to_HydroBase in GRHayLMHDX_Prim2Con2Prim after GRHayLMHDX_conservs_to_prims
+  SCHEDULE convert_IllinoisGRMHDX_to_HydroBase in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_conservs_to_prims
   {
     LANG: C
     READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
     WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
             HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
-  } "Convert GRHayLMHDX-native variables to HydroBaseX"
+  } "Convert IllinoisGRMHDX-native variables to HydroBaseX"
 }
 
 #########################################################
 # Con2Prim
 #########################################################
 
-schedule GROUP GRHayLMHDX_Con2Prim in ODESolvers_PostStep
+schedule GROUP IllinoisGRMHDX_Con2Prim in ODESolvers_PostStep
 {
 } "Compute the cell-centered spacetime quantities and solve for primitives"
 
-schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities in GRHayLMHDX_Con2Prim
+schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities in IllinoisGRMHDX_Con2Prim
 {
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
@@ -93,14 +93,14 @@ schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities in GRHayLMHDX_Con2
   SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
 } "Interpolate spacetime quantities to cell centers"
 
-#schedule GRHayLMHDX_outer_boundaries_on_A_mu in GRHayLMHDX_Con2Prim after GRHayLMHDX_convert_ADM_to_BSSN
+#schedule IllinoisGRMHDX_outer_boundaries_on_A_mu in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_convert_ADM_to_BSSN
 #{
 #  LANG: C
 #  READS:  phitilde, Ax, Ay, Az
 #  WRITES: phitilde(boundary), Ax(boundary), Ay(boundary), Az(boundary)
 #} "Apply linear extrapolation BCs on A_{mu}, so that BCs are flat on B^i"
  
-schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+schedule IllinoisGRMHDX_compute_B_and_Bstagger_from_A in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
   READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
@@ -108,7 +108,7 @@ schedule GRHayLMHDX_compute_B_and_Bstagger_from_A in GRHayLMHDX_Con2Prim after G
   SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
 } "Compute B and B_stagger from A"
 
-schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Con2Prim after GRHayLMHDX_compute_ccc_centered_spacetime_quantities
+schedule IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
   READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
@@ -118,7 +118,7 @@ schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Con2Prim after GRHayLMHDX_co
 } "Compute primitive variables from conservatives"
 
 # For now, let's just rely on CarpetX's BCs
-#schedule GRHayLMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz in GRHayLMHDX_Con2Prim after GRHayLMHDX_conservs_to_prims
+#schedule IllinoisGRMHDX_outer_boundaries_on_P_rho_b_vx_vy_vz in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_conservs_to_prims
 #{
 #  LANG: C
 #  READS:  ccc_spacetime
@@ -134,18 +134,18 @@ schedule GRHayLMHDX_conservs_to_prims in GRHayLMHDX_Con2Prim after GRHayLMHDX_co
 # RHS EVALUATION
 #########################################################
 
-schedule group GRHayLMHDX_RHS in ODESolvers_RHS
+schedule group IllinoisGRMHDX_RHS in ODESolvers_RHS
 {
 } "Evaluate RHSs GRHD equations"
 
-schedule GRHayLMHDX_compute_ccc_centered_extrinsic_curvature in GRHayLMHDX_RHS #after GRHayLMHDX_enforce_detgtij_eq_1
+schedule IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature in IllinoisGRMHDX_RHS #after IllinoisGRMHDX_enforce_detgtij_eq_1
 {
    LANG: C
    READS:  ADMBaseX::curv
    WRITES: ccc_curv(everywhere)
 } "Interpolate extrinsic curvature to cell centers"
 
-schedule GRHayLMHDX_evaluate_tau_curvature_rhs in GRHayLMHDX_RHS after GRHayLMHDX_compute_ccc_centered_extrinsic_curvature
+schedule IllinoisGRMHDX_evaluate_tau_curvature_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature
 {
   LANG: C
   READS:  HydroBaseX::eps
@@ -154,7 +154,7 @@ schedule GRHayLMHDX_evaluate_tau_curvature_rhs in GRHayLMHDX_RHS after GRHayLMHD
   WRITES: grmhd_conservatives_rhs
 } "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
 
-schedule GRHayLMHDX_evaluate_MHD_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_tau_curvature_rhs
+schedule IllinoisGRMHDX_evaluate_MHD_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_evaluate_tau_curvature_rhs
 {
   LANG: C
   READS:  HydroBaseX::eps
@@ -164,7 +164,7 @@ schedule GRHayLMHDX_evaluate_MHD_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate
   WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs
 } "Compute GRHD fluxes"
 
-schedule GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHDX_RHS after GRHayLMHDX_evaluate_MHD_rhs
+schedule IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_evaluate_MHD_rhs
 {
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
@@ -177,7 +177,7 @@ schedule GRHayLMHDX_evaluate_phitilde_and_A_gauge_rhs in GRHayLMHDX_RHS after GR
 # Compute stress-energy tensor T_munu
 #########################################################
 
-schedule GRHayLMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
+schedule IllinoisGRMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
 {
   LANG: C
   READS:  HydroBaseX::eps
@@ -188,24 +188,24 @@ schedule GRHayLMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
 } "Interpolate stress-energy tensor to vertices"
 
 #########################################################
-# Conversion from GRHayLMHDX variables to Hydrobase
+# Conversion from IllinoisGRMHDX variables to Hydrobase
 #########################################################
 
 if(Convert_to_HydroBase_every)
 {
-  schedule GRHayLMHDX_compute_ccc_centered_spacetime_quantities at CCTK_ANALYSIS
+  schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities at CCTK_ANALYSIS
   {
      LANG: C
      READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
      WRITES: ccc_spacetime(everywhere)
   } "Interpolate spacetime quantities to cell centers"
   
-  SCHEDULE convert_GRHayLMHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after (GRHayLMHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
+  SCHEDULE convert_IllinoisGRMHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after (IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
     WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
             HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
-  } "Convert GRHayLMHDX-native variables to HydroBaseX"
+  } "Convert IllinoisGRMHDX-native variables to HydroBaseX"
 }

@@ -1,7 +1,7 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_compute_Tmunu;
+extern "C" void IllinoisGRMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL poison = 0.0/0.0;

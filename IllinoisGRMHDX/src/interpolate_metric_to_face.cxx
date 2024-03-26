@@ -1,6 +1,6 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLMHDX_interpolate_metric_to_face(
+extern "C" void IllinoisGRMHDX_interpolate_metric_to_face(
       const Loop::GF3D2index indm1,
       const Loop::GF3D2index index,
       const Loop::GF3D2index indp1,

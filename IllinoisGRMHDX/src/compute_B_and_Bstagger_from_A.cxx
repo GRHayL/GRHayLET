@@ -1,4 +1,4 @@
-#include "GRHayLMHDX.hxx"
+#include "IllinoisGRMHDX.hxx"
 
 /*
    Set e.g. Bx_stagger = \partial_y A_z - partial_z A_y
@@ -11,8 +11,8 @@
           [Ay(i,j,k+1) - Ay(i,j,k)]/dZ
 */
 
-extern "C" void GRHayLMHDX_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLMHDX_compute_B_and_Bstagger_from_A;
+extern "C" void IllinoisGRMHDX_compute_B_and_Bstagger_from_A(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_compute_B_and_Bstagger_from_A;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
