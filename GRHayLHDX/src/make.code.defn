@@ -11,5 +11,4 @@ SRCS = compute_metric_derivs.cxx                     \
        convert_HydroBase_to_GRHayLHDX.cxx            \
        convert_GRHayLHDX_to_HydroBase.cxx            \
        interpolate_metric_to_face.cxx \
-       no_tabulated.cxx \
        validate_fix.cxx

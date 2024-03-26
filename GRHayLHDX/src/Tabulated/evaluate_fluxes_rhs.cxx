@@ -1,10 +1,5 @@
 #include "GRHayLHDX.h"
 
-  /*
-   *  Computation of \partial_i on RHS of \partial_t {rho_star,tau,Stilde{x,y,z}},
-   *  via PPM reconstruction onto e.g. (i+1/2,j,k), so that
-   *  \partial_x F = [ F(i+1/2,j,k) - F(i-1/2,j,k) ] / dx
-   */
 template <int flux_dir>
 void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_tabulated_evaluate_fluxes_rhs;
@@ -39,7 +34,6 @@ void GRHayLHDX_tabulated_evaluate_fluxes_rhs_dir(CCTK_ARGUMENTS) {
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(ccc_layout, p.I);
-
     const Loop::GF3D2index ind_flux(flux_layout, p.I);
     const Loop::GF3D2index ind_flp1(flux_layout, p.I + p.DI[flux_dir]);
 

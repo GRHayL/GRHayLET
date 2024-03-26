@@ -1,13 +1,3 @@
-/********************************
- * CONVERT ET ID TO IllinoisGRMHD
- *
- * Written in 2014 by Zachariah B. Etienne
- *
- * Sets metric & MHD variables needed
- * by IllinoisGRMHD, converting from
- * HydroBase and ADMBase.
- ********************************/
-
 #include "GRHayLHDX.h"
 
 extern "C" void convert_HydroBase_to_GRHayLHDX(CCTK_ARGUMENTS) {
@@ -22,7 +12,7 @@ extern "C" void convert_HydroBase_to_GRHayLHDX(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
    const Loop::GF3D2index index(layout, p.I);
 
-   // IllinoisGRMHD defines v^i = u^i/u^0.
+   // GRHayLHDX defines v^i = u^i/u^0.
 
    // Meanwhile, the ET/HydroBase formalism, called the Valencia
    // formalism, splits the 4 velocity into a purely spatial part

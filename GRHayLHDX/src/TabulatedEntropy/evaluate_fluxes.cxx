@@ -113,18 +113,27 @@ void GRHayLHDX_tabulated_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
     int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r);
     speed_limited = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l);
 
+    // We must now compute eps and T
+    ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
+    ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+                                       &prims_r.eps, &prims_r.temperature);
+  
+    ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
+    ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+                                       &prims_l.eps, &prims_l.temperature);
+
     CCTK_REAL cmin, cmax;
     ghl_conservative_quantities cons_fluxes;
     calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
     calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
     rho_star_flux(ind_flux) = cons_fluxes.rho;
-    tau_flux(ind_flux) = cons_fluxes.tau;
-    Sx_flux(ind_flux)  = cons_fluxes.SD[0];
-    Sy_flux(ind_flux)  = cons_fluxes.SD[1];
-    Sz_flux(ind_flux)  = cons_fluxes.SD[2];
-    ent_flux(ind_flux) = cons_fluxes.entropy;
-    Ye_flux (ind_flux) = cons_fluxes.Y_e;
+    tau_flux(ind_flux)      = cons_fluxes.tau;
+    Sx_flux(ind_flux)       = cons_fluxes.SD[0];
+    Sy_flux(ind_flux)       = cons_fluxes.SD[1];
+    Sz_flux(ind_flux)       = cons_fluxes.SD[2];
+    ent_flux(ind_flux)      = cons_fluxes.entropy;
+    Ye_flux (ind_flux)      = cons_fluxes.Y_e;
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 

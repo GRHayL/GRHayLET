@@ -122,11 +122,11 @@ void GRHayLHDX_hybrid_entropy_evaluate_fluxes_dir(CCTK_ARGUMENTS) {
     calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 
     rho_star_flux(ind_flux) = cons_fluxes.rho;
-    tau_flux(ind_flux) = cons_fluxes.tau;
-    Sx_flux(ind_flux)  = cons_fluxes.SD[0];
-    Sy_flux(ind_flux)  = cons_fluxes.SD[1];
-    Sz_flux(ind_flux)  = cons_fluxes.SD[2];
-    ent_flux(ind_flux) = cons_fluxes.entropy;
+    tau_flux(ind_flux)      = cons_fluxes.tau;
+    Sx_flux(ind_flux)       = cons_fluxes.SD[0];
+    Sy_flux(ind_flux)       = cons_fluxes.SD[1];
+    Sz_flux(ind_flux)       = cons_fluxes.SD[2];
+    ent_flux(ind_flux)      = cons_fluxes.entropy;
   }); // staggered loop interior (e.g. flux_dir=0 gives vcc)
 }
 

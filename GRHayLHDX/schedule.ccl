@@ -1,7 +1,7 @@
 # Schedule for thorn GRHayLHDX
 
-STORAGE: grmhd_conservatives
-STORAGE: grmhd_velocities, u0, grmhd_conservatives_rhs
+STORAGE: grmhd_conservatives, grmhd_velocities
+STORAGE: u0, grmhd_conservatives_rhs
 STORAGE: flux_x, flux_y, flux_z, failure_checker
 
 if (CCTK_Equals(EOS_type, "Tabulated")) {
@@ -36,7 +36,6 @@ schedule convert_HydroBase_to_GRHayLHDX in GRHayLHDX_Prim2Con2Prim after GRHayLH
   SYNC: grmhd_velocities
 } "Convert HydroBaseX initial data to GRHayLHDX variables"
 
-# Runs everywhere. Shouldn't need to sync
 if(perturb_initial_data) {
   schedule group GRHayLHDX_perturb_primitives in GRHayLHDX_Prim2Con2Prim after convert_HydroBase_to_GRHayLHDX before GRHayLHDX_prims_to_conservs
   {
@@ -52,9 +51,8 @@ schedule group GRHayLHDX_conservs_to_prims in GRHayLHDX_Prim2Con2Prim after GRHa
 {
 } "Compute primitive variables from conservatives"
 
-# Convert data back to ensure both codes have the same data
 if(Convert_to_HydroBase_every) {
-  SCHEDULE convert_GRHayLHDX_to_HydroBase in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_conservs_to_prims
+  schedule convert_GRHayLHDX_to_HydroBase in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_conservs_to_prims
   {
     LANG: C
     READS:  ccc_spacetime, grmhd_velocities
@@ -65,9 +63,10 @@ if(Convert_to_HydroBase_every) {
 #########################################################
 # Con2Prim
 #########################################################
-schedule GROUP GRHayLHDX_Con2Prim in ODESolvers_PostStep
+
+schedule group GRHayLHDX_Con2Prim in ODESolvers_PostStep
 {
-} "Compute the cell-centered spacetime quantities and solve for primitives"
+} "Compute primitive variables from conservatives"
 
 # Does MoL sync evolved variables after each substep? If so, no need for this sync
 schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Con2Prim
@@ -159,6 +158,16 @@ if (!evolve_entropy) {
   } ""
 }
 
+if(CCTK_IsThornActive("NRPyLeakageET"))
+{
+  schedule convert_GRHayLHDX_to_HydroBase in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes_rhs
+  {
+    LANG: C
+    READS:  ccc_spacetime, grmhd_velocities
+    WRITES: HydroBaseX::vel(everywhere)
+  } "Convert GRHayLHDX variables to HydroBaseX"
+}
+
 #########################################################
 # Set HydroBase variables for analysis
 #########################################################
@@ -171,7 +180,7 @@ if(Convert_to_HydroBase_every) {
      WRITES: ccc_spacetime(everywhere)
   } "Interpolate spacetime quantities to cell centers"
   
-  SCHEDULE convert_GRHayLHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHDX_3velocity) after (GRHayLHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
+  schedule convert_GRHayLHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHDX_3velocity) after (GRHayLHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
   {
     LANG: C
     READS:  ccc_spacetime, grmhd_velocities
@@ -179,9 +188,9 @@ if(Convert_to_HydroBase_every) {
   } "Convert GRHayLHDX variables to HydroBaseX"
 }
 
-#########################################################
-# Swaps out different EOS function variants
-#########################################################
+##########################################################
+# Specific function variants based on evolution parameters
+##########################################################
 
 if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
   if (evolve_entropy) {
@@ -427,7 +436,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     schedule GRHayLHDX_tabulated_evaluate_fluxes in GRHayLHDX_evaluate_fluxes
     {
       LANG: C
-      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+      READS:  HydroBaseX::rho, HydroBaseX::press,
               HydroBaseX::Ye, HydroBaseX::temperature,
               ccc_spacetime, grmhd_velocities
       WRITES: flux_x, flux_y, flux_z,
