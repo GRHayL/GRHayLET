@@ -58,7 +58,7 @@ void IllinoisGRMHDX_evaluate_flux_dir(
                      flux_dir==1 ? 0 :
                                    1 ;
 
-  Loop::GF3D2<const CCTK_REAL> Bvec[3] = {Bx_center, By_center, Bz_center};
+  Loop::GF3D2<const CCTK_REAL> Bvec[3] = {Bvecx, Bvecy, Bvecz};
 
   Loop::GF3D2<const CCTK_REAL> B_stagger = flux_dir==0 ? Bx_stagger :
                                            flux_dir==1 ? By_stagger : Bz_stagger;
@@ -254,7 +254,7 @@ void IllinoisGRMHDX_evaluate_flux_source_rhs_dir(
     ghl_initialize_primitives(
           rho_b(index), pressure(index), eps(index),
           vx(index), vy(index), vz(index),
-          Bx_center(index), By_center(index), Bz_center(index),
+          Bvecx(index), Bvecy(index), Bvecz(index),
           poison, poison, poison, // entropy, Y_e, temp
           &prims);
 

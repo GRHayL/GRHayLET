@@ -1,19 +1,5 @@
 #include "IllinoisGRMHDX.hxx"
 
-/*
- * Compute \partial_t psi6phi = -\partial_i (  \alpha psi^6 A^i - psi6phi \beta^i)
- *    (Eq 13 of http://arxiv.org/pdf/1110.4633.pdf), using Lorenz gauge.
- * Note that the RHS consists of a shift advection term on psi6phi and
- *    a term depending on the vector potential.
- * psi6phi is defined at (i+1/2,j+1/2,k+1/2), but instead of reconstructing
- *    to compute the RHS of \partial_t psi6phi, we instead use standard
- *    interpolations.
-*/
-//CCTK_REAL A_rhs_stencil type = GF CENTERING={vvv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity alpha Phi - beta^j A_j"
-//CCTK_REAL sqrtg_Ax type = GF CENTERING={cvv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^x"
-//CCTK_REAL sqrtg_Ay type = GF CENTERING={vcv} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^y"
-//CCTK_REAL sqrtg_Az type = GF CENTERING={vvc} TAGS='prolongation="none" Checkpoint="no"' "interpolated quantity sqrt(g) A^z"
-
 extern "C" void IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs;
   DECLARE_CCTK_PARAMETERS;

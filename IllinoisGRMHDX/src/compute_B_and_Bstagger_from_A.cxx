@@ -66,8 +66,8 @@ if(Bx_stagger(p.I) > 50) CCTK_VINFO("B %e Az %e %e Ay %e %e", Bx_stagger(p.I), A
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
-    Bx_center(index) = 0.01; //0.5 * ( Bx_stagger(p.I + p.DI[0]) + Bx_stagger(p.I) )/sqrt_detgamma(index);
-    By_center(index) = 0.01; //0.5 * ( By_stagger(p.I + p.DI[1]) + By_stagger(p.I) )/sqrt_detgamma(index);
-    Bz_center(index) = 0.01; //0.5 * ( Bz_stagger(p.I + p.DI[2]) + Bz_stagger(p.I) )/sqrt_detgamma(index);
+    Bvecx(index) = 0.01; //0.5 * ( Bx_stagger(p.I + p.DI[0]) + Bx_stagger(p.I) )/sqrt_detgamma(index);
+    Bvecy(index) = 0.01; //0.5 * ( By_stagger(p.I + p.DI[1]) + By_stagger(p.I) )/sqrt_detgamma(index);
+    Bvecz(index) = 0.01; //0.5 * ( Bz_stagger(p.I + p.DI[2]) + Bz_stagger(p.I) )/sqrt_detgamma(index);
   }); // ccc loop interior
 }

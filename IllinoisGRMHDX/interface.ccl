@@ -38,16 +38,12 @@ CCTK_REAL ccc_Tmunu type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolon
 #########################################################
 
 # Primitive variables
-# The variables rho_b and pressure are identical to the HydroBase variables. However,
-# GRHayL uses the velocity v^i = u^i/u^0, while HydroBase uses the Valencia velocity, so
-# these velocities differ from HydroBase.
-CCTK_REAL grmhd_primitives_allbutBi type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none"' #dependents="grmhd_conservatives" (not sure if this would mess up how c2p is designed)
+CCTK_REAL grmhd_velocities type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-  rho_b, pressure, vx, vy, vz
-} "Primitive variables density, pressure, and components of three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
+  vx, vy, vz
+} "Components of primitive three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
 
 # Separating the computation of Tmunu from the con2prim routine requires providing u0.
-# This is most easily done by adding another grid function.
 CCTK_REAL u0 type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no"' "4-velocity component u^0"
 
 #########################################################
@@ -55,8 +51,12 @@ CCTK_REAL u0 type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation=
 # Evolved variables
 CCTK_REAL grmhd_conservatives type = GF CENTERING={ccc} Timelevels=1 TAGS='rhs="grmhd_conservatives_rhs" dependents="IllinoisGRMHDX::grmhd_conservatives_rhs"'
 {
-  rho_star, tau, Stildex, Stildey, Stildez # Note that Stildei = \tilde{S}_i.
-} "Evolved mhd variables"
+  rho_star, tau, Stildex, Stildey, Stildez
+} "Evolved hydrodynamic variables"
+
+#CCTK_REAL ent_star type = GF Timelevels=3 TAGS='prolongation="ENO"' "Evolved entropy variable"
+#CCTK_REAL Ye_star type = GF Timelevels=3 TAGS='prolongation="ENO"' "Evolved electron fraction variable"
+
 
 # Ax is defined on the staggered grid (i,j+1/2,k+1/2)
 CCTK_REAL Ax type = GF CENTERING={cvv} Timelevels=1 TAGS='rhs="Ax_rhs" dependents="IllinoisGRMHDX::Ax_rhs IllinoisGRMHDX::By_stagger IllinoisGRMHDX::Bz_stagger"' "x-component of the vector potential, evolved when constrained_transport_scheme==3"
@@ -82,24 +82,22 @@ CCTK_REAL By_stagger type = GF CENTERING={cvc} Timelevels=1 tags='InterpNumTimel
 # Bz_stagger is defined on the staggered grid (i,j,k+1/2)
 CCTK_REAL Bz_stagger type = GF CENTERING={ccv} Timelevels=1 tags='InterpNumTimelevels=1 prolongation="none"' "z-component of densitized magnetic field"
 
-CCTK_REAL grmhd_B_center type = GF CENTERING={ccc} Timelevels=1 TAGS='InterpNumTimelevels=1 prolongation="none"'
-{
-  Bx_center, By_center, Bz_center
-} "B-field components defined at cell centers."
-
 #########################################################
 
 # RHS variables for MoL timestepping
 CCTK_REAL grmhd_conservatives_rhs type = GF CENTERING={ccc} TAGS='prolongation="none" Checkpoint="no"'
 {
   rho_star_rhs, tau_rhs, Stildex_rhs, Stildey_rhs, Stildez_rhs
-} "Storage for the right-hand side of the partial_t rho_star, partial_t tau, and partial_t tilde{S}_i equations. Needed for MoL timestepping."
+} "Right-hand side for evolved conservative variables"
 
-CCTK_REAL Ax_rhs type = GF CENTERING={cvv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "x-component of the vector potential, evolved when constrained_transport_scheme==3"
+#CCTK_REAL ent_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for ent_star"
+#CCTK_REAL Ye_star_rhs type = GF TAGS='prolongation="none" Checkpoint="no"' "Right-hand side for Ye_star"
 
-CCTK_REAL Ay_rhs type = GF CENTERING={vcv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "y-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Ax_rhs type = GF CENTERING={cvv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "x-component of the vector potential"
 
-CCTK_REAL Az_rhs type = GF CENTERING={vvc} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "z-component of the vector potential, evolved when constrained_transport_scheme==3"
+CCTK_REAL Ay_rhs type = GF CENTERING={vcv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "y-component of the vector potential"
+
+CCTK_REAL Az_rhs type = GF CENTERING={vvc} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "z-component of the vector potential"
 
 CCTK_REAL phitilde_rhs type = GF CENTERING={vvv} Timelevels=1 tags='Prolongation="none" Checkpoint="no"' "sqrt{gamma} Phi, where Phi is the em scalar potential"
 

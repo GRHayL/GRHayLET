@@ -7,17 +7,12 @@ extern "C" void convert_IllinoisGRMHDX_to_HydroBase(CCTK_ARGUMENTS) {
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
   if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
-  constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
-  const Loop::GF3D2layout layout(cctkGH, indextype);
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
-
-    /* Note that we currently do not set Abar, Y_e, temperature, entropy, Avec[3], Aphi, Avec_stag[3], Aphi_stag */
-    rho(index)   = rho_b(index);
-    press(index) = pressure(index);
 
     // IllinoisGRMHD defines v^i = u^i/u^0.
 
@@ -45,9 +40,5 @@ extern "C" void convert_IllinoisGRMHDX_to_HydroBase(CCTK_ARGUMENTS) {
     velx(index) = lapseL_inv*(vx(index) + ccc_betax(index));
     vely(index) = lapseL_inv*(vy(index) + ccc_betay(index));
     velz(index) = lapseL_inv*(vz(index) + ccc_betaz(index));
-
-    Bvecx(index) = Bx_center(index);
-    Bvecy(index) = By_center(index);
-    Bvecz(index) = Bz_center(index);
   }); // ccc loop everywhere
 }

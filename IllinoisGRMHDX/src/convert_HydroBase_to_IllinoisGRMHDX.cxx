@@ -1,13 +1,3 @@
-/********************************
- * CONVERT ET ID TO IllinoisGRMHD
- *
- * Written in 2014 by Zachariah B. Etienne
- *
- * Sets metric & MHD variables needed
- * by IllinoisGRMHD, converting from
- * HydroBase and ADMBase.
- ********************************/
-
 #include "IllinoisGRMHDX.hxx"
 
 extern "C" void convert_HydroBase_to_IllinoisGRMHDX(CCTK_ARGUMENTS) {
@@ -22,10 +12,7 @@ extern "C" void convert_HydroBase_to_IllinoisGRMHDX(CCTK_ARGUMENTS) {
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(layout, p.I);
 
-    rho_b(index) = rho(index);
-    pressure(index) = press(index);
-
-    // IllinoisGRMHD defines v^i = u^i/u^0.
+    // IllinoisGRMHDX defines v^i = u^i/u^0.
 
     // Meanwhile, the ET/HydroBase formalism, called the Valencia
     // formalism, splits the 4 velocity into a purely spatial part
@@ -55,48 +42,24 @@ extern "C" void convert_HydroBase_to_IllinoisGRMHDX(CCTK_ARGUMENTS) {
   grid.loop_all_device<1, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ax(p.I) = 0; //Avecx(p.I);
+    Ax(p.I) = Avecx(p.I);
   });
 
   grid.loop_all_device<0, 1, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Ay(p.I) = 0; //Avecy(p.I);
+    Ay(p.I) = Avecy(p.I);
   });
 
   grid.loop_all_device<0, 0, 1>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    Az(p.I) = 0; //Avecz(p.I);
+    Az(p.I) = Avecz(p.I);
   });
 
   grid.loop_all_device<0, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    phitilde(p.I) = 0.0; //Aphi(index);
+    phitilde(p.I) = Aphi(index);
   });
-
-  // Neat feature for debugging: Add a roundoff-error perturbation
-  //    to the initial data.
-  // Set random_pert variable to ~1e-14 for a random 15th digit
-  //    perturbation.
-  if(random_pert > 1e-30) {
-    srand(random_seed); // Use srand() as rand() is thread-safe.
-    grid.loop_all_device<1, 1, 1>(
-        grid.nghostzones,
-        [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-      const Loop::GF3D2index index(layout, p.I);
-      const CCTK_REAL pert = (random_pert*(CCTK_REAL)rand() / RAND_MAX);
-      const CCTK_REAL one_plus_pert=(1.0+pert);
-      rho_b(index)*=one_plus_pert;
-      vx(index)*=one_plus_pert;
-      vy(index)*=one_plus_pert;
-      vz(index)*=one_plus_pert;
-
-      phitilde(index)*=one_plus_pert;
-      Ax(index)*=one_plus_pert;
-      Ay(index)*=one_plus_pert;
-      Az(index)*=one_plus_pert;
-    }); // ccc loop everywhere
-  }
 }

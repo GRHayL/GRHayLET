@@ -7,8 +7,7 @@ extern "C" void convert_GRHayLHDX_to_HydroBase(CCTK_ARGUMENTS) {
   // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
   if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
 
-  constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};
-  const Loop::GF3D2layout layout(cctkGH, indextype);
+  const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
   grid.loop_all_device<1, 1, 1>(
       grid.nghostzones,
@@ -36,8 +35,7 @@ extern "C" void convert_GRHayLHDX_to_HydroBase(CCTK_ARGUMENTS) {
     //     = \Gamma/u^0 ( U^i - \beta^i / \alpha ) <- \Gamma = \alpha u^0
     //     = \alpha ( U^i - \beta^i / \alpha )
     //     = \alpha U^i - \beta^i
-    const CCTK_REAL lapseL = ccc_lapse(index);
-    const CCTK_REAL lapseL_inv = 1.0/lapseL;
+    const CCTK_REAL lapseL_inv = 1.0/ccc_lapse(index);
 
     velx(index) = lapseL_inv*(vx(index) + ccc_betax(index));
     vely(index) = lapseL_inv*(vy(index) + ccc_betay(index));

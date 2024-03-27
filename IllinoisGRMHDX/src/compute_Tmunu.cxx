@@ -4,17 +4,15 @@ extern "C" void IllinoisGRMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_compute_Tmunu;
   DECLARE_CCTK_PARAMETERS;
 
-  const CCTK_REAL poison = 0.0/0.0;
-
   constexpr std::array<int, Loop::dim> vvvtype = {0, 0, 0};
   const Loop::GF3D2layout vvv_layout(cctkGH, vvvtype);
 
   constexpr std::array<int, Loop::dim> ccctype = {1, 1, 1};
   const Loop::GF3D2layout ccc_layout(cctkGH, ccctype);
 
-  grid.loop_all_device<1, 1, 1>(
+  grid.loop_all<1, 1, 1>(
       grid.nghostzones,
-      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+      [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
     const Loop::GF3D2index index(ccc_layout, p.I);
 
     ghl_metric_quantities ADM_metric;
@@ -29,11 +27,16 @@ extern "C" void IllinoisGRMHDX_compute_Tmunu(CCTK_ARGUMENTS) {
     ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
     ghl_primitive_quantities prims;
-    ghl_initialize_primitives(
-          rho_b(index), pressure(index), eps(index),
-          vx(index), vy(index), vz(index),
-          Bx_center(index), By_center(index), Bz_center(index),
-          poison, poison, poison, &prims);
+    prims.BU[0] = Bvecx(index);
+    prims.BU[1] = Bvecy(index);
+    prims.BU[2] = Bvecz(index);
+    prims.rho   = rho(index);
+    prims.press = press(index);
+    prims.eps   = eps(index);
+    prims.vU[0] = vx(index);
+    prims.vU[1] = vy(index);
+    prims.vU[2] = vz(index);
+    prims.u0    = u0(index);
     prims.u0 = u0(index);
 
     ghl_stress_energy Tmunu;
