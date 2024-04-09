@@ -1,4 +1,4 @@
-#include "GRHayLHDX.h"
+#include "IllinoisGRMHDX.hxx"
 
 extern "C" void GRHayLHDX_validate_entstar(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_validate_entstar;

@@ -1,13 +1,21 @@
 # Schedule for thorn IllinoisGRMHDX
 
-STORAGE: grmhd_primitives_allbutBi, u0, grmhd_conservatives
+STORAGE: grmhd_velocities, u0, grmhd_conservatives
 STORAGE: grmhd_conservatives_rhs
 
-STORAGE: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+STORAGE: Bx_stagger, By_stagger, Bz_stagger
 STORAGE: Ax, Ay, Az, phitilde
 STORAGE: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
 
 STORAGE: ccc_spacetime, ccc_curv, ccc_Tmunu
+
+#if (CCTK_Equals(EOS_type, "Tabulated")) {
+#  STORAGE: Ye_star, Ye_star_rhs
+#}
+#
+#if (evolve_entropy) {
+#  STORAGE: ent_star, ent_star_rhs
+#}
 
 #########################################################
 # INITIAL DATA CONVERSION
@@ -15,7 +23,7 @@ STORAGE: ccc_spacetime, ccc_curv, ccc_Tmunu
 # Fill IllinoisGRMHDX grid functions using initial data from ADMBaseX and HydroBaseX
 schedule group IllinoisGRMHDX_Prim2Con2Prim in HydroBaseX_PostInitial
 {
-} "Translate ET-generated, HydroBaseX-compatible initial data and convert into variables used by IllinoisGRMHDX"
+} "Initialize IllinoisGRMHDX variables using HydroBaseX initial data"
 
 schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities in IllinoisGRMHDX_Prim2Con2Prim
 {
@@ -27,42 +35,34 @@ schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities in IllinoisGRM
 schedule convert_HydroBase_to_IllinoisGRMHDX in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
-  READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
-          HydroBaseX::vel, #HydroBaseX::Aphi,
-          HydroBaseX::Avecx, HydroBaseX::Avecy, HydroBaseX::Avecz #,
-          #HydroBaseX::Ye, HydroBaseX::entropy, HydroBaseX::temperature
-  READS:  ccc_spacetime
-  WRITES: HydroBaseX::eps(everywhere)
-  WRITES: grmhd_primitives_allbutBi(everywhere), phitilde(everywhere),
-          Ax(everywhere), Ay(everywhere), Az(everywhere)
-  SYNC: grmhd_primitives_allbutBi, Ax, Ay, Az, phitilde
-} "Convert HydroBaseX initial data (ID) to IllinoisGRMHDX variables and enforce simulation limits on primitives."
+  READS:  HydroBaseX::vel, ccc_spacetime,
+          HydroBaseX::Avecx, HydroBaseX::Avecy, HydroBaseX::Avecz
+  WRITES: grmhd_velocities(everywhere),
+          phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+  SYNC: grmhd_velocities, Ax, Ay, Az, phitilde
+} "Convert HydroBaseX initial data to IllinoisGRMHDX variables"
+
+if(perturb_initial_data) {
+  schedule group IllinoisGRMHDX_perturb_primitives in IllinoisGRMHDX_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHDX before IllinoisGRMHDX_prims_to_conservs
+  {
+  } "perturb initial primitive data"
+}
 
 schedule IllinoisGRMHDX_compute_B_and_Bstagger_from_A in IllinoisGRMHDX_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHDX
 {
   LANG: C
   READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
-  WRITES: grmhd_B_center(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
-  SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+  WRITES: HydroBaseX::Bvec(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
+  SYNC: HydroBaseX::Bvec, Bx_stagger, By_stagger, Bz_stagger
 } "Compute B and B_stagger from A"
 
-schedule IllinoisGRMHDX_prims_to_conservs in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_compute_B_and_Bstagger_from_A
+# Runs everywhere. Shouldn't need to sync
+schedule group IllinoisGRMHDX_prims_to_conservs in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_compute_B_and_Bstagger_from_A
 {
-  LANG: C
-  READS:  HydroBaseX::eps(everywhere)
-  READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_conservatives(everywhere),
-          grmhd_B_center(everywhere)
-  WRITES: HydroBaseX::eps(everywhere)
-} "Compute conservative variables from primitives"
+} "Enforce simulation limits on primitives and compute conservatives"
 
-schedule IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_prims_to_conservs
+schedule group IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_prims_to_conservs
 {
-  LANG: C
-  READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
-  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-          u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBaseX::eps(everywhere)
 } "Compute primitive variables from conservatives. This is non-trivial, requiring a Newton-Raphson root-finder."
 
 # Convert data back to ensure both codes have the same data
@@ -71,7 +71,7 @@ if(Convert_to_HydroBase_every)
   SCHEDULE convert_IllinoisGRMHDX_to_HydroBase in IllinoisGRMHDX_Prim2Con2Prim after IllinoisGRMHDX_conservs_to_prims
   {
     LANG: C
-    READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
+    READS:  ccc_spacetime, HydroBaseX::rho, HydroBaseX::press, grmhd_velocities, HydroBaseX::Bvec
     WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
             HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
   } "Convert IllinoisGRMHDX-native variables to HydroBaseX"
@@ -81,16 +81,17 @@ if(Convert_to_HydroBase_every)
 # Con2Prim
 #########################################################
 
-schedule GROUP IllinoisGRMHDX_Con2Prim in ODESolvers_PostStep
+schedule group IllinoisGRMHDX_Con2Prim in ODESolvers_PostStep
 {
-} "Compute the cell-centered spacetime quantities and solve for primitives"
+} "Compute primitive variables from conservatives"
 
+# Does MoL sync evolved variables after each substep? If so, no need for this sync
 schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities in IllinoisGRMHDX_Con2Prim
 {
   LANG: C
   READS:  ADMBaseX::metric, ADMBaseX::lapse, ADMBaseX::shift
   WRITES: ccc_spacetime(everywhere)
-  SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde
+  SYNC: grmhd_conservatives, Ax, Ay, Az, phitilde #, Ye_star, ent_star
 } "Interpolate spacetime quantities to cell centers"
 
 #schedule IllinoisGRMHDX_outer_boundaries_on_A_mu in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_convert_ADM_to_BSSN
@@ -104,17 +105,18 @@ schedule IllinoisGRMHDX_compute_B_and_Bstagger_from_A in IllinoisGRMHDX_Con2Prim
 {
   LANG: C
   READS:  sqrt_detgamma, phitilde, Ax, Ay, Az
-  WRITES: grmhd_B_center(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
-  SYNC: grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger
+  WRITES: HydroBaseX::Bvec(everywhere), Bx_stagger(everywhere), By_stagger(everywhere), Bz_stagger(everywhere)
+  SYNC: HydroBaseX::Bvec, Bx_stagger, By_stagger, Bz_stagger
 } "Compute B and B_stagger from A"
 
-schedule IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
+if(perturb_every_con2prim) {
+  schedule group IllinoisGRMHDX_perturb_conservatives in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_compute_B_and_Bstagger_from_A before IllinoisGRMHDX_conservs_to_prims
+  {
+  } "Perturb conservatives before con2prim"
+}
+
+schedule group IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Con2Prim after IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities
 {
-  LANG: C
-  READS:  ccc_spacetime, grmhd_conservatives, grmhd_B_center
-  WRITES: grmhd_primitives_allbutBi(everywhere), grmhd_B_center(everywhere),
-          u0(everywhere), grmhd_conservatives(everywhere), failure_checker(everywhere)
-  WRITES: HydroBaseX::eps(everywhere)
 } "Compute primitive variables from conservatives"
 
 # For now, let's just rely on CarpetX's BCs
@@ -131,6 +133,20 @@ schedule IllinoisGRMHDX_conservs_to_prims in IllinoisGRMHDX_Con2Prim after Illin
 #} "Apply outflow-only, flat BCs on {P,rho_b,vx,vy,vz}. Outflow only == velocities pointed inward from outer boundary are set to zero."
 
 #########################################################
+# Stress-energy Tensor
+#########################################################
+
+if(update_Tmunu) {
+  schedule IllinoisGRMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
+  {
+    LANG: C
+    READS:  ccc_spacetime, grmhd_velocities, u0, HydroBaseX::Bvec,
+            HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps
+    WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
+  } "Compute stress-energy tensor and interpolate to vertices"
+}
+
+#########################################################
 # RHS EVALUATION
 #########################################################
 
@@ -145,24 +161,13 @@ schedule IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature in IllinoisGRMH
    WRITES: ccc_curv(everywhere)
 } "Interpolate extrinsic curvature to cell centers"
 
-schedule IllinoisGRMHDX_evaluate_tau_curvature_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature
+schedule group IllinoisGRMHDX_evaluate_sources_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_compute_ccc_centered_extrinsic_curvature
 {
-  LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, ccc_curv,
-          grmhd_primitives_allbutBi, grmhd_B_center
-  WRITES: grmhd_conservatives_rhs
-} "Initialize RHS variables to zero and evalute extrinsic curvature source term of tau_rhs"
+} "Evaluate source terms in GRHD RHSs"
 
-schedule IllinoisGRMHDX_evaluate_MHD_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_evaluate_tau_curvature_rhs
+schedule group IllinoisGRMHDX_evaluate_fluxes_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_evaluate_sources_rhs
 {
-  LANG: C
-  READS:  HydroBaseX::eps
-  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
-          grmhd_B_center, Bx_stagger, By_stagger, Bz_stagger,
-          grmhd_conservatives_rhs(interior)
-  WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs
-} "Compute GRHD fluxes"
+} "Evaluate fluxes for GRHD RHSs"
 
 schedule IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHDX_RHS after IllinoisGRMHDX_evaluate_MHD_rhs
 {
@@ -173,26 +178,38 @@ schedule IllinoisGRMHDX_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHDX_RHS 
   WRITES: Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
 } "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 
-#########################################################
-# Compute stress-energy tensor T_munu
-#########################################################
+# Needed because I can't turn off evolution of variables
+#if (!CCTK_Equals(EOS_type, "Tabulated")) {
+#  schedule GRHayLHDX_validate_yestar in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes_rhs
+#  {
+#     LANG: C
+#     WRITES: Ye_star(everywhere), Ye_star_rhs(everywhere)
+#  } ""
+#}
+#
+#if (!evolve_entropy) {
+#  schedule GRHayLHDX_validate_entstar in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes_rhs
+#  {
+#     LANG: C
+#     WRITES: ent_star(everywhere), ent_star_rhs(everywhere)
+#  } ""
+#}
 
-schedule IllinoisGRMHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
+if(CCTK_IsThornActive("NRPyLeakageET"))
 {
-  LANG: C
-  READS:  HydroBaseX::eps
-  READS:  TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
-  READS:  ccc_spacetime, grmhd_primitives_allbutBi,
-          u0, grmhd_B_center
-  WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
-} "Interpolate stress-energy tensor to vertices"
+  schedule convert_GRHayLHDX_to_HydroBase in GRHayLHDX_RHS after GRHayLHDX_evaluate_fluxes_rhs
+  {
+    LANG: C
+    READS:  ccc_spacetime, grmhd_velocities
+    WRITES: HydroBaseX::vel(everywhere)
+  } "Convert GRHayLHDX variables to HydroBaseX"
+}
 
 #########################################################
-# Conversion from IllinoisGRMHDX variables to Hydrobase
+# Set HydroBase variables for analysis
 #########################################################
 
-if(Convert_to_HydroBase_every)
-{
+if(Convert_to_HydroBase_every) {
   schedule IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities at CCTK_ANALYSIS
   {
      LANG: C
@@ -200,12 +217,290 @@ if(Convert_to_HydroBase_every)
      WRITES: ccc_spacetime(everywhere)
   } "Interpolate spacetime quantities to cell centers"
   
-  SCHEDULE convert_IllinoisGRMHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after (IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
+  schedule convert_IllinoisGRMHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHD_3velocity) after (IllinoisGRMHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
-    READS:  ccc_spacetime, grmhd_primitives_allbutBi, grmhd_B_center
-    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
-            HydroBaseX::vel(everywhere), HydroBaseX::Bvec(everywhere)
-  } "Convert IllinoisGRMHDX-native variables to HydroBaseX"
+    READS:  ccc_spacetime, grmhd_velocities
+    WRITES: HydroBaseX::vel(everywhere)
+  } "Convert IllinoisGRMHDX variables to HydroBaseX"
+}
+
+##########################################################
+# Specific function variants based on evolution parameters
+##########################################################
+
+if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
+  #if (evolve_entropy) {
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_prims_to_conservs in IllinoisGRMHDX_prims_to_conservs
+  #  {
+  #    LANG: C
+  #    READS:  ccc_spacetime,
+  #            HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+  #            HydroBaseX::entropy, grmhd_velocities
+  #    WRITES: u0(everywhere), grmhd_velocities(everywhere),
+  #            grmhd_conservatives(everywhere), ent_star(everywhere),
+  #            HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+  #            HydroBaseX::eps(everywhere), HydroBaseX::entropy(everywhere)
+  #    SYNC: grmhd_conservatives, ent_star
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_prims_to_conservs"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_conservs_to_prims in IllinoisGRMHDX_conservs_to_prims
+  #  {
+  #    LANG: C
+  #    READS:  ccc_spacetime, grmhd_conservatives, ent_star
+  #    WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), failure_checker(everywhere),
+  #            u0(everywhere), grmhd_velocities(everywhere),
+  #            HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+  #            HydroBaseX::eps(everywhere), HydroBaseX::entropy(everywhere)
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_conservs_to_prims"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_evaluate_sources_rhs in IllinoisGRMHDX_evaluate_sources_rhs
+  #  {
+  #    LANG: C
+  #    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+  #            ccc_spacetime, ccc_curv, grmhd_velocities
+  #    WRITES: grmhd_conservatives_rhs, ent_star_rhs
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_evaluate_sources_rhs"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_evaluate_fluxes in IllinoisGRMHDX_evaluate_fluxes
+  #  {
+  #    LANG: C
+  #    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+  #            ccc_spacetime, grmhd_velocities
+  #    WRITES: flux_x, flux_y, flux_z,
+  #            ent_flux_x, ent_flux_y, ent_flux_z
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_evaluate_fluxes"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_evaluate_fluxes_rhs in IllinoisGRMHDX_evaluate_fluxes_rhs
+  #  {
+  #    LANG: C
+  #    READS:  flux_x(interior), flux_y(interior), flux_z(interior),
+  #            ent_flux_x(interior), ent_flux_y(interior), ent_flux_z(interior),
+  #            grmhd_conservatives_rhs(interior), ent_star_rhs(interior)
+  #    WRITES: grmhd_conservatives_rhs, ent_star_rhs
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_evaluate_fluxes_rhs"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_perturb_primitives in IllinoisGRMHDX_perturb_primitives
+  #  {
+  #    LANG: C
+  #    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+  #            HydroBaseX::entropy, grmhd_velocities
+  #    WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+  #            HydroBaseX::entropy(everywhere), grmhd_velocities(everywhere)
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_perturb_primitives"
+
+  #  schedule IllinoisGRMHDX_hybrid_entropy_perturb_conservatives in IllinoisGRMHDX_perturb_conservatives
+  #  {
+  #    LANG: C
+  #    READS:  grmhd_conservatives, ent_star
+  #    WRITES: grmhd_conservatives(everywhere), ent_star(everywhere)
+  #  } "Entropy+Hybrid version of IllinoisGRMHDX_perturb_conservatives"
+
+  #} else {
+
+    schedule IllinoisGRMHDX_hybrid_prims_to_conservs in IllinoisGRMHDX_prims_to_conservs
+    {
+      LANG: C
+      READS:  ccc_spacetime, HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              grmhd_velocities, HydroBaseX::Bvec
+      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere)
+      SYNC: grmhd_conservatives
+    } "Hybrid version of IllinoisGRMHDX_prims_to_conservs"
+
+    schedule IllinoisGRMHDX_hybrid_conservs_to_prims in IllinoisGRMHDX_conservs_to_prims
+    {
+      LANG: C
+      READS:  ccc_spacetime, grmhd_conservatives, HydroBaseX::Bvec
+      WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
+              u0(everywhere), grmhd_velocities(everywhere),
+              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere)
+    } "Hybrid version of IllinoisGRMHDX_conservs_to_prims"
+
+    schedule IllinoisGRMHDX_hybrid_evaluate_sources_rhs in IllinoisGRMHDX_evaluate_sources_rhs
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::Bvec,
+              ccc_spacetime, ccc_curv, grmhd_velocities
+      WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+    } "Hybrid version of IllinoisGRMHDX_evaluate_sources_rhs"
+
+    schedule IllinoisGRMHDX_hybrid_evaluate_fluxes_rhs in IllinoisGRMHDX_evaluate_fluxes_rhs
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, grmhd_velocities,
+              HydroBaseX::Bvec, Bx_stagger, By_stagger, Bz_stagger,
+              ccc_spacetime, phitilde, Ax, Ay, Az,
+              grmhd_conservatives_rhs(interior)
+      WRITES: grmhd_conservatives_rhs, Ax_rhs, Ay_rhs, Az_rhs, phitilde_rhs
+    } "Hybrid version of IllinoisGRMHDX_evaluate_fluxes_rhs"
+
+    schedule IllinoisGRMHDX_hybrid_perturb_primitives in IllinoisGRMHDX_perturb_primitives
+    {
+      LANG: C
+      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+              grmhd_velocities, phitilde, Ax, Ay, Az
+      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere),
+              HydroBaseX::eps(everywhere), grmhd_velocities(everywhere),
+              phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+    } "Hybrid version of IllinoisGRMHDX_perturb_primitives"
+
+    schedule IllinoisGRMHDX_hybrid_perturb_conservatives in IllinoisGRMHDX_perturb_conservatives
+    {
+      LANG: C
+      READS:  grmhd_conservatives
+      WRITES: grmhd_conservatives(everywhere)
+    } "Hybrid version of IllinoisGRMHDX_perturb_conservatives"
+
+#  }
+#} else if (CCTK_Equals(EOS_type, "Tabulated")) {
+#  if (evolve_entropy) {
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_prims_to_conservs in IllinoisGRMHDX_prims_to_conservs
+#    {
+#      LANG: C
+#      READS:  ccc_spacetime,
+#              HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+#              grmhd_velocities
+#      WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
+#              ent_star(everywhere), Ye_star(everywhere),
+#              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+#      SYNC: grmhd_conservatives, ent_star, Ye_star
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_prims_to_conservs"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_conservs_to_prims in IllinoisGRMHDX_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  ccc_spacetime, grmhd_conservatives, ent_star, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
+#              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+#              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_conservs_to_prims"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_evaluate_sources_rhs in IllinoisGRMHDX_evaluate_sources_rhs
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+#              HydroBaseX::Ye, HydroBaseX::temperature,
+#              ccc_spacetime, ccc_curv, grmhd_velocities
+#      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_evaluate_sources_rhs"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_evaluate_fluxes in IllinoisGRMHDX_evaluate_fluxes
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::entropy,
+#              HydroBaseX::Ye, HydroBaseX::temperature,
+#              ccc_spacetime, grmhd_velocities
+#      WRITES: flux_x, flux_y, flux_z,
+#              ent_flux_x, ent_flux_y, ent_flux_z,
+#              Ye_flux_x, Ye_flux_y, Ye_flux_z
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_evaluate_fluxes"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_evaluate_fluxes_rhs in IllinoisGRMHDX_evaluate_fluxes_rhs
+#    {
+#      LANG: C
+#      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
+#              ent_flux_x(interior), ent_flux_y(interior), ent_flux_z(interior),
+#              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
+#              grmhd_conservatives_rhs(interior), ent_star_rhs(interior),
+#              Ye_star_rhs(interior)
+#      WRITES: grmhd_conservatives_rhs, ent_star_rhs, Ye_star_rhs
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_evaluate_fluxes_rhs"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_perturb_primitives in IllinoisGRMHDX_perturb_primitives
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+#              HydroBaseX::entropy, HydroBaseX::Ye, HydroBaseX::temperature,
+#              grmhd_velocities
+#      WRITES: HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::entropy(everywhere), HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere),
+#              grmhd_velocities(everywhere)
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_perturb_primitives"
+#
+#    schedule IllinoisGRMHDX_tabulated_entropy_perturb_conservatives in IllinoisGRMHDX_perturb_conservatives
+#    {
+#      LANG: C
+#      READS:  grmhd_conservatives, ent_star, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere)
+#    } "Entropy+Tabulated version of IllinoisGRMHDX_perturb_conservatives"
+#
+#  } else {
+#
+#    schedule IllinoisGRMHDX_tabulated_prims_to_conservs in IllinoisGRMHDX_prims_to_conservs
+#    {
+#      LANG: C
+#      READS:  ccc_spacetime
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+#              HydroBaseX::Ye, HydroBaseX::temperature,
+#              grmhd_velocities
+#      WRITES: u0(everywhere), grmhd_velocities(everywhere),
+#              grmhd_conservatives(everywhere), Ye_star(everywhere),
+#              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+#      SYNC: grmhd_conservatives, Ye_star
+#    } "Tabulated version of IllinoisGRMHDX_prims_to_conservs"
+#
+#    schedule IllinoisGRMHDX_tabulated_conservs_to_prims in IllinoisGRMHDX_conservs_to_prims
+#    {
+#      LANG: C
+#      READS:  ccc_spacetime, grmhd_conservatives, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
+#              u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
+#              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+#    } "Tabulated version of IllinoisGRMHDX_conservs_to_prims"
+#
+#    schedule IllinoisGRMHDX_tabulated_evaluate_sources_rhs in IllinoisGRMHDX_evaluate_sources_rhs
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::Ye,
+#              HydroBaseX::temperature, grmhd_velocities,
+#              ccc_spacetime, ccc_curv
+#      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
+#    } "Tabulated version of IllinoisGRMHDX_evaluate_sources_rhs"
+#    
+#    schedule IllinoisGRMHDX_tabulated_evaluate_fluxes in IllinoisGRMHDX_evaluate_fluxes
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press,
+#              HydroBaseX::Ye, HydroBaseX::temperature,
+#              ccc_spacetime, grmhd_velocities
+#      WRITES: flux_x, flux_y, flux_z,
+#              Ye_flux_x, Ye_flux_y, Ye_flux_z
+#    } "Tabulated version of IllinoisGRMHDX_evaluate_fluxes"
+#    
+#    schedule IllinoisGRMHDX_tabulated_evaluate_fluxes_rhs in IllinoisGRMHDX_evaluate_fluxes_rhs
+#    {
+#      LANG: C
+#      READS:  flux_x(interior), flux_y(interior), flux_z(interior),
+#              Ye_flux_x(interior), Ye_flux_y(interior), Ye_flux_z(interior),
+#              grmhd_conservatives_rhs(interior), Ye_star_rhs(interior)
+#      WRITES: grmhd_conservatives_rhs, Ye_star_rhs
+#    } "Tabulated version of IllinoisGRMHDX_evaluate_fluxes_rhs"
+#
+#    schedule IllinoisGRMHDX_tabulated_perturb_primitives in IllinoisGRMHDX_perturb_primitives
+#    {
+#      LANG: C
+#      READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps,
+#              HydroBaseX::Ye, HydroBaseX::temperature,
+#              grmhd_velocities
+#      WRITES: grmhd_velocities(everywhere),
+#              HydroBaseX::rho(everywhere), HydroBaseX::press(everywhere), HydroBaseX::eps(everywhere),
+#              HydroBaseX::Ye(everywhere), HydroBaseX::temperature(everywhere)
+#    } "Tabulated version of IllinoisGRMHDX_perturb_primitives"
+#
+#    schedule IllinoisGRMHDX_tabulated_perturb_conservatives in IllinoisGRMHDX_perturb_conservatives
+#    {
+#      LANG: C
+#      READS:  grmhd_conservatives, Ye_star
+#      WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere)
+#    } "Tabulated version of IllinoisGRMHDX_perturb_conservatives"
+#  }
 }

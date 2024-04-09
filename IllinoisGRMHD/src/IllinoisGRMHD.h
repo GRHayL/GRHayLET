@@ -1,5 +1,5 @@
-#ifndef GRHAYLMHD_H_
-#define GRHAYLMHD_H_
+#ifndef ILLINOISMHD_H_
+#define ILLINOISMHD_H_
 
 #include "cctk.h"
 #include "cctk_Parameters.h"
@@ -99,4 +99,4 @@ void IllinoisGRMHD_A_flux_rhs(
       CCTK_REAL *restrict A_rhs);
 
 /****************************************************************/
-#endif // GRHAYLMHD_H_
+#endif // ILLINOISMHD_H_

@@ -30,8 +30,7 @@ schedule GRHayLHDX_compute_ccc_centered_spacetime_quantities in GRHayLHDX_Prim2C
 schedule convert_HydroBase_to_GRHayLHDX in GRHayLHDX_Prim2Con2Prim after GRHayLHDX_compute_ccc_centered_spacetime_quantities
 {
   LANG: C
-  READS:  HydroBaseX::vel
-  READS:  ccc_spacetime
+  READS:  HydroBaseX::vel, ccc_spacetime
   WRITES: grmhd_velocities(everywhere)
   SYNC: grmhd_velocities
 } "Convert HydroBaseX initial data to GRHayLHDX variables"
@@ -108,8 +107,8 @@ if(update_Tmunu) {
   schedule GRHayLHDX_compute_Tmunu in TmunuBaseX_AddToTmunu
   {
     LANG: C
-    READS:  ccc_spacetime, grmhd_velocities, u0
-    READS:  HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps
+    READS:  ccc_spacetime, grmhd_velocities, u0,
+            HydroBaseX::rho, HydroBaseX::press, HydroBaseX::eps
     WRITES: ccc_Tmunu(everywhere), TmunuBaseX::eTtt, TmunuBaseX::eTti, TmunuBaseX::eTij
   } "Compute stress-energy tensor and interpolate to vertices"
 }
@@ -183,6 +182,7 @@ if(Convert_to_HydroBase_every) {
   schedule convert_GRHayLHDX_to_HydroBase at CCTK_ANALYSIS before (particle_tracerET VolumeIntegralGroup convert_to_MHDX_3velocity) after (GRHayLHDX_compute_ccc_centered_spacetime_quantities ML_BSSN_evolCalcGroup)
   {
     LANG: C
+    OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
     READS:  ccc_spacetime, grmhd_velocities
     WRITES: HydroBaseX::vel(everywhere)
   } "Convert GRHayLHDX variables to HydroBaseX"

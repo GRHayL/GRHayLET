@@ -1,7 +1,7 @@
-#include "GRHayLHDX.h"
+#include "IllinoisGRMHDX.hxx"
 
-extern "C" void GRHayLHDX_hybrid_perturb_primitives(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_hybrid_perturb_primitives;
+extern "C" void IllinoisGRMHDX_hybrid_perturb_primitives(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_hybrid_perturb_primitives;
   DECLARE_CCTK_PARAMETERS;
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});

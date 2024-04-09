@@ -11,6 +11,9 @@ enum recon_indices{
       BX_STAGGER, BY_STAGGER, BZ_STAGGER,
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};
 
+// This is used to perturb data for testing
+#define one_plus_pert(perturb) (1 + (perturb*(CCTK_REAL)rand() / RAND_MAX))
+
 //template <int flux_dir>
 //void IllinoisGRMHDX_reconstruction_loop(
 //      const cGH *restrict cctkGH,

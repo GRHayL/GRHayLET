@@ -1,7 +1,7 @@
-#include "GRHayLHDX.h"
+#include "IllinoisGRMHDX.hxx"
 
-void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_GRHayLHDX_hybrid_evaluate_sources_rhs;
+void IllinoisGRMHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_hybrid_evaluate_sources_rhs;
   DECLARE_CCTK_PARAMETERS;
 
   const CCTK_REAL dxi = 1.0/CCTK_DELTA_SPACE(0);
@@ -10,6 +10,30 @@ void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
+  grid.loop_int_device<0, 0, 0>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+    phitilde_rhs(p.I) = 0.0;
+  });
+
+  grid.loop_int_device<1, 0, 0>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+    Ax_rhs(p.I) = 0.0;
+  });
+
+  grid.loop_int_device<0, 1, 0>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+    Ay_rhs(p.I) = 0.0;
+  });
+
+  grid.loop_int_device<0, 0, 1>(
+      grid.nghostzones,
+      [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
+    Az_rhs(p.I) = 0.0;
+  });
+
   grid.loop_int<1, 1, 1>(
       grid.nghostzones,
       [=] CCTK_HOST(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
@@ -17,10 +41,6 @@ void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
     // These variables have no source terms
     rho_star_rhs(index) = 0.0;
-    phitilde_rhs(index) = 0.0;
-    Ax_rhs(index)       = 0.0;
-    Ay_rhs(index)       = 0.0;
-    Az_rhs(index)       = 0.0;
 
     ghl_metric_quantities ADM_metric;
     ghl_initialize_metric(
@@ -54,7 +74,7 @@ void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     const Loop::GF3D2index indp2x(layout, p.I + 2*p.DI[0]);
 
     ghl_metric_quantities ADM_metric_derivs_x;
-    GRHayLHDX_compute_metric_derivs(
+    IllinoisGRMHDX_compute_metric_derivs(
           dxi, indm2x, indm1x, indp1x, indp2x,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,
@@ -67,7 +87,7 @@ void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     const Loop::GF3D2index indp2y(layout, p.I + 2*p.DI[1]);
 
     ghl_metric_quantities ADM_metric_derivs_y;
-    GRHayLHDX_compute_metric_derivs(
+    IllinoisGRMHDX_compute_metric_derivs(
           dyi, indm2y, indm1y, indp1y, indp2y,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,
@@ -80,7 +100,7 @@ void GRHayLHDX_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     const Loop::GF3D2index indp2z(layout, p.I + 2*p.DI[2]);
 
     ghl_metric_quantities ADM_metric_derivs_z;
-    GRHayLHDX_compute_metric_derivs(
+    IllinoisGRMHDX_compute_metric_derivs(
           dzi, indm2z, indm1z, indp1z, indp2z,
           ccc_lapse, ccc_betax, ccc_betay, ccc_betaz,
           ccc_gxx, ccc_gxy, ccc_gxz,

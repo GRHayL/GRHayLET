@@ -11,9 +11,7 @@ SRCS = compute_B_and_Bstagger_from_A.cxx             \
        compute_Tmunu.cxx                             \
        convert_HydroBase_to_IllinoisGRMHDX.cxx       \
        convert_IllinoisGRMHDX_to_HydroBase.cxx       \
-       evaluate_MHD_rhs.cxx                          \
        evaluate_phitilde_and_A_gauge_rhs.cxx         \
-       interpolate_metric_to_face.cxx                \
-       reconstruction_loop.c                         \
-       validate_fix.cxx
+       interpolate_metric_to_face.cxx
+#       validate_fix.cxx
 #       outer_boundaries.cxx

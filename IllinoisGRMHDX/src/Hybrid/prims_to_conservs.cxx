@@ -1,7 +1,7 @@
 #include "IllinoisGRMHDX.hxx"
 
-extern "C" void IllinoisGRMHDX_prims_to_conservs(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_prims_to_conservs;
+extern "C" void IllinoisGRMHDX_hybrid_prims_to_conservs(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_hybrid_prims_to_conservs;
   DECLARE_CCTK_PARAMETERS;
 
   constexpr std::array<int, Loop::dim> indextype = {1, 1, 1};

@@ -3,7 +3,6 @@
 # Source files in this directory
 SRCS = conservs_to_prims.cxx     \
        evaluate_fluxes_rhs.cxx   \
-       evaluate_fluxes.cxx       \
        evaluate_sources_rhs.cxx  \
        perturb_conservatives.cxx \
        perturb_primitives.cxx    \

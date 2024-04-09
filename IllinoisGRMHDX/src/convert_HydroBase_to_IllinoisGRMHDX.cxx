@@ -60,6 +60,6 @@ extern "C" void convert_HydroBase_to_IllinoisGRMHDX(CCTK_ARGUMENTS) {
   grid.loop_all_device<0, 0, 0>(
       grid.nghostzones,
       [=] CCTK_DEVICE(const Loop::PointDesc &p) CCTK_ATTRIBUTE_ALWAYS_INLINE {
-    phitilde(p.I) = Aphi(index);
+    phitilde(p.I) = 0.0; //Aphi(index);
   });
 }

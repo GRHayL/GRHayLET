@@ -1,7 +1,7 @@
 #include "IllinoisGRMHDX.hxx"
 
-extern "C" void IllinoisGRMHDX_conservs_to_prims(CCTK_ARGUMENTS) {
-  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_conservs_to_prims;
+extern "C" void IllinoisGRMHDX_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTSX_IllinoisGRMHDX_hybrid_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
   // Diagnostic variables.
