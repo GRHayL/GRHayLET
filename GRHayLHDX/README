@@ -1,0 +1,27 @@
+Cactus Code Thorn GRHayLHDX
+Author(s)     : Samuel Cupp
+                Leonardo Rosa Werneck
+                Terrence Pierre Jacques
+                Zachariah B. Etienne
+Maintainer(s) : Samuel Cupp
+                Leonardo Rosa Werneck
+License       : BSD-2
+--------------------------------------------------------------------------
+
+==========
+1. Purpose
+==========
+
+GRHayLHD implements a general relativistic hydrodynamics evolution code using the
+General Relativistic Hydrodynamic Library (GRHayL) via the GRHayLib thorn.  This
+thorn is identical to the GRHayLHD thorn, but for use with CarpetX. It supports
+most  of GRHayL's features including all Con2Prim routines, piecewise
+parabolic reconstruction, HLLE Riemann solver, and both hybrid polytropic and
+tabulated equations of state.
+
+The thorn also supports the ability to perturb the initial data and/or to perturb
+the conservative variables at every timestep. These features can assist with debugging
+or assessing the sensitivity of any code changes to round-off level effects.
+
+Currently, this thorn can only run on the host and not on the GPU device because
+of limitations in the GRHayLib thorn.

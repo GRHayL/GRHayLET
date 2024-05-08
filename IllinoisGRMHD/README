@@ -1,0 +1,72 @@
+Cactus Code Thorn IllinoisGRMHD
+Author(s)     : Samuel Cupp
+                Leonardo Rosa Werneck
+                Terrence Pierre Jacques
+                Zachariah B. Etienne
+Note          : This version of IllinoisGRMHD is built on GRHayL, which is
+                itself derived from the original version of the thorn.
+                IllinoisGRMHD is based on the GRMHD code of the
+                Illinois Numerical Relativity group, written by Matt Duez, Yuk
+                Tung Liu, and Branson Stephens (original version), and then
+                developed primarily by Zachariah Etienne, Yuk Tung Liu,
+                and Vasileios Paschalidis.
+Maintainer(s) : Samuel Cupp
+                Leonardo Rosa Werneck
+                Zachariah B. Etienne
+License       : BSD-2
+--------------------------------------------------------------------------
+
+==========
+1. Purpose
+==========
+
+IllinoisGRMHD solves the equations of general relativistic magneto-
+hydrodynamics (GRMHD) using a high-resolution shock capturing scheme
+and is built on the General Relativistic Hydrodynamic Library (GRHayL)
+via the GRHayLib thorn. This library derives many of its core algorithms
+from the original IllinoisGRMHD thorn, which is itself a rewrite of the
+Illinois Numerical Relativity group's GRMHD  code. 
+
+This thorn supports most  of GRHayL's features including all Con2Prim
+routines, piecewise parabolic reconstruction, HLLE Riemann solver, and
+both hybrid polytropic and tabulated equations of state.
+
+IllinoisGRMHD evolves the vector potential A_{\mu} (on staggered grids) 
+instead of the magnetic fields (B^i) directly, to guarantee that the 
+magnetic fields will remain divergenceless even at AMR boundaries. On 
+uniform resolution grids, this vector potential formulation produces 
+results equivalent to those generated using the standard, staggered 
+flux-CT scheme. This scheme is based on that of Del Zanna (2003, see
+below OPTIONAL CITATION #1).
+
+===================
+1. Modelled Systems
+===================
+
+The various incarnations of IllinoisGRMHD and its predecessors have been
+used to model a variety of systems, including
+1) Magnetized circumbinary disk accretion onto binary black holes
+2) Magnetized black hole--neutron star mergers
+3) Magnetized Bondi flow, Bondi-Hoyle-Littleton accretion
+4) White dwarf--neutron star mergers
+
+IllinoisGRMHD is particularly good at modeling GRMHD flows into black holes
+without the need for excision. It also applies a check that validates the
+physicality of conservative variables prior to primitive inversion and
+moves them into the physical range if they become unphysical.
+
+===================
+REQUIRED CITATIONS:
+===================
+
+1) GRHayL library announcement paper:
+TBD
+
+1) IllinoisGRMHD code announcement paper:
+Class. Quantum Grav. 32 (2015) 175009, (http://arxiv.org/abs/1501.07276)
+
+2) Noble, S. C., Gammie, C. F., McKinney, J. C., \& Del Zanna, L. \ 2006, 
+        Astrophysical Journal, 641, 626.
+
+OPTIONAL CITATIONS:
+1) Del Zanna, Bucciantini & Londrillo A&A 400, 397 (2003), Eq. (44)

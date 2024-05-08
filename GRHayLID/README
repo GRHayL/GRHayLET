@@ -1,0 +1,30 @@
+Cactus Code Thorn GRHayLID
+Author(s)     : Samuel Cupp
+                Leonardo Rosa Werneck
+Maintainer(s) : Samuel Cupp
+                Leonardo Rosa Werneck
+License       : BSD-2
+--------------------------------------------------------------------------
+
+==========
+1. Purpose
+==========
+
+GRHayLID provides several simple initial data (ID) setups for GR(M)HD systems
+using the General Relativistic Hydrodynamic Library (GRHayL). This includes
+
+1) all five Balsara tests (simple/hybrid EOS only)
+2) static equilibrium (simple/hybrid EOS only)
+3) shock tube (simple/hybrid EOS only)
+4) sound wave (simple/hybrid EOS only)
+5) isotropic gas (tabulated EOS only)
+6) constant density sphere (tabulated EOS only)
+
+Initialization of the magnetic fields is optional and can be controlled at
+runtime.
+
+Additionally, the thorn can impose beta equilibrium on initial data for the
+tabulated EOS. It can also compute the entropy from the other quantities for
+any EOS. These features do not require that GRHayLID be used as the ID source
+and can be used with any ID thorn so long as GRHayLib is properly initialized
+and the ID schedules its routines in the expected HydroBase_Initial bin.
