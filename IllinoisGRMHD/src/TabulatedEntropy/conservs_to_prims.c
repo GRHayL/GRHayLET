@@ -1,6 +1,60 @@
 #include "IllinoisGRMHD.h"
 #include "Symmetry.h"
 
+static inline bool check_depsdT_condition(
+      const ghl_parameters *restrict params,
+      const ghl_eos_parameters *restrict eos,
+      const ghl_metric_quantities *restrict ADM_metric,
+      const ghl_conservative_quantities *restrict cons_undens,
+      const ghl_primitive_quantities *restrict prims_guess,
+      const CCTK_REAL x) {
+
+  double SD[3] = {cons_undens->SD[0], cons_undens->SD[1], cons_undens->SD[2]};
+  double S_squared = ghl_compute_vec2_from_vec3D(ADM_metric->gammaUU, SD);
+  const double tau = MAX(cons_undens->tau, 0.99*eos->tau_atm);
+
+  // Step 2: Enforce ceiling on S^{2} (Eq. A5 of [1])
+  // Step 2.1: Compute maximum allowed value for S^{2}
+  const double S_squared_max = SQR(tau + cons_undens->rho);
+  if(S_squared > S_squared_max) {
+    // Step 2.2: Rescale S_{i}
+    const double rescale_factor = sqrt(0.9999*S_squared_max/S_squared);
+    for(int i=0;i<3;i++)
+      SD[i] *= rescale_factor;
+
+    // Step 2.3: Recompute S^{2}
+    S_squared = ghl_compute_vec2_from_vec3D(ADM_metric->gammaUU, SD);
+  }
+
+  // Step 3: Compute B^{2} = gamma_{ij}B^{i}B^{j}
+  const double B_squared = ghl_compute_vec2_from_vec3D(ADM_metric->gammaDD, prims_guess->BU);
+
+  // Step 4: Compute B.S = B^{i}S_{i}
+  double BdotS = 0.0;
+  for(int i=0;i<3;i++) BdotS += prims_guess->BU[i]*SD[i];
+
+  const double q = cons_undens->tau/cons_undens->rho;
+  const double r = S_squared/(cons_undens->rho*cons_undens->rho);
+  const double s = B_squared/cons_undens->rho;
+  const double t = BdotS/(pow(cons_undens->rho, 1.5));
+  double Wminus2 = 1.0 - ( x*x*r + (2*x+s)*t*t ) / ( x*x*(x+s)*(x+s) );
+  Wminus2        = fmin(fmax(Wminus2, params->inv_sq_max_Lorentz_factor), 1.0);
+  double W       = pow(Wminus2, -0.5);
+
+  double rho     = cons_undens->rho/W;
+  double ye      = cons_undens->Y_e/cons_undens->rho;
+  double eps     = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
+  double press, ent, depsdT, temp;
+
+  ghl_tabulated_compute_P_S_depsdT_T_from_eps(ghl_eos, rho, ye, eps, &press, &ent, &depsdT, &temp);
+
+  if(depsdT < 5.0000000000000002396e-05) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_tabulated_entropy_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
@@ -89,10 +143,64 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         if(cons.rho>0.0) {
           ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
-          /************* Conservative-to-primitive recovery ************/
-          check = ghl_con2prim_multi_method(
-                ghl_params, ghl_eos, &ADM_metric, &metric_aux,
-                &cons_undens, &prims, &diagnostics);
+          ghl_guess_primitives(ghl_eos, &ADM_metric, &cons, &prims);
+
+          // Store primitive guesses (used if con2prim fails)
+          const double invD = 1.0/cons_undens.rho;
+          const double Bsq  = ghl_compute_vec2_from_vec3D(ADM_metric.gammaDD, prims.BU);
+          const double tmp1 = cons_undens.tau + invD;
+          const double tmp2 = Bsq*invD;
+          const double xlow = 1.0 + tmp1 - tmp2;
+          const double xup  = 2.0*(1 + tmp1) - tmp2;
+          bool test1 = check_depsdT_condition(ghl_params, ghl_eos, &ADM_metric, &cons_undens, &prims, xlow);
+          bool test2 = check_depsdT_condition(ghl_params, ghl_eos, &ADM_metric, &cons_undens, &prims, xup);
+          const bool use_entropy = (test1 || test2);
+
+          ghl_primitive_quantities prims_guess = prims;
+          const double Tguess[3] = {ghl_eos->T_atm, ghl_eos->T_min, ghl_eos->T_max};
+          for(int iter=0; iter<3; iter++) {
+            prims_guess.temperature = Tguess[iter];
+
+            if(use_entropy) {
+              prims = prims_guess;
+              check = ghl_tabulated_Palenzuela1D_entropy(
+                    ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                    &cons_undens, &prims, &diagnostics);
+              if(check) {
+                prims = prims_guess;
+                check = ghl_tabulated_Palenzuela1D_energy(
+                      ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                      &cons_undens, &prims, &diagnostics);
+                diagnostics.backup[0] = true;
+                if(check) {
+                  diagnostics.backup[1] = true;
+                  prims = prims_guess;
+                  check = ghl_tabulated_Newman1D_entropy(
+                        ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                        &cons_undens, &prims, &diagnostics);
+                  if(check) {
+                    diagnostics.backup[2] = true;
+                    prims = prims_guess;
+                    check = ghl_tabulated_Newman1D_energy(
+                          ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                          &cons_undens, &prims, &diagnostics);
+                  }
+                }
+              }
+            } else {
+              prims = prims_guess;
+              check = ghl_tabulated_Palenzuela1D_energy(
+                    ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                    &cons_undens, &prims, &diagnostics);
+              if(check) {
+                diagnostics.backup[1] = true;
+                prims = prims_guess;
+                check = ghl_tabulated_Newman1D_energy(
+                      ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                      &cons_undens, &prims, &diagnostics);
+              }
+            }
+          }
         } else {
           ghl_set_prims_to_constant_atm(ghl_eos, &prims);
           local_failure_checker += 1;
