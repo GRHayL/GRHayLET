@@ -145,7 +145,6 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
           ghl_guess_primitives(ghl_eos, &ADM_metric, &cons, &prims);
 
-          // Store primitive guesses (used if con2prim fails)
           const double invD = 1.0/cons_undens.rho;
           const double Bsq  = ghl_compute_vec2_from_vec3D(ADM_metric.gammaDD, prims.BU);
           const double tmp1 = cons_undens.tau + invD;
@@ -156,6 +155,7 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           bool test2 = check_depsdT_condition(ghl_params, ghl_eos, &ADM_metric, &cons_undens, &prims, xup);
           const bool use_entropy = (test1 || test2);
 
+          // Store primitive guesses (used if con2prim fails)
           ghl_primitive_quantities prims_guess = prims;
           const double Tguess[3] = {ghl_eos->T_atm, ghl_eos->T_min, ghl_eos->T_max};
           for(int iter=0; iter<3; iter++) {
@@ -193,7 +193,7 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                     ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                     &cons_undens, &prims, &diagnostics);
               if(check) {
-                diagnostics.backup[1] = true;
+                diagnostics.backup[2] = true;
                 prims = prims_guess;
                 check = ghl_tabulated_Newman1D_energy(
                       ghl_params, ghl_eos, &ADM_metric, &metric_aux,
@@ -276,12 +276,66 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
             cons_avg.entropy /= n_avg;
             cons_avg.Y_e     /= n_avg;
 
-            ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
+            ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
-            /************* Conservative-to-primitive recovery ************/
-            check = ghl_con2prim_multi_method(
-                  ghl_params, ghl_eos, &ADM_metric, &metric_aux,
-                  &cons_undens, &prims, &diagnostics);
+            ghl_guess_primitives(ghl_eos, &ADM_metric, &cons, &prims);
+  
+            const double invD = 1.0/cons_undens.rho;
+            const double Bsq  = ghl_compute_vec2_from_vec3D(ADM_metric.gammaDD, prims.BU);
+            const double tmp1 = cons_undens.tau + invD;
+            const double tmp2 = Bsq*invD;
+            const double xlow = 1.0 + tmp1 - tmp2;
+            const double xup  = 2.0*(1 + tmp1) - tmp2;
+            bool test1 = check_depsdT_condition(ghl_params, ghl_eos, &ADM_metric, &cons_undens, &prims, xlow);
+            bool test2 = check_depsdT_condition(ghl_params, ghl_eos, &ADM_metric, &cons_undens, &prims, xup);
+            const bool use_entropy = (test1 || test2);
+  
+            // Store primitive guesses (used if con2prim fails)
+            ghl_primitive_quantities prims_guess = prims;
+            const double Tguess[3] = {ghl_eos->T_atm, ghl_eos->T_min, ghl_eos->T_max};
+            for(int iter=0; iter<3; iter++) {
+              prims_guess.temperature = Tguess[iter];
+  
+              if(use_entropy) {
+                prims = prims_guess;
+                check = ghl_tabulated_Palenzuela1D_entropy(
+                      ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                      &cons_undens, &prims, &diagnostics);
+                if(check) {
+                  prims = prims_guess;
+                  check = ghl_tabulated_Palenzuela1D_energy(
+                        ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                        &cons_undens, &prims, &diagnostics);
+                  diagnostics.backup[0] = true;
+                  if(check) {
+                    diagnostics.backup[1] = true;
+                    prims = prims_guess;
+                    check = ghl_tabulated_Newman1D_entropy(
+                          ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                          &cons_undens, &prims, &diagnostics);
+                    if(check) {
+                      diagnostics.backup[2] = true;
+                      prims = prims_guess;
+                      check = ghl_tabulated_Newman1D_energy(
+                            ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                            &cons_undens, &prims, &diagnostics);
+                    }
+                  }
+                }
+              } else {
+                prims = prims_guess;
+                check = ghl_tabulated_Palenzuela1D_energy(
+                      ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                      &cons_undens, &prims, &diagnostics);
+                if(check) {
+                  diagnostics.backup[2] = true;
+                  prims = prims_guess;
+                  check = ghl_tabulated_Newman1D_energy(
+                        ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                        &cons_undens, &prims, &diagnostics);
+                }
+              }
+            }
 
             avg_weight++;
             if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
@@ -301,22 +355,6 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
               failures_inhoriz++;
               pointcount_inhoriz++;
             }
-            CCTK_VINFO("***********************************************************\n"
-                       "Con2Prim and averaging backups failed! Resetting to atmosphere...\n"
-                       "position = %e %e %e\n"
-                       "lapse, shift = %e, %e, %e, %e\n"
-                       "gij = %e, %e, %e, %e, %e, %e\n"
-                       "B^i = %e, %e, %e\n"
-                       "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
-                       "~DS, ~DYe: %e, %e\n"
-                       "***********************************************************",
-                       x[index], y[index], z[index],
-                       ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                       ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                       ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                       prims.BU[0], prims.BU[1], prims.BU[2],
-                       cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2],
-                       cons.entropy, cons.Y_e);
           } // atmospheric backup
         } // if c2p failed
         /***************************************************************/
