@@ -44,7 +44,7 @@ void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
       SetCartSymVN(cctkGH, sym, "IllinoisGRMHD::Bz_center");
 
       sym[2] = -1;
-      SetCartSymVN(cctkGH, sym, "IllinoisGRMHD::Stilde_z");
+      SetCartSymVN(cctkGH, sym, "IllinoisGRMHD::Stildez");
       SetCartSymVN(cctkGH, sym, "IllinoisGRMHD::vz");
     } else if (!CCTK_EQUALS(Symmetry, "none")) {
       CCTK_ERROR("IllinoisGRMHD_initsymbound: Should not be here; picked an impossible symmetry.");

@@ -279,4 +279,8 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
     } END_MAP_LOOP;
   } END_REFLEVEL_LOOP;
   if(verbosity_level>0) CCTK_INFO("Finished copying initial data to all time levels");
+
+  // Step 5: Register tau and kappa gridfunctions for constrained evolution
+  MoLRegisterConstrainedGroup(CCTK_GroupIndex("NRPyLeakageET::NRPyLeakageET_opacities"));
+  MoLRegisterConstrainedGroup(CCTK_GroupIndex("NRPyLeakageET::NRPyLeakageET_optical_depths"));
 }

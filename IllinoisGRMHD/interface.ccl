@@ -175,5 +175,5 @@ CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(
 
 USES FUNCTION MoLRegisterEvolved
 USES FUNCTION MoLRegisterEvolvedGroup
-Uses FUNCTION MoLRegisterConstrainedGroup
+USES FUNCTION MoLRegisterConstrainedGroup
 USES FUNCTION MoLRegisterSaveAndRestoreGroup
