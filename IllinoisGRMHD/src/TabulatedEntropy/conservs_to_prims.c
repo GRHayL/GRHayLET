@@ -46,6 +46,7 @@ static inline bool check_depsdT_condition(
   double eps     = W - 1.0 + (1.0-W*W)*x/W + W*(q - s + t*t/(2*x*x) + s/(2*W*W)  );
   double press, ent, depsdT, temp;
 
+  ghl_tabulated_enforce_bounds_rho_Ye_eps(ghl_eos, &rho, &ye, &eps);
   ghl_tabulated_compute_P_S_depsdT_T_from_eps(ghl_eos, rho, ye, eps, &press, &ent, &depsdT, &temp);
 
   if(depsdT < 5.0000000000000002396e-05) {
