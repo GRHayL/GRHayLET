@@ -74,7 +74,7 @@ extern "C" void GRHayLHDX_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
             &cons_undens, &prims, &diagnostics);
 
       if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
-               prims.entropy*prims.Y_e)) {
+               prims.entropy*prims.Y_e))
         error = ghl_error_c2p_singular;
     } else {
       ghl_set_prims_to_constant_atm(ghl_eos, &prims);
