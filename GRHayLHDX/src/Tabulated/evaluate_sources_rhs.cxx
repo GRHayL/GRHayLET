@@ -43,7 +43,10 @@ void GRHayLHDX_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     prims.Y_e         = Ye(index);
     prims.temperature = temperature(index);
 
-    const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims);
+    bool speed_limited;
+    ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims, &speed_limited);
+    if(error)
+      ghl_read_error_codes(error);
 
     const Loop::GF3D2index indm2x(layout, p.I - 2*p.DI[0]);
     const Loop::GF3D2index indm1x(layout, p.I -   p.DI[0]);

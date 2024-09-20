@@ -206,10 +206,13 @@ void IllinoisGRMHD_hybrid_entropy_enforce_primitive_limits_and_compute_conservs(
   ghl_ADM_aux_quantities metric_aux;
   ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-  ghl_conservative_quantities cons;
-  const int speed_limited CCTK_ATTRIBUTE_UNUSED = ghl_enforce_primitive_limits_and_compute_u0(
-        ghl_params, ghl_eos, &ADM_metric, prims);
+  bool speed_limited;
+  ghl_error_codes_t error = ghl_enforce_primitive_limits_and_compute_u0(
+        ghl_params, ghl_eos, &ADM_metric, prims, &speed_limited);
+  if(error)
+    ghl_read_error_codes(error);
 
+  ghl_conservative_quantities cons;
   ghl_compute_conservs(
         &ADM_metric, &metric_aux, prims, &cons);
 

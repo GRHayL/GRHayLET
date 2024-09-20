@@ -80,7 +80,7 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
         cons.SD[1] = Stildey[index];
         cons.SD[2] = Stildez[index];
 
-        int check;
+        ghl_error_codes_t error;
 
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
@@ -89,21 +89,21 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
               &prims, &cons, &diagnostics);
 
           ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
-
-          /************* Conservative-to-primitive recovery ************/
-          check = ghl_con2prim_multi_method(
+          error = ghl_con2prim_multi_method(
                 ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                 &cons_undens, &prims, &diagnostics);
+
+          if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]))
+            error = ghl_error_c2p_singular;
         } else {
           ghl_set_prims_to_constant_atm(ghl_eos, &prims);
           local_failure_checker += 1;
           rho_star_fix_applied++;
-          check = 0;
+          error = ghl_success;
         }
 
-        if(check || isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2])) {
+        if(error) {
           pointcount_avg++;
-          check = 1;
 
           // Reload cons for consistency (hybrid applies limits to cons)
           cons.rho   = rho_star[index];
@@ -147,8 +147,7 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
           }
 
           int avg_weight = 1;
-          while(check && avg_weight < 5) {
-            check = 0;
+          while(error && avg_weight < 5) {
             // last point doesn't add central point and has 1 less point
             // being averaged.
             n_avg += (avg_weight!=4);
@@ -170,15 +169,15 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
             ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
 
             /************* Conservative-to-primitive recovery ************/
-            check = ghl_con2prim_multi_method(
+            error = ghl_con2prim_multi_method(
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
 
             avg_weight++;
             if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) )
-              check = 1;
+              error = ghl_error_c2p_singular;
           }
-          if(check) {
+          if(error) {
             // We are still failing after exhausting the averaging options.
             // Next, we try Font1D.
             pointcount_Font++;
@@ -189,19 +188,18 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
 
             ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
-            check = ghl_hybrid_Font1D(
+            error = ghl_hybrid_Font1D(
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
 
             if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]) )
-              check = 1;
+              error = ghl_error_c2p_singular;
 
-            if(check) {
+            if(error) {
               // We are still failing after exhausting the averaging options.
               // We'll surrender and resort to atmospheric reset...
 
               failure_checker[index] += 100;
-
               ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
               failures++;
@@ -209,20 +207,6 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
                 failures_inhoriz++;
                 pointcount_inhoriz++;
               }
-              CCTK_VINFO("***********************************************************\n"
-                         "Con2Prim and averaging backups failed! Resetting to atmosphere...\n"
-                         "position = %e %e %e\n"
-                         "lapse, shift = %e, %e, %e, %e\n"
-                         "gij = %e, %e, %e, %e, %e, %e\n"
-                         "B^i = %e, %e, %e\n"
-                         "rho_*, ~tau, ~S_{i}: %e, %e, %e, %e, %e\n"
-                       "***********************************************************",
-                         x[index], y[index], z[index],
-                         ADM_metric.lapse, ADM_metric.betaU[0], ADM_metric.betaU[1], ADM_metric.betaU[2],
-                         ADM_metric.gammaDD[0][0], ADM_metric.gammaDD[0][1], ADM_metric.gammaDD[0][2],
-                         ADM_metric.gammaDD[1][1], ADM_metric.gammaDD[1][2], ADM_metric.gammaDD[2][2],
-                         prims.BU[0], prims.BU[1], prims.BU[2],
-                         cons.rho, cons.tau, cons.SD[0], cons.SD[1], cons.SD[2]);
             } // atmospheric backup
           } // Font1D backup
         } // if c2p failed
@@ -232,8 +216,10 @@ void IllinoisGRMHD_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
         //---------- Primitive recovery succeeded ----------
         //--------------------------------------------------
         // Enforce limits on primitive variables and recompute conservatives.
-        diagnostics.speed_limited += ghl_enforce_primitive_limits_and_compute_u0(
-              ghl_params, ghl_eos, &ADM_metric, &prims);
+        error = ghl_enforce_primitive_limits_and_compute_u0(
+              ghl_params, ghl_eos, &ADM_metric, &prims, &diagnostics.speed_limited);
+        if(error)
+          ghl_read_error_codes(error);
 
         rho[index]   = prims.rho;
         press[index] = prims.press;
