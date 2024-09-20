@@ -61,28 +61,29 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
     cons.SD[2] = Stildez(index);
     cons.Y_e   = Ye_star(index);
 
-    int check;
+    ghl_error_codes_t error;
 
     cons_orig = cons;
 
     /************* Main conservative-to-primitive logic ************/
     if(cons.rho>0.0) {
       ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
-
-      /************* Conservative-to-primitive recovery ************/
-      check = ghl_con2prim_multi_method(
+      error = ghl_con2prim_multi_method(
             ghl_params, ghl_eos, &ADM_metric, &metric_aux,
             &cons_undens, &prims, &diagnostics);
+
+      if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+               prims.Y_e)) {
+        error = ghl_error_c2p_singular;
     } else {
+      ghl_set_prims_to_constant_atm(ghl_eos, &prims);
       local_failure_checker += 1;
       //rho_star_fix_applied++;
-      ghl_set_prims_to_constant_atm(ghl_eos, &prims);
-      check = 0;
+      error = ghl_success;
     }
 
     //Add averaging here
-    if(check || isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
-                      prims.Y_e)) {
+    if(error) {
 
       // We are still failing after exhausting the averaging options.
       // We'll surrender and resort to atmospheric reset...
@@ -100,9 +101,11 @@ extern "C" void GRHayLHDX_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
     //--------------------------------------------------
     //---------- Primitive recovery succeeded ----------
     //--------------------------------------------------
-    // Enforce limits on primitive variables and recompute conservatives.
-    diagnostics.speed_limited += ghl_enforce_primitive_limits_and_compute_u0(
-          ghl_params, ghl_eos, &ADM_metric, &prims);
+    error = ghl_enforce_primitive_limits_and_compute_u0(
+          ghl_params, ghl_eos, &ADM_metric, &prims, &diagnostics.speed_limited);
+    if(error)
+      ghl_read_error_codes(error);
+
     ghl_compute_conservs(
           &ADM_metric, &metric_aux, &prims, &cons);
 
