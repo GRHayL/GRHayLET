@@ -5,14 +5,10 @@
 %  thorn without the Cactus Flesh download this from the Cactus
 %  homepage at www.cactuscode.org)
 \usepackage{../../../../doc/latex/cactus}
-\usepackage{xspace}
-\newcommand{\glib}{\texttt{GRHayLib}\xspace}
-\newcommand{\gid}{\texttt{GRHayLIDX}\xspace}
-\newcommand{\hbase}{\texttt{HydroBaseX}\xspace}
 
 \begin{document}
 
-\title{GRHayLID}
+\title{GRHayLIDX}
 \author{Samuel Cupp \\ Leonardo Rosa Werneck}
 \date{$ $Date$ $}
 
@@ -20,6 +16,11 @@
 
 % Do not delete next line
 % START CACTUS THORNGUIDE
+
+% Add all definitions used in this documentation here
+\newcommand{\glib}{\texttt{GRHayLib}}
+\newcommand{\gid}{\texttt{GRHayLIDX}}
+\newcommand{\hbase}{\texttt{HydroBaseX}}
 
 \begin{abstract}
 Provides simple magnetohydrodynamic (MHD) initial data for testing,
@@ -42,14 +43,14 @@ to impose beta-equilibrium on provided initial data.
 
 The initial data is separated into magnetic and hydrodynamic
 parts, so the magnetic initial data can be turned off if desired.
-All settings use the \hbase variables for compatibility with
+All settings use the \hbase{} variables for compatibility with
 other thorns, but only Avec is set. The Aphi or B variables are
 not set by this thorn.
 
 \section{Parameters}
 
 The parameters are mostly self-explanatory or just extensions of
-\hbase keywords. The param.ccl is divided into sections based
+\hbase{} keywords. The param.ccl is divided into sections based
 on which tests the parameters are for, but we explain them here.
 The type of test is controlled by \textbf{initial\_hydro} from
 \hbase. All the options for these parameters are explicitly
