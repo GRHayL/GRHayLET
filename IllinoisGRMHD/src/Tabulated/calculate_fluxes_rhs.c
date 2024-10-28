@@ -18,22 +18,6 @@ void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
   const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
-  void (*calculate_characteristic_speed)(
-        ghl_primitive_quantities *restrict prims_r,
-        ghl_primitive_quantities *restrict prims_l,
-        const ghl_eos_parameters *restrict eos,
-        const ghl_metric_quantities *restrict ADM_metric_face,
-        CCTK_REAL *cmin, CCTK_REAL *cmax);
-
-  void (*calculate_HLLE_fluxes)(
-        ghl_primitive_quantities *restrict prims_r,
-        ghl_primitive_quantities *restrict prims_l,
-        const ghl_eos_parameters *restrict eos,
-        const ghl_metric_quantities *restrict ADM_metric_face,
-        const CCTK_REAL cmin,
-        const CCTK_REAL cmax,
-        ghl_conservative_quantities *restrict cons_fluxes);
-
   const int xdir = (flux_dir == 0);
   const int ydir = (flux_dir == 1);
   const int zdir = (flux_dir == 2);
@@ -47,24 +31,18 @@ void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
       B_recon[0] = 0;
       B_recon[1] = 1;
       B_recon[2] = 2;
-      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn0;
-      calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated;
       break;
     case 1:
       v_flux_dir = vy;
       B_recon[0] = 1;
       B_recon[1] = 2;
       B_recon[2] = 0;
-      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn1;
-      calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated;
       break;
     case 2:
       v_flux_dir = vz;
       B_recon[0] = 2;
       B_recon[1] = 0;
       B_recon[2] = 1;
-      calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn2;
-      calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated;
       break;
     default:
       CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
@@ -193,8 +171,8 @@ void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
                                            &prims_l.eps, &prims_l.temperature);
 
         ghl_conservative_quantities cons_fluxes;
-        calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
-        calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin[index], cmax[index], &cons_fluxes);
+        ghl_calculate_characteristic_speed(flux_dir, ghl_eos, &ADM_metric_face, &prims_r, &prims_l, &cmin[index], &cmax[index]);
+        ghl_calculate_HLLE_fluxes_tabulated(flux_dir, ghl_eos, &ADM_metric_face, &prims_r, &prims_l, cmin[index], cmax[index], &cons_fluxes);
 
         rho_star_flux[index] = cons_fluxes.rho;
         tau_flux     [index] = cons_fluxes.tau;

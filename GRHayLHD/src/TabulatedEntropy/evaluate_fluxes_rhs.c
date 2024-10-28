@@ -11,22 +11,6 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
   const int jmax = cctkGH->cctk_lsh[1] - cctkGH->cctk_nghostzones[1];
   const int kmax = cctkGH->cctk_lsh[2] - cctkGH->cctk_nghostzones[2];
 
-  void (*calculate_characteristic_speed)(
-        ghl_primitive_quantities *restrict prims_r,
-        ghl_primitive_quantities *restrict prims_l,
-        const ghl_eos_parameters *restrict eos,
-        const ghl_metric_quantities *restrict ADM_metric_face,
-        CCTK_REAL *cmin, CCTK_REAL *cmax);
-
-  void (*calculate_HLLE_fluxes)(
-        ghl_primitive_quantities *restrict prims_r,
-        ghl_primitive_quantities *restrict prims_l,
-        const ghl_eos_parameters *restrict eos,
-        const ghl_metric_quantities *restrict ADM_metric_face,
-        const CCTK_REAL cmin,
-        const CCTK_REAL cmax,
-        ghl_conservative_quantities *restrict cons_fluxes);
-
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
     const int xdir = (flux_dir == 0);
     const int ydir = (flux_dir == 1);
@@ -37,18 +21,12 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
     switch(flux_dir) {
       case 0:
         v_flux_dir = vx;
-        calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn0;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn0_tabulated_entropy;
         break;
       case 1:
         v_flux_dir = vy;
-        calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn1;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn1_tabulated_entropy;
         break;
       case 2:
         v_flux_dir = vz;
-        calculate_characteristic_speed = ghl_calculate_characteristic_speed_dirn2;
-        calculate_HLLE_fluxes = ghl_calculate_HLLE_fluxes_dirn2_tabulated_entropy;
         break;
       default:
         CCTK_ERROR("Invalid flux_dir value (not 0, 1, or 2) has been passed to calculate_MHD_rhs.");
@@ -125,8 +103,8 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
 
           CCTK_REAL cmin, cmax;
           ghl_conservative_quantities cons_fluxes;
-          calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
-          calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
+          ghl_calculate_characteristic_speed(flux_dir, ghl_eos, &ADM_metric_face, &prims_r, &prims_l, &cmin, &cmax);
+          ghl_calculate_HLLE_fluxes_tabulated_entropy(flux_dir, ghl_eos, &ADM_metric_face, &prims_r, &prims_l, cmin, cmax, &cons_fluxes);
 
           rho_star_flux[index] = cons_fluxes.rho;
           tau_flux[index]      = cons_fluxes.tau;
