@@ -57,5 +57,6 @@ extern "C" void GRHayLHDX_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
     Stildey(index)  = cons.SD[1];
     Stildez(index)  = cons.SD[2];
     ent_star(index) = cons.entropy;
+    Ye_star(index) = 0.0; // FIXME: Required by CarpetX
   }); // ccc loop everywhere
 }

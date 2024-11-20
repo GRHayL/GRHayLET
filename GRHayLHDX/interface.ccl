@@ -12,7 +12,7 @@ USES INCLUDE: GRHayLib.h
 # The metric quantities in ADMBase are defined at vertices,
 # but we need them at cell centers. Since this computation will
 # need to be done repeatedly, it is better to store these values.
-CCTK_REAL ccc_spacetime type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on ADMBase::metric, ADMBase::shift, ADMBase::lapse
+CCTK_REAL ccc_spacetime type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on ADMBase::metric, ADMBase::shift, ADMBase::lapse
 {
   ccc_lapse,
   ccc_betax, ccc_betay, ccc_betaz
@@ -20,13 +20,13 @@ CCTK_REAL ccc_spacetime type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 pr
   ccc_gyy, ccc_gyz, ccc_gzz
 } "Cell-centered spacetime quantities"
 
-CCTK_REAL ccc_curv type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on ADMBase::curv
+CCTK_REAL ccc_curv type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on ADMBase::curv
 {
   ccc_kxx, ccc_kxy, ccc_kxz
   ccc_kyy, ccc_kyz, ccc_kzz
 } "Cell-centered extrinsic curvature"
 
-CCTK_REAL ccc_Tmunu type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on TmunuBase vars
+CCTK_REAL ccc_Tmunu type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no" parity={ +1 +1 +1  +1 +1 +1  -1 +1 +1  +1 -1 +1  +1 +1 -1}' #should depend on TmunuBase vars
 {
   ccc_Ttt, ccc_Ttx, ccc_Tty, ccc_Ttz
   ccc_Txx, ccc_Txy, ccc_Txz
@@ -39,7 +39,7 @@ CCTK_REAL ccc_Tmunu type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolon
 # The variables rho_b and pressure are identical to the HydroBase variables. However,
 # GRHayL uses the velocity v^i = u^i/u^0, while HydroBase uses the Valencia velocity, so
 # these velocities differ from HydroBase.
-CCTK_REAL grmhd_velocities type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none"' #dependents="grmhd_conservatives" (not sure if this would mess up how c2p is designed)
+CCTK_REAL grmhd_velocities type = GF CENTERING={ccc} TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no"' #dependents="grmhd_conservatives" (not sure if this would mess up how c2p is designed)
 {
   vx, vy, vz
 } "Components of primitive three velocity v^i. Note that v^i is defined in terms of 4-velocity as: v^i = u^i/u^0. Note that this definition differs from the Valencia formalism."
