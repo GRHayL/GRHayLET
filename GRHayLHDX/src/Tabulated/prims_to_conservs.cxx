@@ -58,6 +58,7 @@ extern "C" void GRHayLHDX_tabulated_prims_to_conservs(CCTK_ARGUMENTS) {
     Stildex(index)  = cons.SD[0];
     Stildey(index)  = cons.SD[1];
     Stildez(index)  = cons.SD[2];
+    ent_star(index) = 0.0; // FIXME: Required by CarpetX
     Ye_star(index)  = cons.Y_e;
   }); // ccc loop everywhere
 }

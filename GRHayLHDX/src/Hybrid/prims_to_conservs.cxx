@@ -54,5 +54,7 @@ extern "C" void GRHayLHDX_hybrid_prims_to_conservs(CCTK_ARGUMENTS) {
     Stildex(index)  = cons.SD[0];
     Stildey(index)  = cons.SD[1];
     Stildez(index)  = cons.SD[2];
+    ent_star(index) = 0.0; // FIXME: Required by CarpetX
+    Ye_star(index) = 0.0; // FIXME: Required by CarpetX
   }); // ccc loop everywhere
 }
