@@ -1,6 +1,6 @@
 #include "GRHayLMHD.h"
 
-extern "C" void GRHayLMHD_Convert_to_HydroBase(CCTK_ARGUMENTS)
+void GRHayLMHD_Convert_to_HydroBase(CCTK_ARGUMENTS)
 {
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
@@ -18,24 +18,18 @@ extern "C" void GRHayLMHD_Convert_to_HydroBase(CCTK_ARGUMENTS)
 
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
-        const CCTK_REAL inv_lapse = 1.0 / alp[index];
-        const CCTK_REAL gxxL      = gxx[ijk];
-        const CCTK_REAL gxyL      = gxy[ijk];
-        const CCTK_REAL gxzL      = gxz[ijk];
-        const CCTK_REAL gyyL      = gyy[ijk];
-        const CCTK_REAL gyzL      = gyz[ijk];
-        const CCTK_REAL gzzL      = gzz[ijk];
+        const CCTK_REAL inv_lapse = 1.0 / alp[ijk];
         const CCTK_REAL velx      = (vx[ijk] + betax[ijk]) * inv_lapse;
         const CCTK_REAL vely      = (vy[ijk] + betay[ijk]) * inv_lapse;
         const CCTK_REAL velz      = (vz[ijk] + betaz[ijk]) * inv_lapse;
 
         // clang-format off
-        const CCTK_REAL vsqr = gxx * velx * velx
-                             + gxy * velx * vely * 2
-                             + gxz * velx * velz * 2
-                             + gyy * vely * vely
-                             + gyz * vely * velz * 2
-                             + gzz * velz * velz;
+        const CCTK_REAL vsqr = gxx[ijk] * velx * velx
+                             + gxy[ijk] * velx * vely * 2
+                             + gxz[ijk] * velx * velz * 2
+                             + gyy[ijk] * vely * vely
+                             + gyz[ijk] * vely * velz * 2
+                             + gzz[ijk] * velz * velz;
         // clang-format on
 
         vel[ijkx]      = velx;

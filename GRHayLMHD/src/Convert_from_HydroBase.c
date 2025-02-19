@@ -1,6 +1,6 @@
 #include "GRHayLMHD.h"
 
-extern "C" void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
+void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
 {
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
@@ -11,13 +11,7 @@ extern "C" void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
 
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
-        const CCTK_REAL alpL = alp[index];
-        const CCTK_REAL gxxL = gxx[ijk];
-        const CCTK_REAL gxyL = gxy[ijk];
-        const CCTK_REAL gxzL = gxz[ijk];
-        const CCTK_REAL gyyL = gyy[ijk];
-        const CCTK_REAL gyzL = gyz[ijk];
-        const CCTK_REAL gzzL = gzz[ijk];
+        const CCTK_REAL alpL = alp[ijk];
 
         vx[ijk] = alpL * vel[ijkx] - betax[ijk];
         vy[ijk] = alpL * vel[ijky] - betax[ijk];
@@ -26,7 +20,7 @@ extern "C" void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
         A_x[ijk]  = Avec[ijkx];
         A_y[ijk]  = Avec[ijky];
         A_z[ijk]  = Avec[ijkz];
-        Phi_tilde = Aphi[ijk];
+        Phi_tilde[ijk] = Aphi[ijk];
     }
     ENDLOOP3D
 }

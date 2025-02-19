@@ -5,6 +5,9 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 
+#include <math.h>
+#include <stdbool.h>
+
 #define LOOP3D(_imin, _imax, _jmin, _jmax, _kmin, _kmax)             \
     for(int k = _kmin; k < _kmax; k++) {                             \
         for(int j = _jmin; j < _jmax; j++) {                         \
