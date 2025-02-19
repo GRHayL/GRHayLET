@@ -214,14 +214,7 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           pointcount_avg++;
           check = 1;
 
-          ghl_conservative_quantities cons_neigh_avg, cons_avg;
-          cons_neigh_avg.rho     = 0.0;
-          cons_neigh_avg.tau     = 0.0;
-          cons_neigh_avg.SD[0]   = 0.0;
-          cons_neigh_avg.SD[1]   = 0.0;
-          cons_neigh_avg.SD[2]   = 0.0;
-          cons_neigh_avg.entropy = 0.0;
-          cons_neigh_avg.Y_e     = 0.0;
+          ghl_conservative_quantities cons_neigh_avg = { 0 };
 
           const int iavg_min = MAX(0, i-1);
           const int javg_min = MAX(0, j-1);
@@ -261,6 +254,8 @@ void IllinoisGRMHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
             const CCTK_REAL wfac = avg_weight/4.0;
             const CCTK_REAL cfac = 1.0 - wfac;
+
+            ghl_conservative_quantities cons_avg;
             cons_avg.rho     = wfac*cons_neigh_avg.rho     + cfac*cons.rho;
             cons_avg.tau     = wfac*cons_neigh_avg.tau     + cfac*cons.tau;
             cons_avg.SD[0]   = wfac*cons_neigh_avg.SD[0]   + cfac*cons.SD[0];
