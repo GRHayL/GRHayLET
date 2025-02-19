@@ -11,7 +11,6 @@ void GRHayLMHD_Prim2Con(CCTK_ARGUMENTS)
 
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
-
         ghl_metric_quantities ADM_metric = { 0 };
         ghl_initialize_metric(alp[ijk],
                               betax[ijk],

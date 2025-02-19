@@ -1,3 +1,4 @@
 SRCS = Convert_to_HydroBase.c \
        Convert_from_HydroBase.c \
-       Prim2Con.c
+       Prim2Con.c \
+       Compute_Tmunu.c
