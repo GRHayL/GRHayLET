@@ -10,7 +10,7 @@ public:
 # Evolved variables
 CCTK_REAL grmhd_conservatives type=GF Timelevels=3 TAGS='prolongation="ENO"'
 {
-    D_tilde, tau_tilde, S_x_tilde, S_y_tilde, S_z_tilde, Y_e_tilde, S_tilde
+    rho_tilde, tau_tilde, S_x_tilde, S_y_tilde, S_z_tilde, Y_e_tilde, ent_tilde
 } "Evolved MHD variables"
 
 CCTK_REAL A_x type=GF Timelevels=3 TAGS='prolongation="STAGGER011"'
@@ -21,11 +21,12 @@ CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"'
 # Right-hand side variables
 CCTK_REAL grmhd_rhs type=GF TAGS='prolongation="none" checkpoint="no"'
 {
-    D_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, S_rhs,
+    rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs,
     A_x_rhs, A_y_rhs, A_z_rhs, Phi_rhs
 }
 
-# Auxiliary three-velocity
+# Auxiliary velocity variables
+CCTK_REAL u0 type=GF TAGS='prolongation="none" interpnumtimelevels=1'
 CCTK_REAL grmhd_velocities type=GF TAGS='prolongation="none" interpnumtimelevels=1'
 {
     vx, vy, vz
@@ -34,5 +35,5 @@ CCTK_REAL grmhd_velocities type=GF TAGS='prolongation="none" interpnumtimelevels
 # Flux variables
 CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
 {
-    D_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, S_flux
+    rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
 }
