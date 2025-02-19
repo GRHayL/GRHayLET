@@ -37,5 +37,5 @@ void GRHayLMHD_Convert_to_HydroBase(CCTK_ARGUMENTS)
         vel[ijkz]      = velz;
         w_lorentz[ijk] = 1.0 / sqrt(1.0 - vsqr);
     }
-    ENDLOOP
+    ENDLOOP3D
 }

@@ -71,5 +71,5 @@ void GRHayLMHD_Prim2Con(CCTK_ARGUMENTS)
         Y_e_tilde[ijk] = cons.Y_e;
         ent_tilde[ijk] = cons.entropy;
     }
-    ENDLOOP
+    ENDLOOP3D
 }

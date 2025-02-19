@@ -56,5 +56,5 @@ void GRHayLMHD_Compute_Tmunu(CCTK_ARGUMENTS)
         eTyz[ijk] += Tmunu.T4[2][3];
         eTzz[ijk] += Tmunu.T4[3][3];
     }
-    ENDLOOP
+    ENDLOOP3D
 }
