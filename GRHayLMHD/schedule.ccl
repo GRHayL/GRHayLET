@@ -1,0 +1,14 @@
+# Schedule definition for thorn GRHayLMHD
+
+# Evolution gridfunctions
+STORAGE: grmhd_conservatives[3]
+STORAGE: A_x[3]
+STORAGE: A_y[3]
+STORAGE: A_z[3]
+STORAGE: Phi_tilde[3]
+
+# Auxiliary gridfunctions
+STORAGE: u0
+STORAGE: grmhd_velocities
+STORAGE: grmhd_rhss
+STORAGE: grmhd_fluxes

@@ -19,10 +19,16 @@ CCTK_REAL A_z type=GF Timelevels=3 TAGS='prolongation="STAGGER110"'
 CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"'
 
 # Right-hand side variables
-CCTK_REAL grmhd_rhs type=GF TAGS='prolongation="none" checkpoint="no"'
+CCTK_REAL grmhd_rhss type=GF TAGS='prolongation="none" checkpoint="no"'
 {
     rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs,
     A_x_rhs, A_y_rhs, A_z_rhs, Phi_rhs
+}
+
+# Flux variables
+CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
+{
+    rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
 }
 
 # Auxiliary velocity variables
@@ -32,8 +38,6 @@ CCTK_REAL grmhd_velocities type=GF TAGS='prolongation="none" interpnumtimelevels
     vx, vy, vz
 } "Fluid three-velocity, defined as u^i / u^0"
 
-# Flux variables
-CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
-{
-    rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
-}
+# Functions provided by other thorns
+CCTK_INT FUNCTION GetRefinementLevel(CCTK_POINTER_TO_CONST IN cctkGH)
+USES FUNCTION GetRefinementLevel

@@ -22,5 +22,5 @@ void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
         A_z[ijk]  = Avec[ijkz];
         Phi_tilde[ijk] = Aphi[ijk];
     }
-    ENDLOOP3D
+    ENDLOOP
 }
