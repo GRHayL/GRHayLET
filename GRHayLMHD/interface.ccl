@@ -13,9 +13,9 @@ CCTK_REAL grmhd_conservatives type=GF Timelevels=3 TAGS='prolongation="ENO"'
     rho_tilde, tau_tilde, S_x_tilde, S_y_tilde, S_z_tilde, Y_e_tilde, ent_tilde
 } "Evolved MHD variables"
 
-CCTK_REAL A_x type=GF Timelevels=3 TAGS='prolongation="STAGGER011"'
-CCTK_REAL A_y type=GF Timelevels=3 TAGS='prolongation="STAGGER101"'
-CCTK_REAL A_z type=GF Timelevels=3 TAGS='prolongation="STAGGER110"'
+CCTK_REAL A_x_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER011"'
+CCTK_REAL A_y_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER101"'
+CCTK_REAL A_z_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER110"'
 CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"'
 
 # Right-hand side variables

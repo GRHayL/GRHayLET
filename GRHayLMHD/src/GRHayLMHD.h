@@ -19,6 +19,12 @@ enum GRHayLMHD_bc_dir {
     GRHayLMHD_zmax
 };
 
+void GRHayLMHD_Prim2Con_SinglePoint(CCTK_ARGUMENTS,
+                                    const int ijk,
+                                    const int ijkx,
+                                    const int ijky,
+                                    const int ijkz);
+
 #define LOOP3D(_imin, _imax, _jmin, _jmax, _kmin, _kmax)                                   \
     for(int k = _kmin; k < _kmax; k++) {                                                   \
         for(int j = _jmin; j < _jmax; j++) {                                               \

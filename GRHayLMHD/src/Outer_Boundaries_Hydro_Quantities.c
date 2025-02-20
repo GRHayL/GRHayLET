@@ -1,5 +1,15 @@
 #include "GRHayLMHD.h"
 
+static void Prim2Con(CCTK_ARGUMENTS, const int i, const int j, const int k)
+{
+    DECLARE_CCTK_PARAMETERS;
+    const int ijk  = CCTK_GFINDEX3D(cctkGH, i, j, k);
+    const int ijkx = CCTK_GFINDEX4D(cctkGH, i, j, k, 0);
+    const int ijky = CCTK_GFINDEX4D(cctkGH, i, j, k, 1);
+    const int ijkz = CCTK_GFINDEX4D(cctkGH, i, j, k, 2);
+    GRHayLMHD_Prim2Con_SinglePoint(CCTK_PASS_CTOC, ijk, ijkx, ijky, ijkz);
+}
+
 void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
 {
     DECLARE_CCTK_ARGUMENTS;
@@ -11,14 +21,14 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
     }
 
     const int lower[3] = {
-        cctk_nghostzones[0],
-        cctk_nghostzones[1],
-        cctk_nghostzones[2],
+        cctk_nghostzones[0] - 1,
+        cctk_nghostzones[1] - 1,
+        cctk_nghostzones[2] - 1,
     };
     const int upper[3] = {
-        cctk_lsh[0] - cctk_nghostzones[0] - 1,
-        cctk_lsh[1] - cctk_nghostzones[1] - 1,
-        cctk_lsh[2] - cctk_nghostzones[2] - 1,
+        cctk_lsh[0] - cctk_nghostzones[0],
+        cctk_lsh[1] - cctk_nghostzones[1],
+        cctk_lsh[2] - cctk_nghostzones[2],
     };
 
     for(int gzidx = 0; gzidx < cctk_nghostzones[0]; gzidx++) {
@@ -44,6 +54,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx] < 0 ? vx[src_idx] : 0;
                     vy[dst_idx]          = vy[src_idx];
                     vz[dst_idx]          = vz[src_idx];
+
+                    Prim2Con(CCTK_PASS_CTOC, imin, j, k);
                 }
             }
         }
@@ -63,6 +75,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx] > 0 ? vx[src_idx] : 0;
                     vy[dst_idx]          = vy[src_idx];
                     vz[dst_idx]          = vz[src_idx];
+
+                    Prim2Con(CCTK_PASS_CTOC, imax, j, k);
                 }
             }
         }
@@ -82,6 +96,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx];
                     vy[dst_idx]          = vy[src_idx] < 0 ? vy[src_idx] : 0;
                     vz[dst_idx]          = vz[src_idx];
+
+                    Prim2Con(CCTK_PASS_CTOC, i, jmin, k);
                 }
             }
         }
@@ -101,6 +117,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx];
                     vy[dst_idx]          = vy[src_idx] > 0 ? vy[src_idx] : 0;
                     vz[dst_idx]          = vz[src_idx];
+
+                    Prim2Con(CCTK_PASS_CTOC, i, jmax, k);
                 }
             }
         }
@@ -120,6 +138,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx];
                     vy[dst_idx]          = vy[src_idx];
                     vz[dst_idx]          = vz[src_idx] < 0 ? vz[src_idx] : 0;
+
+                    Prim2Con(CCTK_PASS_CTOC, i, j, kmin);
                 }
             }
         }
@@ -139,6 +159,8 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     vx[dst_idx]          = vx[src_idx];
                     vy[dst_idx]          = vy[src_idx];
                     vz[dst_idx]          = vz[src_idx] > 0 ? vz[src_idx] : 0;
+
+                    Prim2Con(CCTK_PASS_CTOC, i, j, kmax);
                 }
             }
         }
