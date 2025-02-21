@@ -12,35 +12,13 @@ void GRHayLMHD_Compute_Tmunu(CCTK_ARGUMENTS)
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
         ghl_metric_quantities adm_metric = { 0 };
-        ghl_enforce_detgtij_and_initialize_ADM_metric(alp[ijk],
-                                                      betax[ijk],
-                                                      betay[ijk],
-                                                      betaz[ijk],
-                                                      gxx[ijk],
-                                                      gxy[ijk],
-                                                      gxz[ijk],
-                                                      gyy[ijk],
-                                                      gyz[ijk],
-                                                      gzz[ijk],
-                                                      &adm_metric);
+        GRHAYLMHD_LOAD_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
 
         ghl_ADM_aux_quantities aux_metric = { 0 };
         ghl_compute_ADM_auxiliaries(&adm_metric, &aux_metric);
 
         ghl_primitive_quantities prims = { 0 };
-        ghl_initialize_primitives(rho[ijk],
-                                  press[ijk],
-                                  eps[ijk],
-                                  vx[ijk],
-                                  vy[ijk],
-                                  vz[ijk],
-                                  Bvec[ijkx],
-                                  Bvec[ijky],
-                                  Bvec[ijkz],
-                                  entropy[ijk],
-                                  Y_e[ijk],
-                                  temperature[ijk],
-                                  &prims);
+        GRHAYLMHD_LOAD_PRIMS(prims);
 
         ghl_stress_energy Tmunu = { 0 };
         ghl_compute_TDNmunu(&adm_metric, &aux_metric, &prims, &Tmunu);

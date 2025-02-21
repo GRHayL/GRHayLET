@@ -45,30 +45,13 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
         ghl_con2prim_diagnostics diagnostics = { 0 };
 
         ghl_metric_quantities adm_metric = { 0 };
-        ghl_enforce_detgtij_and_initialize_ADM_metric(alp[ijk],
-                                                      betax[ijk],
-                                                      betay[ijk],
-                                                      betaz[ijk],
-                                                      gxx[ijk],
-                                                      gxy[ijk],
-                                                      gxz[ijk],
-                                                      gyy[ijk],
-                                                      gyz[ijk],
-                                                      gzz[ijk],
-                                                      &adm_metric);
+        GRHAYLMHD_LOAD_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
 
         ghl_ADM_aux_quantities aux_metric = { 0 };
         ghl_compute_ADM_auxiliaries(&adm_metric, &aux_metric);
 
         ghl_conservative_quantities cons = { 0 };
-        ghl_initialize_conservatives(rho_tilde[ijk],
-                                     tau_tilde[ijk],
-                                     S_x_tilde[ijk],
-                                     S_y_tilde[ijk],
-                                     S_z_tilde[ijk],
-                                     ent_tilde[ijk],
-                                     Y_e_tilde[ijk],
-                                     &cons);
+        GRHAYLMHD_LOAD_CONS(cons);
 
         ghl_conservative_quantities cons_undens = { 0 };
         ghl_undensitize_conservatives(adm_metric.sqrt_detgamma, &cons, &cons_undens);
@@ -99,27 +82,10 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
                                                     &prims,
                                                     &speed_limited);
 
-        rho[ijk]         = prims.rho;
-        press[ijk]       = prims.press;
-        eps[ijk]         = prims.eps;
-        Y_e[ijk]         = prims.Y_e;
-        temperature[ijk] = prims.temperature;
-        entropy[ijk]     = prims.entropy;
-        u0[ijk]          = prims.u0;
-        vx[ijk]          = prims.vU[0];
-        vy[ijk]          = prims.vU[1];
-        vz[ijk]          = prims.vU[2];
-        Bvec[ijkx]       = prims.BU[0];
-        Bvec[ijky]       = prims.BU[1];
-        Bvec[ijkz]       = prims.BU[2];
-
         ghl_compute_conservs(&adm_metric, &aux_metric, &prims, &cons);
-        rho_tilde[ijk] = cons.rho;
-        S_x_tilde[ijk] = cons.SD[0];
-        S_y_tilde[ijk] = cons.SD[1];
-        S_z_tilde[ijk] = cons.SD[2];
-        Y_e_tilde[ijk] = cons.Y_e;
-        ent_tilde[ijk] = cons.entropy;
+
+        GRHAYLMHD_WRITE_PRIMS(prims);
+        GRHAYLMHD_WRITE_CONS(cons);
     }
     ENDLOOP3D
 

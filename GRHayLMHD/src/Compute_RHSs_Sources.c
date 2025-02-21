@@ -37,89 +37,25 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
         const int ijkp1 = CCTK_GFINDEX3D(cctkGH, i, j, k + 1);
 
         ghl_metric_quantities metric_ijk = { 0 };
-        ghl_initialize_metric(alp[ijk],
-                              betax[ijk],
-                              betay[ijk],
-                              betaz[ijk],
-                              gxx[ijk],
-                              gxy[ijk],
-                              gxz[ijk],
-                              gyy[ijk],
-                              gyz[ijk],
-                              gzz[ijk],
-                              &metric_ijk);
+        GRHAYLMHD_LOAD_METRIC(metric_ijk);
 
-        ghl_metric_quantities metric_ip1jk = { 0 };
-        ghl_initialize_metric(alp[ip1jk],
-                              betax[ip1jk],
-                              betay[ip1jk],
-                              betaz[ip1jk],
-                              gxx[ip1jk],
-                              gxy[ip1jk],
-                              gxz[ip1jk],
-                              gyy[ip1jk],
-                              gyz[ip1jk],
-                              gzz[ip1jk],
-                              &metric_ip1jk);
-
-        ghl_metric_quantities metric_ijp1k = { 0 };
-        ghl_initialize_metric(alp[ijp1k],
-                              betax[ijp1k],
-                              betay[ijp1k],
-                              betaz[ijp1k],
-                              gxx[ijp1k],
-                              gxy[ijp1k],
-                              gxz[ijp1k],
-                              gyy[ijp1k],
-                              gyz[ijp1k],
-                              gzz[ijp1k],
-                              &metric_ijp1k);
-
-        ghl_metric_quantities metric_ijkp1 = { 0 };
-        ghl_initialize_metric(alp[ijkp1],
-                              betax[ijkp1],
-                              betay[ijkp1],
-                              betaz[ijkp1],
-                              gxx[ijkp1],
-                              gxy[ijkp1],
-                              gxz[ijkp1],
-                              gyy[ijkp1],
-                              gyz[ijkp1],
-                              gzz[ijkp1],
-                              &metric_ijkp1);
-
-        ghl_metric_quantities metric_derivs_x = { 0 };
+        ghl_metric_quantities metric_ip1jk = { 0 }, metric_derivs_x = { 0 };
+        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ip1jk, ip1jk);
         compute_metric_derivs(inv_dx, &metric_ijk, &metric_ip1jk, &metric_derivs_x);
 
-        ghl_metric_quantities metric_derivs_y = { 0 };
+        ghl_metric_quantities metric_ijp1k = { 0 }, metric_derivs_y = { 0 };
+        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ijp1k, ijp1k);
         compute_metric_derivs(inv_dy, &metric_ijk, &metric_ijp1k, &metric_derivs_y);
 
-        ghl_metric_quantities metric_derivs_z = { 0 };
+        ghl_metric_quantities metric_ijkp1 = { 0 }, metric_derivs_z = { 0 };
+        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ijkp1, ijkp1);
         compute_metric_derivs(inv_dz, &metric_ijk, &metric_ijkp1, &metric_derivs_z);
 
         ghl_primitive_quantities prims = { 0 };
-        ghl_initialize_primitives(rho[ijk],
-                                  press[ijk],
-                                  eps[ijk],
-                                  vx[ijk],
-                                  vy[ijk],
-                                  vz[ijk],
-                                  Bvec[ijkx],
-                                  Bvec[ijky],
-                                  Bvec[ijkz],
-                                  entropy[ijk],
-                                  Y_e[ijk],
-                                  temperature[ijk],
-                                  &prims);
+        GRHAYLMHD_LOAD_PRIMS(prims);
 
         ghl_extrinsic_curvature curv = { 0 };
-        ghl_initialize_extrinsic_curvature(kxx[ijk],
-                                           kxy[ijk],
-                                           kxz[ijk],
-                                           kyy[ijk],
-                                           kyz[ijk],
-                                           kzz[ijk],
-                                           &curv);
+        GRHAYLMHD_LOAD_EXTRINSIC_CURVATURE(curv);
 
         ghl_conservative_quantities sources = { 0 };
         ghl_calculate_source_terms(ghl_eos,

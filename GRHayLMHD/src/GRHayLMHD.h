@@ -42,4 +42,98 @@ void GRHayLMHD_Prim2Con_SinglePoint(CCTK_ARGUMENTS,
     }             \
     }
 
+// These are useful macros for packing (load) and unpacking (write) GRHayL's structs.
+#define GRHAYLMHD_LOAD_PRIMS_AT_INDEX(struct_name, _ijk, _ijkx, _ijky, _ijkz) \
+    ghl_initialize_primitives(rho[_ijk],                                      \
+                              press[_ijk],                                    \
+                              eps[_ijk],                                      \
+                              vx[_ijk],                                       \
+                              vy[_ijk],                                       \
+                              vz[_ijk],                                       \
+                              Bvec[_ijkx],                                    \
+                              Bvec[_ijky],                                    \
+                              Bvec[_ijkz],                                    \
+                              entropy[_ijk],                                  \
+                              Y_e[_ijk],                                      \
+                              temperature[_ijk],                              \
+                              &struct_name);
+
+#define GRHAYLMHD_WRITE_PRIMS_AT_INDEX(struct_name, _ijk, _ijkx, _ijky, _ijkz) \
+    ghl_return_primitives(&struct_name,                                        \
+                          &rho[_ijk],                                          \
+                          &press[_ijk],                                        \
+                          &eps[_ijk],                                          \
+                          &vx[_ijk],                                           \
+                          &vy[_ijk],                                           \
+                          &vz[_ijk],                                           \
+                          &Bvec[_ijkx],                                        \
+                          &Bvec[_ijky],                                        \
+                          &Bvec[_ijkz],                                        \
+                          &entropy[_ijk],                                      \
+                          &Y_e[_ijk],                                          \
+                          &temperature[_ijk]);
+
+#define GRHAYLMHD_LOAD_CONS_AT_INDEX(struct_name, _ijk) \
+    ghl_initialize_conservatives(rho_tilde[_ijk],       \
+                                 tau_tilde[_ijk],       \
+                                 S_x_tilde[_ijk],       \
+                                 S_y_tilde[_ijk],       \
+                                 S_z_tilde[_ijk],       \
+                                 ent_tilde[_ijk],       \
+                                 Y_e_tilde[_ijk],       \
+                                 &struct_name);
+
+#define GRHAYLMHD_WRITE_CONS_AT_INDEX(struct_name, _ijk) \
+    ghl_return_conservatives(&struct_name,               \
+                             &rho_tilde[_ijk],           \
+                             &tau_tilde[_ijk],           \
+                             &S_x_tilde[_ijk],           \
+                             &S_y_tilde[_ijk],           \
+                             &S_z_tilde[_ijk],           \
+                             &ent_tilde[_ijk],           \
+                             &Y_e_tilde[_ijk]);
+
+#define GRHAYLMHD_LOAD_METRIC_AT_INDEX(struct_name, _ijk) \
+    ghl_initialize_metric(alp[_ijk],                      \
+                          betax[_ijk],                    \
+                          betay[_ijk],                    \
+                          betaz[_ijk],                    \
+                          gxx[_ijk],                      \
+                          gxy[_ijk],                      \
+                          gxz[_ijk],                      \
+                          gyy[_ijk],                      \
+                          gyz[_ijk],                      \
+                          gzz[_ijk],                      \
+                          &struct_name);
+
+#define GRHAYLMHD_LOAD_METRIC_ENFORCE_DETGAMMAEQ1(struct_name) \
+    ghl_enforce_detgtij_and_initialize_ADM_metric(alp[ijk],    \
+                                                  betax[ijk],  \
+                                                  betay[ijk],  \
+                                                  betaz[ijk],  \
+                                                  gxx[ijk],    \
+                                                  gxy[ijk],    \
+                                                  gxz[ijk],    \
+                                                  gyy[ijk],    \
+                                                  gyz[ijk],    \
+                                                  gzz[ijk],    \
+                                                  &struct_name);
+
+#define GRHAYLMHD_LOAD_EXTRINSIC_CURVATURE(struct_name) \
+    ghl_initialize_extrinsic_curvature(kxx[ijk],        \
+                                       kxy[ijk],        \
+                                       kxz[ijk],        \
+                                       kyy[ijk],        \
+                                       kyz[ijk],        \
+                                       kzz[ijk],        \
+                                       &struct_name);
+
+#define GRHAYLMHD_LOAD_METRIC(struct_name) GRHAYLMHD_LOAD_METRIC_AT_INDEX(struct_name, ijk)
+#define GRHAYLMHD_LOAD_CONS(struct_name)   GRHAYLMHD_LOAD_CONS_AT_INDEX(struct_name, ijk)
+#define GRHAYLMHD_WRITE_CONS(struct_name)  GRHAYLMHD_WRITE_CONS_AT_INDEX(struct_name, ijk)
+#define GRHAYLMHD_LOAD_PRIMS(struct_name) \
+    GRHAYLMHD_LOAD_PRIMS_AT_INDEX(struct_name, ijk, ijkx, ijky, ijkz)
+#define GRHAYLMHD_WRITE_PRIMS(struct_name) \
+    GRHAYLMHD_WRITE_PRIMS_AT_INDEX(struct_name, ijk, ijkx, ijky, ijkz)
+
 #endif // GRHAYLET_GRHAYLMHD_H
