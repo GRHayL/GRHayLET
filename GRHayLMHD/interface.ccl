@@ -13,23 +13,23 @@ CCTK_REAL grmhd_conservatives type=GF Timelevels=3 TAGS='prolongation="ENO"'
     rho_tilde, tau_tilde, S_x_tilde, S_y_tilde, S_z_tilde, Y_e_tilde, ent_tilde
 } "Evolved MHD variables"
 
-CCTK_REAL A_x_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER011"'
-CCTK_REAL A_y_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER101"'
-CCTK_REAL A_z_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER110"'
-CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"'
+CCTK_REAL Phi_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER111"' "Staggered electric (scalar) potential"
+CCTK_REAL A_x_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER011"' "Staggered x-component of magnetic (vector) potential"
+CCTK_REAL A_y_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER101"' "Staggered y-component of magnetic (vector) potential"
+CCTK_REAL A_z_tilde type=GF Timelevels=3 TAGS='prolongation="STAGGER110"' "Staggered z-component of magnetic (vector) potential"
 
 # Right-hand side variables
 CCTK_REAL grmhd_rhss type=GF TAGS='prolongation="none" checkpoint="no"'
 {
     rho_rhs, tau_rhs, S_x_rhs, S_y_rhs, S_z_rhs, Y_e_rhs, ent_rhs,
     A_x_rhs, A_y_rhs, A_z_rhs, Phi_rhs
-}
+} "GRMHD right-hand sides"
 
 # Flux variables
 CCTK_REAL grmhd_fluxes type=GF TAGS='prolongation="none" checkpoint="no"'
 {
     rho_flux, tau_flux, S_x_flux, S_y_flux, S_z_flux, Y_e_flux, ent_flux
-}
+} "GRMHD fluxes"
 
 # Auxiliary velocity variables
 CCTK_REAL u0 type=GF TAGS='prolongation="none" interpnumtimelevels=1'
@@ -37,6 +37,11 @@ CCTK_REAL grmhd_velocities type=GF TAGS='prolongation="none" interpnumtimelevels
 {
     vx, vy, vz
 } "Fluid three-velocity, defined as u^i / u^0"
+
+CCTK_REAL grmhd_staggered_magnetic_fields type=GF TAGS='prolongation="none" interpnumtimelevels=1 checkpoint="no"'
+{
+    Bx_tilde_stagger, By_tilde_stagger, Bz_tilde_stagger
+} "Staggered magnetic fields"
 
 # Functions provided by other thorns
 CCTK_INT FUNCTION GetRefinementLevel(CCTK_POINTER_TO_CONST IN cctkGH)
