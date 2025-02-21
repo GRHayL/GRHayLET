@@ -5,4 +5,5 @@ SRCS = Convert_to_HydroBase.c \
        Compute_Tmunu.c \
        Outer_Boundaries_Hydro_Quantities.c \
        Outer_Boundaries_EM_FourPotential.c \
-       Compute_Magnetic_Fields.c
+       Compute_Magnetic_Fields.c \
+       Compute_RHSs_Sources.c
