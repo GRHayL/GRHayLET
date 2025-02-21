@@ -1,5 +1,16 @@
 #include "GRHayLMHD.h"
 
+#define GRHAYLMHD_APPLY_BCS(_src, _dst)    \
+    rho[_dst]         = rho[_src];         \
+    press[_dst]       = press[_src];       \
+    eps[_dst]         = eps[_src];         \
+    Y_e[_dst]         = Y_e[_src];         \
+    temperature[_dst] = temperature[_src]; \
+    entropy[_dst]     = entropy[_src];     \
+    vx[_dst]          = vx[_src];          \
+    vy[_dst]          = vy[_src];          \
+    vz[_dst]          = vz[_src];
+
 static void Prim2Con(CCTK_ARGUMENTS, const int i, const int j, const int k)
 {
     DECLARE_CCTK_PARAMETERS;
@@ -45,15 +56,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, imin + 1, j, k);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, imin, j, k);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx] < 0 ? vx[src_idx] : 0;
-                    vy[dst_idx]          = vy[src_idx];
-                    vz[dst_idx]          = vz[src_idx];
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vx[dst_idx] > 0) {
+                        vx[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, imin, j, k);
                 }
@@ -66,15 +72,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, imax - 1, j, k);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, imax, j, k);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx] > 0 ? vx[src_idx] : 0;
-                    vy[dst_idx]          = vy[src_idx];
-                    vz[dst_idx]          = vz[src_idx];
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vx[dst_idx] < 0) {
+                        vx[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, imax, j, k);
                 }
@@ -87,15 +88,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, i, jmin + 1, k);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx];
-                    vy[dst_idx]          = vy[src_idx] < 0 ? vy[src_idx] : 0;
-                    vz[dst_idx]          = vz[src_idx];
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vy[dst_idx] > 0) {
+                        vy[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, i, jmin, k);
                 }
@@ -108,15 +104,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, i, jmax - 1, k);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx];
-                    vy[dst_idx]          = vy[src_idx] > 0 ? vy[src_idx] : 0;
-                    vz[dst_idx]          = vz[src_idx];
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vy[dst_idx] < 0) {
+                        vy[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, i, jmax, k);
                 }
@@ -129,15 +120,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, i, j, kmin + 1);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx];
-                    vy[dst_idx]          = vy[src_idx];
-                    vz[dst_idx]          = vz[src_idx] < 0 ? vz[src_idx] : 0;
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vz[dst_idx] > 0) {
+                        vz[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, i, j, kmin);
                 }
@@ -150,15 +136,10 @@ void GRHayLMHD_Outer_Boundaries_Hydro_Quantities(CCTK_ARGUMENTS)
                     const int src_idx = CCTK_GFINDEX3D(cctkGH, i, j, kmax - 1);
                     const int dst_idx = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
 
-                    rho[dst_idx]         = rho[src_idx];
-                    press[dst_idx]       = press[src_idx];
-                    eps[dst_idx]         = eps[src_idx];
-                    Y_e[dst_idx]         = Y_e[src_idx];
-                    temperature[dst_idx] = temperature[src_idx];
-                    entropy[dst_idx]     = entropy[src_idx];
-                    vx[dst_idx]          = vx[src_idx];
-                    vy[dst_idx]          = vy[src_idx];
-                    vz[dst_idx]          = vz[src_idx] > 0 ? vz[src_idx] : 0;
+                    GRHAYLMHD_APPLY_BCS(src_idx, dst_idx);
+                    if(vz[dst_idx] < 0) {
+                        vz[dst_idx] = 0;
+                    }
 
                     Prim2Con(CCTK_PASS_CTOC, i, j, kmax);
                 }
