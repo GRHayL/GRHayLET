@@ -1,30 +1,46 @@
 #include "GRHayLMHD.h"
 
-static void compute_metric_derivs(const CCTK_REAL inv_ds,
-                                  const ghl_metric_quantities *restrict metric,
-                                  const ghl_metric_quantities *restrict metric_p1,
-                                  ghl_metric_quantities *restrict derivs)
-{
-    derivs->lapse         = (metric_p1->lapse - metric->lapse) * inv_ds;
-    derivs->betaU[0]      = (metric_p1->betaU[0] - metric->betaU[0]) * inv_ds;
-    derivs->betaU[1]      = (metric_p1->betaU[1] - metric->betaU[1]) * inv_ds;
-    derivs->betaU[2]      = (metric_p1->betaU[2] - metric->betaU[2]) * inv_ds;
-    derivs->gammaDD[0][0] = (metric_p1->gammaDD[0][0] - metric->gammaDD[0][0]) * inv_ds;
-    derivs->gammaDD[0][1] = (metric_p1->gammaDD[0][1] - metric->gammaDD[0][1]) * inv_ds;
-    derivs->gammaDD[0][2] = (metric_p1->gammaDD[0][2] - metric->gammaDD[0][2]) * inv_ds;
-    derivs->gammaDD[1][1] = (metric_p1->gammaDD[1][1] - metric->gammaDD[1][1]) * inv_ds;
-    derivs->gammaDD[1][2] = (metric_p1->gammaDD[1][2] - metric->gammaDD[1][2]) * inv_ds;
-    derivs->gammaDD[2][2] = (metric_p1->gammaDD[2][2] - metric->gammaDD[2][2]) * inv_ds;
-}
+#define GRHAYLMHD_COMPUTE_DERIV(gf, m2, m1, p1, p2, inv_h) \
+    (((1.0 / 12.0) * (gf[m2] - gf[p2]) + (2.0 / 3.0) * (gf[p1] - gf[m1])) * inv_h)
+
+#define GRHAYLMHD_COMPUTE_METRIC_DERIVS(derivs_struct, inv_h, di, dj, dk)                    \
+    {                                                                                        \
+        const int m2 = CCTK_GFINDEX3D(cctkGH, i - 2 * di, j - 2 * dj, k - 2 * dk);           \
+        const int m1 = CCTK_GFINDEX3D(cctkGH, i - 1 * di, j - 1 * dj, k - 1 * dk);           \
+        const int p1 = CCTK_GFINDEX3D(cctkGH, i + 1 * di, j + 1 * dj, k + 1 * dk);           \
+        const int p2 = CCTK_GFINDEX3D(cctkGH, i + 2 * di, j + 2 * dj, k + 2 * dk);           \
+                                                                                             \
+        const CCTK_REAL deriv_alp   = GRHAYLMHD_COMPUTE_DERIV(alp, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_betax = GRHAYLMHD_COMPUTE_DERIV(betax, m2, m1, p1, p2, inv_h); \
+        const CCTK_REAL deriv_betay = GRHAYLMHD_COMPUTE_DERIV(betay, m2, m1, p1, p2, inv_h); \
+        const CCTK_REAL deriv_betaz = GRHAYLMHD_COMPUTE_DERIV(betaz, m2, m1, p1, p2, inv_h); \
+        const CCTK_REAL deriv_gxx   = GRHAYLMHD_COMPUTE_DERIV(gxx, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_gxy   = GRHAYLMHD_COMPUTE_DERIV(gxy, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_gxz   = GRHAYLMHD_COMPUTE_DERIV(gxz, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_gyy   = GRHAYLMHD_COMPUTE_DERIV(gyy, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_gyz   = GRHAYLMHD_COMPUTE_DERIV(gyz, m2, m1, p1, p2, inv_h);   \
+        const CCTK_REAL deriv_gzz   = GRHAYLMHD_COMPUTE_DERIV(gzz, m2, m1, p1, p2, inv_h);   \
+        ghl_initialize_metric(deriv_alp,                                                     \
+                              deriv_betax,                                                   \
+                              deriv_betay,                                                   \
+                              deriv_betaz,                                                   \
+                              deriv_gxx,                                                     \
+                              deriv_gxy,                                                     \
+                              deriv_gxz,                                                     \
+                              deriv_gyy,                                                     \
+                              deriv_gyz,                                                     \
+                              deriv_gzz,                                                     \
+                              &derivs_struct);                                               \
+    }
 
 void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
 {
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
 
-    CCTK_REAL inv_dx = 1.0 / CCTK_DELTA_SPACE(0);
-    CCTK_REAL inv_dy = 1.0 / CCTK_DELTA_SPACE(1);
-    CCTK_REAL inv_dz = 1.0 / CCTK_DELTA_SPACE(2);
+    const CCTK_REAL inv_dx = 1.0 / CCTK_DELTA_SPACE(0);
+    const CCTK_REAL inv_dy = 1.0 / CCTK_DELTA_SPACE(1);
+    const CCTK_REAL inv_dz = 1.0 / CCTK_DELTA_SPACE(2);
 
     const int imin = cctk_nghostzones[0], imax = cctk_lsh[0] - cctk_nghostzones[0];
     const int jmin = cctk_nghostzones[1], jmax = cctk_lsh[1] - cctk_nghostzones[1];
@@ -32,24 +48,13 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
 
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
-        const int ip1jk = CCTK_GFINDEX3D(cctkGH, i + 1, j, k);
-        const int ijp1k = CCTK_GFINDEX3D(cctkGH, i, j + 1, k);
-        const int ijkp1 = CCTK_GFINDEX3D(cctkGH, i, j, k + 1);
+        ghl_metric_quantities metric = { 0 };
+        GRHAYLMHD_LOAD_METRIC(metric);
 
-        ghl_metric_quantities metric_ijk = { 0 };
-        GRHAYLMHD_LOAD_METRIC(metric_ijk);
-
-        ghl_metric_quantities metric_ip1jk = { 0 }, metric_derivs_x = { 0 };
-        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ip1jk, ip1jk);
-        compute_metric_derivs(inv_dx, &metric_ijk, &metric_ip1jk, &metric_derivs_x);
-
-        ghl_metric_quantities metric_ijp1k = { 0 }, metric_derivs_y = { 0 };
-        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ijp1k, ijp1k);
-        compute_metric_derivs(inv_dy, &metric_ijk, &metric_ijp1k, &metric_derivs_y);
-
-        ghl_metric_quantities metric_ijkp1 = { 0 }, metric_derivs_z = { 0 };
-        GRHAYLMHD_LOAD_METRIC_AT_INDEX(metric_ijkp1, ijkp1);
-        compute_metric_derivs(inv_dz, &metric_ijk, &metric_ijkp1, &metric_derivs_z);
+        ghl_metric_quantities metric_derivs[3] = { { 0 }, { 0 }, { 0 } };
+        GRHAYLMHD_COMPUTE_METRIC_DERIVS(metric_derivs[0], inv_dx, 1, 0, 0);
+        GRHAYLMHD_COMPUTE_METRIC_DERIVS(metric_derivs[1], inv_dy, 0, 1, 0);
+        GRHAYLMHD_COMPUTE_METRIC_DERIVS(metric_derivs[2], inv_dz, 0, 0, 1);
 
         ghl_primitive_quantities prims = { 0 };
         GRHAYLMHD_LOAD_PRIMS(prims);
@@ -60,10 +65,10 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
         ghl_conservative_quantities sources = { 0 };
         ghl_calculate_source_terms(ghl_eos,
                                    &prims,
-                                   &metric_ijk,
-                                   &metric_derivs_x,
-                                   &metric_derivs_y,
-                                   &metric_derivs_z,
+                                   &metric,
+                                   &metric_derivs[0],
+                                   &metric_derivs[1],
+                                   &metric_derivs[2],
                                    &curv,
                                    &sources);
 

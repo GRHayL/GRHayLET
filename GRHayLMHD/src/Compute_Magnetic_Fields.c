@@ -37,9 +37,9 @@ void GRHayLMHD_Compute_Magnetic_Fields(CCTK_ARGUMENTS)
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
 
-    CCTK_REAL inv_dx = 1.0 / CCTK_DELTA_SPACE(0);
-    CCTK_REAL inv_dy = 1.0 / CCTK_DELTA_SPACE(1);
-    CCTK_REAL inv_dz = 1.0 / CCTK_DELTA_SPACE(2);
+    const CCTK_REAL inv_dx = 1.0 / CCTK_DELTA_SPACE(0);
+    const CCTK_REAL inv_dy = 1.0 / CCTK_DELTA_SPACE(1);
+    const CCTK_REAL inv_dz = 1.0 / CCTK_DELTA_SPACE(2);
 
     const int imin = 0, imax = cctk_lsh[0];
     const int jmin = 0, jmax = cctk_lsh[1];
