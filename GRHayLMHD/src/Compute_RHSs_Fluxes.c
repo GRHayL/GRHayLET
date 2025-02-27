@@ -92,7 +92,7 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
         OMPLOOP3D(imin, imax + 1, jmin, jmax + 1, kmin, kmax + 1)
         {
             ghl_metric_quantities adm_metric = { 0 };
-            GRHAYLMHD_LOAD_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
+            GRHAYLMHD_PACK_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
 
             // Stencil is points -3, -2, -1, 0, +1, +2
             ppm_reconstruction_stencil prims_stencil = { 0 };

@@ -1,14 +1,84 @@
 # Schedule definition for thorn GRHayLMHD
 
-# Evolution gridfunctions
-STORAGE: grmhd_conservatives[3]
+#####################
+#   HYDRODYNAMICS   #
+#####################
+STORAGE: hydro_conservatives[3]
+STORAGE: hydro_rhss
+STORAGE: hydro_fluxes
+STORAGE: hydro_velocities
+STORAGE: u0
+
+#####################
+#  MAGNETIC FIELDS  #
+#####################
+STORAGE: Phi_tilde[3]
 STORAGE: A_x_tilde[3]
 STORAGE: A_y_tilde[3]
 STORAGE: A_z_tilde[3]
-STORAGE: Phi_tilde[3]
+STORAGE: Phi_rhs
+STORAGE: A_x_rhs
+STORAGE: A_y_rhs
+STORAGE: A_z_rhs
+STORAGE: staggered_magnetic_fields
 
-# Auxiliary gridfunctions
-STORAGE: u0
-STORAGE: grmhd_velocities
-STORAGE: grmhd_rhss
-STORAGE: grmhd_fluxes
+##################
+# INITIALIZATION #
+##################
+SCHEDULE GRHayLMHD_RegisterRHSs IN MoL_Register
+{
+    LANG: C
+    OPTIONS: META
+} "Register evolved gridfunctions"
+
+SCHEDULE GRHayLMHD_RegisterSymmetries AT BASEGRID
+{
+    LANG: C
+} "Register gridfunction symmetries"
+
+#########################
+# INITIAL PRIM2CON2PRIM #
+#########################
+SCHEDULE GROUP GRHayLMHD_Initial_Prim2Con2Prim IN HydroBase_Prim2ConInitial
+{
+} "Initial primitives-to-conservatives-to-primitives"
+
+SCHEDULE GRHayLMHD_Prim2Con IN GRHayLMHD_Initial_Prim2Con2Prim
+{
+    LANG: C
+} "Initial primitives-to-conservatives"
+
+SCHEDULE GRHayLMHD_Con2Prim IN GRHayLMHD_Initial_Prim2Con2Prim AFTER GRHayLMHD_Prim2Con
+{
+    LANG: C
+} "Initial conservatives-to-primitives"
+
+##########################
+# GRMHD RIGHT-HAND SIDES #
+##########################
+SCHEDULE GROUP GRHayLMHD_RHSs IN MoL_CalcRHS
+{
+} "Right-hand side calculation"
+
+SCHEDULE GRHayLMHD_Con2Prim IN GRHayLMHD_RHSs
+{
+    LANG: C
+} "Conservatives-to-primitives before RHSs calculation"
+
+SCHEDULE GRHayLMHD_Compute_RHSs_Sources IN GRHayLMHD_RHSs AFTER GRHayLMHD_Con2Prim
+{
+    LANG: C
+} "Set evolved variables' right-hand sides to their sources or zero"
+
+SCHEDULE GRHayLMHD_Compute_RHSs_Fluxes IN GRHayLMHD_RHSs AFTER GRHayLMHD_Compute_RHSs_Sources
+{
+    LANG: C
+} "Add flux terms to right-hand sides of the evolved variables"
+
+##############################
+# GRMHD STRESS-ENERGY TENSOR #
+##############################
+SCHEDULE GRHayLMHD_AddToTmunu IN AddToTmunu
+{
+    LANG: C
+} "Add GRMHD energy-momentum tensor to TmunuBase gridfunctions"

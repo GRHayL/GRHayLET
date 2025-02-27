@@ -2,7 +2,7 @@ SRCS = Convert_to_HydroBase.c \
        Convert_from_HydroBase.c \
        Prim2Con.c \
        Con2Prim.c \
-       Compute_Tmunu.c \
+       AddToTmunu.c \
        Outer_Boundaries_Hydro_Quantities.c \
        Outer_Boundaries_EM_FourPotential.c \
        Compute_Magnetic_Fields.c \

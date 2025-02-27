@@ -81,13 +81,13 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
         ghl_con2prim_diagnostics diagnostics = { 0 };
 
         ghl_metric_quantities adm_metric = { 0 };
-        GRHAYLMHD_LOAD_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
+        GRHAYLMHD_PACK_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
 
         ghl_ADM_aux_quantities aux_metric = { 0 };
         ghl_compute_ADM_auxiliaries(&adm_metric, &aux_metric);
 
         ghl_conservative_quantities cons_orig = { 0 };
-        GRHAYLMHD_LOAD_CONS(cons_orig);
+        GRHAYLMHD_PACK_CONS(cons_orig);
         ghl_conservative_quantities cons = cons_orig;
 
         ghl_conservative_quantities cons_undens = { 0 };
@@ -118,8 +118,8 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
 
         ghl_compute_conservs(&adm_metric, &aux_metric, &prims, &cons);
 
-        GRHAYLMHD_WRITE_PRIMS(prims);
-        GRHAYLMHD_WRITE_CONS(cons);
+        GRHAYLMHD_UNPACK_PRIMS(prims);
+        GRHAYLMHD_UNPACK_CONS(cons);
         GRHAYLMHD_COMPUTE_ERRORS;
     }
     ENDLOOP3D
