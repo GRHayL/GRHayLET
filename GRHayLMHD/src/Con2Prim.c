@@ -53,29 +53,31 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
     // TODO: move this to initialization
     assert(ghl_params->calc_prim_guess == true);
 
-    const int imin = cctk_nghostzones[0];
-    const int jmin = cctk_nghostzones[1];
-    const int kmin = cctk_nghostzones[2];
+    // WARNING: these bounds *do not* match IGM's, but I think they are correct.
+    const int imin = cctk_nghostzones[0], imax = cctk_lsh[0] - cctk_nghostzones[0];
+    const int jmin = cctk_nghostzones[1], jmax = cctk_lsh[1] - cctk_nghostzones[1];
+    const int kmin = cctk_nghostzones[2], kmax = cctk_lsh[2] - cctk_nghostzones[2];
 
-    const int imax = cctk_lsh[0] - cctk_nghostzones[0];
-    const int jmax = cctk_lsh[1] - cctk_nghostzones[1];
-    const int kmax = cctk_lsh[2] - cctk_nghostzones[2];
-
-    int atm_resets = 0;
-
-    CCTK_REAL errors_numer_rho = 0.0, errors_numer_tau = 0.0, errors_numer_SD[3] = { 0 },
-              errors_numer_Y_e = 0.0, errors_numer_entropy = 0.0;
-    CCTK_REAL errors_denom_rho = 0.0, errors_denom_tau = 0.0, errors_denom_SD[3] = { 0 },
-              errors_denom_Y_e = 0.0, errors_denom_entropy = 0.0;
+    CCTK_INT  atm_resets           = 0;
+    CCTK_REAL errors_numer_rho     = 0.0;
+    CCTK_REAL errors_numer_tau     = 0.0;
+    CCTK_REAL errors_numer_Y_e     = 0.0;
+    CCTK_REAL errors_numer_entropy = 0.0;
+    CCTK_REAL errors_numer_SD[3]   = { 0.0, 0.0, 0.0 };
+    CCTK_REAL errors_denom_rho     = 0.0;
+    CCTK_REAL errors_denom_tau     = 0.0;
+    CCTK_REAL errors_denom_Y_e     = 0.0;
+    CCTK_REAL errors_denom_entropy = 0.0;
+    CCTK_REAL errors_denom_SD[3]   = { 0.0, 0.0, 0.0 };
 
     // clang-format off
-#define ERROR_ARGS                                                              \
+#define REDUCTION_VARIABLES                                                     \
+    atm_resets, errors_numer_SD[:3], errors_denom_SD[:3],                       \
     errors_numer_rho, errors_numer_tau, errors_numer_Y_e, errors_numer_entropy, \
-    errors_denom_rho, errors_denom_tau, errors_denom_Y_e, errors_denom_entropy, \
-    errors_numer_SD[:3], errors_denom_SD[:3]
+    errors_denom_rho, errors_denom_tau, errors_denom_Y_e, errors_denom_entropy
     // clang-format on
 
-#pragma omp parallel for reduction(+ : atm_resets, ERROR_ARGS)
+#pragma omp parallel for reduction(+ : REDUCTION_VARIABLES)
     LOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
         ghl_con2prim_diagnostics diagnostics = { 0 };

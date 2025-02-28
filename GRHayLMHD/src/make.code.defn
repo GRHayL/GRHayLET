@@ -7,4 +7,7 @@ SRCS = Convert_to_HydroBase.c \
        Outer_Boundaries_EM_FourPotential.c \
        Compute_Magnetic_Fields.c \
        Compute_RHSs_Sources.c \
-       Compute_RHSs_Fluxes.c
+       Compute_RHSs_Fluxes.c \
+       RegisterGroups.c \
+       RegisterSymmetries.c \
+       SyncConservatives.c

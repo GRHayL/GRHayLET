@@ -49,7 +49,7 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
     OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
         ghl_metric_quantities metric = { 0 };
-        GRHAYLMHD_LOAD_METRIC(metric);
+        GRHAYLMHD_PACK_METRIC(metric);
 
         ghl_metric_quantities metric_derivs[3] = { { 0 }, { 0 }, { 0 } };
         GRHAYLMHD_COMPUTE_METRIC_DERIVS(metric_derivs[0], inv_dx, 1, 0, 0);
@@ -57,10 +57,10 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
         GRHAYLMHD_COMPUTE_METRIC_DERIVS(metric_derivs[2], inv_dz, 0, 0, 1);
 
         ghl_primitive_quantities prims = { 0 };
-        GRHAYLMHD_LOAD_PRIMS(prims);
+        GRHAYLMHD_PACK_PRIMS(prims);
 
         ghl_extrinsic_curvature curv = { 0 };
-        GRHAYLMHD_LOAD_EXTRINSIC_CURVATURE(curv);
+        GRHAYLMHD_PACK_EXTRINSIC_CURVATURE(curv);
 
         ghl_conservative_quantities sources = { 0 };
         ghl_calculate_source_terms(ghl_eos,

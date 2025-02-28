@@ -62,3 +62,12 @@ CCTK_REAL staggered_magnetic_fields type=GF TAGS='prolongation="none" interpnumt
 # Functions provided by other thorns
 CCTK_INT FUNCTION GetRefinementLevel(CCTK_POINTER_TO_CONST IN cctkGH)
 USES FUNCTION GetRefinementLevel
+
+CCTK_INT FUNCTION MoLRegisterEvolvedGroup(CCTK_INT IN var, CCTK_INT IN rhs)
+USES FUNCTION MoLRegisterEvolvedGroup
+
+CCTK_INT FUNCTION MoLRegisterConstrainedGroup(CCTK_INT IN var)
+USES FUNCTION MoLRegisterConstrainedGroup
+
+CCTK_INT FUNCTION MoLRegisterSaveAndRestoreGroup(CCTK_INT IN var)
+USES FUNCTION MoLRegisterSaveAndRestoreGroup

@@ -54,20 +54,23 @@ void GRHayLMHD_Prim2Con_SinglePoint(CCTK_ARGUMENTS, const int ijk);
                               temperature[ijk], \
                               &struct_name);
 
-#define GRHAYLMHD_UNPACK_PRIMS(struct_name) \
-    ghl_return_primitives(&struct_name,     \
-                          &rho[ijk],        \
-                          &press[ijk],      \
-                          &eps[ijk],        \
-                          &vx[ijk],         \
-                          &vy[ijk],         \
-                          &vz[ijk],         \
-                          &0.0,             \
-                          &0.0,             \
-                          &0.0,             \
-                          &entropy[ijk],    \
-                          &Y_e[ijk],        \
-                          &temperature[ijk]);
+#define GRHAYLMHD_UNPACK_PRIMS(struct_name)       \
+    {                                             \
+        double BU[3] = { 0.0, 0.0, 0.0 };         \
+        ghl_return_primitives(&struct_name,       \
+                              &rho[ijk],          \
+                              &press[ijk],        \
+                              &eps[ijk],          \
+                              &vx[ijk],           \
+                              &vy[ijk],           \
+                              &vz[ijk],           \
+                              &BU[0],             \
+                              &BU[1],             \
+                              &BU[2],             \
+                              &entropy[ijk],      \
+                              &Y_e[ijk],          \
+                              &temperature[ijk]); \
+    }
 
 #define GRHAYLMHD_PACK_CONS(struct_name)         \
     ghl_initialize_conservatives(rho_tilde[ijk], \
