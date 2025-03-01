@@ -54,9 +54,12 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
     assert(ghl_params->calc_prim_guess == true);
 
     // WARNING: these bounds *do not* match IGM's, but I think they are correct.
-    const int imin = cctk_nghostzones[0], imax = cctk_lsh[0] - cctk_nghostzones[0];
-    const int jmin = cctk_nghostzones[1], jmax = cctk_lsh[1] - cctk_nghostzones[1];
-    const int kmin = cctk_nghostzones[2], kmax = cctk_lsh[2] - cctk_nghostzones[2];
+    // const int imin = cctk_nghostzones[0], imax = cctk_lsh[0] - cctk_nghostzones[0];
+    // const int jmin = cctk_nghostzones[1], jmax = cctk_lsh[1] - cctk_nghostzones[1];
+    // const int kmin = cctk_nghostzones[2], kmax = cctk_lsh[2] - cctk_nghostzones[2];
+    const int imin = 0, imax = cctk_lsh[0];
+    const int jmin = 0, jmax = cctk_lsh[1];
+    const int kmin = 0, kmax = cctk_lsh[2];
 
     CCTK_INT  atm_resets           = 0;
     CCTK_REAL errors_numer_rho     = 0.0;
@@ -77,13 +80,13 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
     errors_denom_rho, errors_denom_tau, errors_denom_Y_e, errors_denom_entropy
     // clang-format on
 
-#pragma omp parallel for reduction(+ : REDUCTION_VARIABLES)
+#pragma omp parallel for reduction(+ : REDUCTION_VARIABLES) schedule(static)
     LOOP3D(imin, imax, jmin, jmax, kmin, kmax)
     {
         ghl_con2prim_diagnostics diagnostics = { 0 };
 
         ghl_metric_quantities adm_metric = { 0 };
-        GRHAYLMHD_PACK_METRIC_ENFORCE_DETGAMMAEQ1(adm_metric);
+        GRHAYLMHD_PACK_METRIC(adm_metric);
 
         ghl_ADM_aux_quantities aux_metric = { 0 };
         ghl_compute_ADM_auxiliaries(&adm_metric, &aux_metric);

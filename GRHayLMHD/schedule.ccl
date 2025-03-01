@@ -52,20 +52,27 @@ SCHEDULE GRHayLMHD_Prim2Con IN HydroBase_Prim2ConInitial AFTER GRHayLMHD_Convert
 ###############################
 # CONSERVATIVES-TO-PRIMITIVES #
 ###############################
-SCHEDULE GRHayLMHD_SyncConservatives IN HydroBase_Con2Prim
+SCHEDULE GROUP GRHayLMHD_C2P IN HydroBase_Con2Prim
+{
+} "Compute primitiive variables from conservatives"
+
+SCHEDULE GRHayLMHD_SyncConservatives IN GRHayLMHD_C2P
 {
     LANG: C
     SYNC: hydro_conservatives
 } "Sync conservatives before Con2Prim"
 
-SCHEDULE GRHayLMHD_Con2Prim IN HydroBase_Con2Prim AFTER GRHayLMHD_SyncConservatives
+SCHEDULE GRHayLMHD_Con2Prim IN GRHayLMHD_C2P AFTER GRHayLMHD_SyncConservatives
 {
     LANG: C
 } "Conservatives-to-primitives"
 
-SCHEDULE GRHayLMHD_Outer_Boundaries_Hydro_Quantities IN HydroBase_Con2Prim AFTER GRHayLMHD_Con2Prim
+SCHEDULE GRHayLMHD_Outer_Boundaries_Hydro_Quantities IN GRHayLMHD_C2P AFTER GRHayLMHD_Con2Prim
 {
     LANG: C
+    SYNC: hydro_velocities,
+          HydroBase::rho, HydroBase::press, HydroBase::eps,
+          HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
 } "Outer boundaries to hydrodynamics quantities"
 
 ##########################

@@ -41,23 +41,24 @@ void GRHayLMHD_RegisterSymmetries(CCTK_ARGUMENTS)
     SET_GF_SYMMETRY_TO_VECZ("GRHayLMHD::vz");
 
     // Not sure we can support symmetries for staggered GFs
-    SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::Phi_tilde");
-    SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_x_tilde");
-    SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_y_tilde");
-    SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_z_tilde");
+    // SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::Phi_tilde");
+    // SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_x_tilde");
+    // SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_y_tilde");
+    // SET_GROUP_SYMMETRY_TO_SCALAR("GRHayLMHD::A_z_tilde");
 
+    // TODO: test if this works
     // Register boundary conditions for hydrodynamics quantities
-    if(!CCTK_IsFunctionAliased("Driver_SelectVarForBC")) {
-        CCTK_WARN(CCTK_WARN_ALERT, ">>>>> Driver_SelectVarForBC not aliased, SO NO BCS <<<<<");
-        return;
-    }
-    SET_GROUP_BC_TO_COPY("HydroBase::rho");
-    SET_GROUP_BC_TO_COPY("HydroBase::press");
-    SET_GROUP_BC_TO_COPY("HydroBase::eps");
-    SET_GROUP_BC_TO_COPY("HydroBase::Y_e");
-    SET_GROUP_BC_TO_COPY("HydroBase::temperature");
-    SET_GROUP_BC_TO_COPY("HydroBase::entropy");
-    SET_GROUP_BC_TO_COPY("HydroBase::w_lorentz");
-    SET_GROUP_BC_TO_COPY("GRHayLMHD::hydro_conservatives");
-    SET_GROUP_BC_TO_COPY("GRHayLMHD::hydro_velocities");
+    // if(!CCTK_IsFunctionAliased("Driver_SelectVarForBC")) {
+    //     CCTK_WARN(CCTK_WARN_ALERT, ">>>>> Driver_SelectVarForBC not aliased, SO NO BCS <<<<<");
+    //     return;
+    // }
+    // SET_GROUP_BC_TO_COPY("HydroBase::rho");
+    // SET_GROUP_BC_TO_COPY("HydroBase::press");
+    // SET_GROUP_BC_TO_COPY("HydroBase::eps");
+    // SET_GROUP_BC_TO_COPY("HydroBase::Y_e");
+    // SET_GROUP_BC_TO_COPY("HydroBase::temperature");
+    // SET_GROUP_BC_TO_COPY("HydroBase::entropy");
+    // SET_GROUP_BC_TO_COPY("HydroBase::w_lorentz");
+    // SET_GROUP_BC_TO_COPY("GRHayLMHD::hydro_conservatives");
+    // SET_GROUP_BC_TO_COPY("GRHayLMHD::hydro_velocities");
 }

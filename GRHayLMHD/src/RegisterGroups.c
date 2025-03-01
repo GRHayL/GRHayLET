@@ -1,6 +1,6 @@
 #include "GRHayLMHD.h"
 
-#define NUM_EVOLVED_GROUPS     (5)
+#define NUM_EVOLVED_GROUPS     (1)
 #define NUM_CONSTRAINED_GROUPS (9)
 #define NUM_RESTORED_GROUPS    (4)
 
@@ -15,10 +15,10 @@ void GRHayLMHD_RegisterGroups(CCTK_ARGUMENTS)
 
     const group_t evolved_groups[NUM_EVOLVED_GROUPS] = {
         { "GRHayLMHD::hydro_conservatives", "GRHayLMHD::hydro_rhss" },
-        { "GRHayLMHD::Phi_tilde", "GRHayLMHD::Phi_rhs" },
-        { "GRHayLMHD::A_x_tilde", "GRHayLMHD::A_x_rhs" },
-        { "GRHayLMHD::A_y_tilde", "GRHayLMHD::A_y_rhs" },
-        { "GRHayLMHD::A_z_tilde", "GRHayLMHD::A_z_rhs" },
+        // { "GRHayLMHD::Phi_tilde", "GRHayLMHD::Phi_rhs" },
+        // { "GRHayLMHD::A_x_tilde", "GRHayLMHD::A_x_rhs" },
+        // { "GRHayLMHD::A_y_tilde", "GRHayLMHD::A_y_rhs" },
+        // { "GRHayLMHD::A_z_tilde", "GRHayLMHD::A_z_rhs" },
     };
 
     for(int n = 0; n < NUM_EVOLVED_GROUPS; n++) {

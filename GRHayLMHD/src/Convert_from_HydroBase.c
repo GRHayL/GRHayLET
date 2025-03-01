@@ -17,10 +17,10 @@ void GRHayLMHD_Convert_from_HydroBase(CCTK_ARGUMENTS)
         vy[ijk] = alpL * vel[ijky] - betay[ijk];
         vz[ijk] = alpL * vel[ijkz] - betaz[ijk];
 
-        A_x_tilde[ijk] = Avec[ijkx];
-        A_y_tilde[ijk] = Avec[ijky];
-        A_z_tilde[ijk] = Avec[ijkz];
-        Phi_tilde[ijk] = Aphi[ijk];
+        // A_x_tilde[ijk] = Avec[ijkx];
+        // A_y_tilde[ijk] = Avec[ijky];
+        // A_z_tilde[ijk] = Avec[ijkz];
+        // Phi_tilde[ijk] = Aphi[ijk];
     }
     ENDLOOP3D
 }

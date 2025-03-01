@@ -40,6 +40,7 @@ void GRHayLMHD_Prim2Con_SinglePoint(CCTK_ARGUMENTS, const int ijk);
 
 // Useful macros for packing/unpacking GRHayL's structs from/to gridfunctions.
 #define GRHAYLMHD_PACK_PRIMS(struct_name)       \
+    struct_name.u0 = u0[ijk];                   \
     ghl_initialize_primitives(rho[ijk],         \
                               press[ijk],       \
                               eps[ijk],         \
@@ -55,6 +56,7 @@ void GRHayLMHD_Prim2Con_SinglePoint(CCTK_ARGUMENTS, const int ijk);
                               &struct_name);
 
 #define GRHAYLMHD_UNPACK_PRIMS(struct_name)       \
+    u0[ijk] = struct_name.u0;                     \
     {                                             \
         double BU[3] = { 0.0, 0.0, 0.0 };         \
         ghl_return_primitives(&struct_name,       \
