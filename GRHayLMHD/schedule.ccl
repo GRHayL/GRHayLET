@@ -56,7 +56,7 @@ SCHEDULE GROUP GRHayLMHD_C2P IN HydroBase_Con2Prim
 {
 } "Compute primitiive variables from conservatives"
 
-SCHEDULE GRHayLMHD_SyncConservatives IN GRHayLMHD_C2P
+SCHEDULE GRHayLMHD_Empty IN GRHayLMHD_C2P AS GRHayLMHD_SyncConservatives
 {
     LANG: C
     SYNC: hydro_conservatives

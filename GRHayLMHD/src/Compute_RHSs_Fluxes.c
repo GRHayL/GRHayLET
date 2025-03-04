@@ -18,33 +18,39 @@ typedef void (*ghl_flux_func_t)(ghl_primitive_quantities *restrict prims_r,
 #define PPM_STENCIL_SIZE (5)
 #define STENCIL_SIZE     (PPM_STENCIL_SIZE + 1)
 
-#define GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(struct_name) \
-    struct_name.temperature = temperature[ijk];                \
-    ghl_tabulated_compute_eps_T_from_P(ghl_eos,                \
-                                       struct_name.rho,        \
-                                       struct_name.Y_e,        \
-                                       struct_name.press,      \
-                                       &struct_name.eps,       \
-                                       &struct_name.temperature);
+#define GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, p)                           \
+    {                                                                             \
+        p.temperature      = temperature[ijk];                                    \
+        bool speed_limited = false;                                               \
+        (void)ghl_limit_v_and_compute_u0(ghl_params, &m, &p, &speed_limited);     \
+        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &p.rho, &p.Y_e, &p.press); \
+        ghl_tabulated_compute_eps_T_from_P(ghl_eos,                               \
+                                           p.rho,                                 \
+                                           p.Y_e,                                 \
+                                           p.press,                               \
+                                           &p.eps,                                \
+                                           &p.temperature);                       \
+    }
 
-#define GRHAYLMHD_RECONSTRUCT_HD(pr, pl, ps, dir)                       \
-    {                                                                   \
-        CCTK_REAL ftilde[2];                                            \
-        ghl_compute_ftilde(ghl_params, ps.press, ps.vU[dir], ftilde);   \
-        ghl_ppm_reconstruction_with_steepening(ghl_params,              \
-                                               ps.press,                \
-                                               1.0,                     \
-                                               ftilde,                  \
-                                               ps.rho,                  \
-                                               &pr.rho,                 \
-                                               &pl.rho);                \
-        ghl_ppm_reconstruction(ftilde, ps.press, &pr.press, &pl.press); \
-        ghl_ppm_reconstruction(ftilde, ps.Y_e, &pr.Y_e, &pl.press);     \
-        ghl_ppm_reconstruction(ftilde, ps.vU[0], &pr.vU[0], &pl.vU[0]); \
-        ghl_ppm_reconstruction(ftilde, ps.vU[1], &pr.vU[1], &pl.vU[1]); \
-        ghl_ppm_reconstruction(ftilde, ps.vU[2], &pr.vU[2], &pl.vU[2]); \
-        GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(pr);                  \
-        GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(pl);                  \
+#define GRHAYLMHD_RECONSTRUCT_HD(m, pr, pl, ps, dir)                          \
+    {                                                                         \
+        CCTK_REAL ftilde[2];                                                  \
+        ghl_compute_ftilde(ghl_params, ps.press, ps.vU[dir], ftilde);         \
+        ghl_ppm_reconstruction_with_steepening(ghl_params,                    \
+                                               ps.press,                      \
+                                               1.0,                           \
+                                               ftilde,                        \
+                                               ps.rho,                        \
+                                               &pr.rho,                       \
+                                               &pl.rho);                      \
+        ghl_ppm_reconstruction(ftilde, ps.press, &pr.press, &pl.press);       \
+        ghl_ppm_reconstruction(ftilde, ps.vU[0], &pr.vU[0], &pl.vU[0]);       \
+        ghl_ppm_reconstruction(ftilde, ps.vU[1], &pr.vU[1], &pl.vU[1]);       \
+        ghl_ppm_reconstruction(ftilde, ps.vU[2], &pr.vU[2], &pl.vU[2]);       \
+        ghl_ppm_reconstruction(ftilde, ps.Y_e, &pr.Y_e, &pl.Y_e);             \
+        ghl_ppm_reconstruction(ftilde, ps.entropy, &pr.entropy, &pl.entropy); \
+        GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, pr);                     \
+        GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, pl);                     \
     }
 
 typedef struct {
@@ -54,6 +60,40 @@ typedef struct {
     double vU[3][STENCIL_SIZE];
     double entropy[STENCIL_SIZE];
 } ppm_reconstruction_stencil;
+
+#define GRHAYLMHD_INTERP_TO_FACE(gf, m2, m1, p1) \
+    ((-1.0 / 16.0) * (gf[p1] + gf[m2]) + (9.0 / 16.0) * (gf[ijk] + gf[m1]))
+#define GRHAYLMHD_INTERP_METRIC_TO_FACE(face_struct, flux_dir)                     \
+    {                                                                              \
+        const int di = kronecker_delta[flux_dir][0];                               \
+        const int dj = kronecker_delta[flux_dir][1];                               \
+        const int dk = kronecker_delta[flux_dir][2];                               \
+        const int m2 = CCTK_GFINDEX3D(cctkGH, i - 2 * di, j - 2 * dj, k - 2 * dk); \
+        const int m1 = CCTK_GFINDEX3D(cctkGH, i - 1 * di, j - 1 * dj, k - 1 * dk); \
+        const int p1 = CCTK_GFINDEX3D(cctkGH, i + 1 * di, j + 1 * dj, k + 1 * dk); \
+                                                                                   \
+        const CCTK_REAL face_alp   = GRHAYLMHD_INTERP_TO_FACE(alp, m2, m1, p1);    \
+        const CCTK_REAL face_betax = GRHAYLMHD_INTERP_TO_FACE(betax, m2, m1, p1);  \
+        const CCTK_REAL face_betay = GRHAYLMHD_INTERP_TO_FACE(betay, m2, m1, p1);  \
+        const CCTK_REAL face_betaz = GRHAYLMHD_INTERP_TO_FACE(betaz, m2, m1, p1);  \
+        const CCTK_REAL face_gxx   = GRHAYLMHD_INTERP_TO_FACE(gxx, m2, m1, p1);    \
+        const CCTK_REAL face_gxy   = GRHAYLMHD_INTERP_TO_FACE(gxy, m2, m1, p1);    \
+        const CCTK_REAL face_gxz   = GRHAYLMHD_INTERP_TO_FACE(gxz, m2, m1, p1);    \
+        const CCTK_REAL face_gyy   = GRHAYLMHD_INTERP_TO_FACE(gyy, m2, m1, p1);    \
+        const CCTK_REAL face_gyz   = GRHAYLMHD_INTERP_TO_FACE(gyz, m2, m1, p1);    \
+        const CCTK_REAL face_gzz   = GRHAYLMHD_INTERP_TO_FACE(gzz, m2, m1, p1);    \
+        ghl_initialize_metric(face_alp,                                            \
+                              face_betax,                                          \
+                              face_betay,                                          \
+                              face_betaz,                                          \
+                              face_gxx,                                            \
+                              face_gxy,                                            \
+                              face_gxz,                                            \
+                              face_gyy,                                            \
+                              face_gyz,                                            \
+                              face_gzz,                                            \
+                              &face_struct);                                       \
+    }
 
 void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
 {
@@ -91,8 +131,8 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
     for(int flux_dir = 0; flux_dir < 3; flux_dir++) {
         OMPLOOP3D(imin, imax + 1, jmin, jmax + 1, kmin, kmax + 1)
         {
-            ghl_metric_quantities adm_metric = { 0 };
-            GRHAYLMHD_PACK_METRIC(adm_metric);
+            ghl_metric_quantities metric_face = { 0 };
+            GRHAYLMHD_INTERP_METRIC_TO_FACE(metric_face, flux_dir)
 
             // Stencil is points -3, -2, -1, 0, +1, +2
             ppm_reconstruction_stencil prims_stencil = { 0 };
@@ -112,16 +152,16 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
             }
 
             ghl_primitive_quantities prims_r = { 0 }, prims_l = { 0 };
-            GRHAYLMHD_RECONSTRUCT_HD(prims_r, prims_l, prims_stencil, flux_dir);
+            GRHAYLMHD_RECONSTRUCT_HD(metric_face, prims_r, prims_l, prims_stencil, flux_dir);
 
             double cmin = 0, cmax = 0;
-            ghl_cmin_cmax_funcs[flux_dir](&prims_r, &prims_l, ghl_eos, &adm_metric, &cmin, &cmax);
+            ghl_cmin_cmax_funcs[flux_dir](&prims_r, &prims_l, ghl_eos, &metric_face, &cmin, &cmax);
 
             ghl_conservative_quantities fluxes = { 0 };
             ghl_flux_funcs[flux_dir](&prims_r,
                                      &prims_l,
                                      ghl_eos,
-                                     &adm_metric,
+                                     &metric_face,
                                      cmin,
                                      cmax,
                                      &fluxes);

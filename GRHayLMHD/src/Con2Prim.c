@@ -18,31 +18,28 @@
 #define GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(s, v) \
     s.v = errors_denom_##v == 0 ? 0 : errors_numer_##v / errors_denom_##v;
 
-#define GRHAYLMHD_PRINT_CON2PRIM_DIAGNOSTICS                                                 \
-    {                                                                                        \
-        ghl_conservative_quantities cons_errors = { 0 };                                     \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, rho);                                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, tau);                                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[0]);                                \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[1]);                                \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[2]);                                \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, Y_e);                                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, entropy);                              \
-        const int ntotal = (imax - imin) * (jmax - jmin) * (kmax - kmin);                    \
-        CCTK_VINFO("Con2Prim -- It. %d -- Ref. Lev. %d -- ATM Resets: %d / %d",              \
-                   cctk_iteration,                                                           \
-                   GetRefinementLevel(cctkGH),                                               \
-                   atm_resets,                                                               \
-                   ntotal);                                                                  \
-        CCTK_VINFO("  rho %.2e -- tau %.2e -- S_x %.2e -- S_y %.2e -- S_z %.2e -- Y_e %.2e " \
-                   "-- ent %.2e",                                                            \
-                   cons_errors.rho,                                                          \
-                   cons_errors.tau,                                                          \
-                   cons_errors.SD[0],                                                        \
-                   cons_errors.SD[1],                                                        \
-                   cons_errors.SD[2],                                                        \
-                   cons_errors.Y_e,                                                          \
-                   cons_errors.entropy);                                                     \
+#define GRHAYLMHD_PRINT_CON2PRIM_DIAGNOSTICS                                                      \
+    {                                                                                             \
+        ghl_conservative_quantities cons_errors = { 0 };                                          \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, rho);                                       \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, tau);                                       \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[0]);                                     \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[1]);                                     \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[2]);                                     \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, Y_e);                                       \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, entropy);                                   \
+        const CCTK_REAL ntotal = (imax - imin) * (jmax - jmin) * (kmax - kmin);                   \
+        CCTK_VINFO("C2P It. %d Ref. Lev. %d ATM: %.1f%% Err: %.2e %.2e %.2e %.2e %.2e %.2e %.2e", \
+                   cctk_iteration,                                                                \
+                   GetRefinementLevel(cctkGH),                                                    \
+                   100 * atm_resets / ntotal,                                                     \
+                   cons_errors.rho,                                                               \
+                   cons_errors.tau,                                                               \
+                   cons_errors.SD[0],                                                             \
+                   cons_errors.SD[1],                                                             \
+                   cons_errors.SD[2],                                                             \
+                   cons_errors.Y_e,                                                               \
+                   cons_errors.entropy);                                                          \
     }
 
 void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
