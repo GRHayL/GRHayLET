@@ -70,9 +70,6 @@ SCHEDULE GRHayLMHD_Con2Prim IN GRHayLMHD_C2P AFTER GRHayLMHD_SyncConservatives
 SCHEDULE GRHayLMHD_Outer_Boundaries_Hydro_Quantities IN GRHayLMHD_C2P AFTER GRHayLMHD_Con2Prim
 {
     LANG: C
-    SYNC: hydro_velocities,
-          HydroBase::rho, HydroBase::press, HydroBase::eps,
-          HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
 } "Outer boundaries to hydrodynamics quantities"
 
 ##########################
