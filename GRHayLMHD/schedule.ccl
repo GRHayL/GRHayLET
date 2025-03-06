@@ -42,13 +42,11 @@ SCHEDULE GRHayLMHD_RegisterSymmetries AT BASEGRID
 SCHEDULE GRHayLMHD_Convert_from_HydroBase IN HydroBase_Prim2ConInitial
 {
     LANG: C
-    SYNC: hydro_velocities
 } "Convert quantities from HydroBase to GRHayLMHD"
 
 SCHEDULE GRHayLMHD_Prim2Con IN HydroBase_Prim2ConInitial AFTER GRHayLMHD_Convert_from_HydroBase
 {
     LANG: C
-    SYNC: hydro_conservatives
 } "Initial primitives-to-conservatives"
 
 ###############################
@@ -72,9 +70,6 @@ SCHEDULE GRHayLMHD_Con2Prim IN GRHayLMHD_C2P AFTER GRHayLMHD_SyncConservatives
 SCHEDULE GRHayLMHD_Outer_Boundaries_Hydro_Quantities IN GRHayLMHD_C2P AFTER GRHayLMHD_Con2Prim
 {
     LANG: C
-    SYNC: hydro_velocities,
-          HydroBase::rho, HydroBase::press,
-          HydroBase::eps, HydroBase::entropy
 } "Outer boundaries to hydrodynamics quantities"
 
 ##########################

@@ -25,41 +25,43 @@ static void print_header(const int it)
     DECLARE_CCTK_PARAMETERS;
     static int prev_iteration = 0;
 
-    if(prev_iteration == it && !(it == 1 || (it % output_info_header_every) == 0)) {
-        return;
+    const bool new_iteration = (prev_iteration != it);
+    const bool time_to_print = (it == 1 || (it % output_info_header_every) == 0);
+    if(new_iteration && time_to_print) {
+        // clang-format off
+        prev_iteration = it;
+        puts("--------.--------.----.-------..---------.---------.---------.---------.---------.---------.---------");
+        puts("     It |  Time  | RL | ATM % ||   rho   |   tau   |   S_x   |   S_y   |   S_z   |   Y_e   |  Ent");
+        puts("--------.--------.----.-------..---------.---------.---------.---------.---------.---------.---------");
+        // clang-format on
     }
-
-    prev_iteration = it;
-    puts("--------.--------.--------.-------..------------------.-------.-------.-------.-------.-------.-------");
-    puts("     It |  Time  | RefLev | ATM % || Errors ->   rho  |  tau  |  S_x  |  S_y  |  S_z  |  Y_e  | Ent");
-    puts("--------.--------.--------.-------..------------------.-------.-------.-------.-------.-------.-------");
 }
 
-#define GRHAYLMHD_PRINT_CON2PRIM_DIAGNOSTICS                                   \
-    {                                                                          \
-        const int ref_lev = GetRefinementLevel(cctkGH);                        \
-        print_header(cctk_iteration);                                          \
-        ghl_conservative_quantities cons_errors = { 0 };                       \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, rho);                    \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, tau);                    \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[0]);                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[1]);                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[2]);                  \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, Y_e);                    \
-        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, entropy);                \
-        const CCTK_INT ntotal = (imax - imin) * (jmax - jmin) * (kmax - kmin); \
-        printf("%8d %.2e %5d %10.1f %19.1e %.1e %.1e %.1e %.1e %.1e %.1e\n",   \
-               cctk_iteration,                                                 \
-               cctk_time,                                                      \
-               ref_lev,                                                        \
-               100.0 * atm_resets / (CCTK_REAL)ntotal,                         \
-               cons_errors.rho,                                                \
-               cons_errors.tau,                                                \
-               cons_errors.SD[0],                                              \
-               cons_errors.SD[1],                                              \
-               cons_errors.SD[2],                                              \
-               cons_errors.Y_e,                                                \
-               cons_errors.entropy);                                           \
+#define GRHAYLMHD_PRINT_CON2PRIM_DIAGNOSTICS                                            \
+    {                                                                                   \
+        const int ref_lev = GetRefinementLevel(cctkGH);                                 \
+        print_header(cctk_iteration);                                                   \
+        ghl_conservative_quantities cons_errors = { 0 };                                \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, rho);                             \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, tau);                             \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[0]);                           \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[1]);                           \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, SD[2]);                           \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, Y_e);                             \
+        GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, entropy);                         \
+        const CCTK_INT ntotal = (imax - imin) * (jmax - jmin) * (kmax - kmin);          \
+        printf("%8d %.2e %3d %7.1f  %9.1e   %.1e   %.1e   %.1e   %.1e   %.1e   %.1e\n", \
+               cctk_iteration,                                                          \
+               cctk_time,                                                               \
+               ref_lev,                                                                 \
+               100.0 * atm_resets / (CCTK_REAL)ntotal,                                  \
+               cons_errors.rho,                                                         \
+               cons_errors.tau,                                                         \
+               cons_errors.SD[0],                                                       \
+               cons_errors.SD[1],                                                       \
+               cons_errors.SD[2],                                                       \
+               cons_errors.Y_e,                                                         \
+               cons_errors.entropy);                                                    \
     }
 
 void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
