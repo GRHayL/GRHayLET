@@ -47,7 +47,7 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
         1.0 / CCTK_DELTA_SPACE(2),
     };
 
-    static const CCTK_REAL kronecker_delta[3][3] = {
+    static const CCTK_INT kronecker_delta[3][3] = {
         { 1, 0, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 },
@@ -69,6 +69,8 @@ void GRHayLMHD_Compute_RHSs_Sources(CCTK_ARGUMENTS)
 
         ghl_primitive_quantities prims = { 0 };
         GRHAYLMHD_PACK_PRIMS(prims);
+        bool speed_limited = false;
+        (void)ghl_limit_v_and_compute_u0(ghl_params, &metric, &prims, &speed_limited);
 
         ghl_extrinsic_curvature curv = { 0 };
         GRHAYLMHD_PACK_EXTRINSIC_CURVATURE(curv);

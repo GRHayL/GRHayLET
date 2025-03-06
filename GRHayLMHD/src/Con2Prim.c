@@ -18,35 +18,27 @@
 #define GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(s, v) \
     s.v = errors_denom_##v == 0 ? 0 : errors_numer_##v / errors_denom_##v;
 
-#define GRHAYLMHD_PRINT_CON2PRIM_HEADER                    \
-    puts("     It |  Time  | RefLev | ATM % || Errors -> " \
-         "  rho  |  tau  |  S_x  |  S_y  |  S_z  |  Y_e  | Ent");
-//         1234567 1.1e+00     0      1234567   1.1
-//    1.1e+00 1.1e+00 1.1e+00 1.1e+00 1.1e+00 1.1e+00 1.1e+00
+#define GRHAYLMHD_PRINT_CON2PRIM_HEADER
 
-static bool print_header_this_iteration(const int it)
+static void print_header(const int it)
 {
     DECLARE_CCTK_PARAMETERS;
     static int prev_iteration = 0;
 
-    if(prev_iteration == it) {
-        return false;
+    if(prev_iteration == it && !(it == 1 || (it % output_info_header_every) == 0)) {
+        return;
     }
 
-    if(it == 1 || (it % output_info_header_every) == 0) {
-        prev_iteration = it;
-        return true;
-    }
-
-    return false;
+    prev_iteration = it;
+    puts("--------.--------.--------.-------..------------------.-------.-------.-------.-------.-------.-------");
+    puts("     It |  Time  | RefLev | ATM % || Errors ->   rho  |  tau  |  S_x  |  S_y  |  S_z  |  Y_e  | Ent");
+    puts("--------.--------.--------.-------..------------------.-------.-------.-------.-------.-------.-------");
 }
 
 #define GRHAYLMHD_PRINT_CON2PRIM_DIAGNOSTICS                                   \
     {                                                                          \
         const int ref_lev = GetRefinementLevel(cctkGH);                        \
-        if(print_header_this_iteration(cctk_iteration)) {                      \
-            GRHAYLMHD_PRINT_CON2PRIM_HEADER;                                   \
-        }                                                                      \
+        print_header(cctk_iteration);                                          \
         ghl_conservative_quantities cons_errors = { 0 };                       \
         GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, rho);                    \
         GRHAYLMHD_COMPUTE_FINAL_ERROR_OF(cons_errors, tau);                    \

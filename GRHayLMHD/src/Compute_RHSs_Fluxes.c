@@ -1,5 +1,16 @@
 #include "GRHayLMHD.h"
 
+#define PPM_STENCIL_SIZE (5)
+#define STENCIL_SIZE     (PPM_STENCIL_SIZE + 1)
+
+typedef struct {
+    double rho[STENCIL_SIZE];
+    double press[STENCIL_SIZE];
+    double Y_e[STENCIL_SIZE];
+    double vU[3][STENCIL_SIZE];
+    double entropy[STENCIL_SIZE];
+} ppm_reconstruction_stencil;
+
 typedef void (*ghl_cmin_cmax_func_t)(ghl_primitive_quantities *restrict prims_r,
                                      ghl_primitive_quantities *restrict prims_l,
                                      const ghl_eos_parameters *restrict eos,
@@ -14,9 +25,6 @@ typedef void (*ghl_flux_func_t)(ghl_primitive_quantities *restrict prims_r,
                                 const double cmin,
                                 const double cmax,
                                 ghl_conservative_quantities *restrict cons_fluxes);
-
-#define PPM_STENCIL_SIZE (5)
-#define STENCIL_SIZE     (PPM_STENCIL_SIZE + 1)
 
 #define GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, p)                           \
     {                                                                             \
@@ -34,7 +42,7 @@ typedef void (*ghl_flux_func_t)(ghl_primitive_quantities *restrict prims_r,
 
 #define GRHAYLMHD_RECONSTRUCT_HD(m, pr, pl, ps, dir)                          \
     {                                                                         \
-        CCTK_REAL ftilde[2];                                                  \
+        CCTK_REAL ftilde[2] = { 0.0, 0.0 };                                   \
         ghl_compute_ftilde(ghl_params, ps.press, ps.vU[dir], ftilde);         \
         ghl_ppm_reconstruction_with_steepening(ghl_params,                    \
                                                ps.press,                      \
@@ -52,14 +60,6 @@ typedef void (*ghl_flux_func_t)(ghl_primitive_quantities *restrict prims_r,
         GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, pr);                     \
         GRHAYLMHD_COMPUTE_REMAINING_PRIMS_AT_FACE(m, pl);                     \
     }
-
-typedef struct {
-    double rho[STENCIL_SIZE];
-    double press[STENCIL_SIZE];
-    double Y_e[STENCIL_SIZE];
-    double vU[3][STENCIL_SIZE];
-    double entropy[STENCIL_SIZE];
-} ppm_reconstruction_stencil;
 
 #define GRHAYLMHD_INTERP_TO_FACE(gf, m2, m1, p1) \
     ((-1.0 / 16.0) * (gf[p1] + gf[m2]) + (9.0 / 16.0) * (gf[ijk] + gf[m1]))
@@ -104,13 +104,7 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
     const int jmin = cctk_nghostzones[1], jmax = cctk_lsh[1] - cctk_nghostzones[1];
     const int kmin = cctk_nghostzones[2], kmax = cctk_lsh[2] - cctk_nghostzones[2];
 
-    const CCTK_REAL inv_h[3] = {
-        1.0 / CCTK_DELTA_SPACE(0),
-        1.0 / CCTK_DELTA_SPACE(1),
-        1.0 / CCTK_DELTA_SPACE(2),
-    };
-
-    static const CCTK_REAL kronecker_delta[3][3] = {
+    static const CCTK_INT kronecker_delta[3][3] = {
         { 1, 0, 0 },
         { 0, 1, 0 },
         { 0, 0, 1 },
@@ -176,6 +170,8 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
         }
         ENDLOOP3D
 
+        const CCTK_REAL inv_h = 1.0 / CCTK_DELTA_SPACE(flux_dir);
+
         OMPLOOP3D(imin, imax, jmin, jmax, kmin, kmax)
         {
             const int ip     = i + kronecker_delta[flux_dir][0];
@@ -183,13 +179,13 @@ void GRHayLMHD_Compute_RHSs_Fluxes(CCTK_ARGUMENTS)
             const int kp     = k + kronecker_delta[flux_dir][2];
             const int ijk_p1 = CCTK_GFINDEX3D(cctkGH, ip, jp, kp);
 
-            rho_rhs[ijk] -= (rho_flux[ijk_p1] - rho_flux[ijk]) * inv_h[flux_dir];
-            tau_rhs[ijk] -= (tau_flux[ijk_p1] - tau_flux[ijk]) * inv_h[flux_dir];
-            S_x_rhs[ijk] -= (S_x_flux[ijk_p1] - S_x_flux[ijk]) * inv_h[flux_dir];
-            S_y_rhs[ijk] -= (S_y_flux[ijk_p1] - S_y_flux[ijk]) * inv_h[flux_dir];
-            S_z_rhs[ijk] -= (S_z_flux[ijk_p1] - S_z_flux[ijk]) * inv_h[flux_dir];
-            Y_e_rhs[ijk] -= (Y_e_flux[ijk_p1] - Y_e_flux[ijk]) * inv_h[flux_dir];
-            ent_rhs[ijk] -= (ent_flux[ijk_p1] - ent_flux[ijk]) * inv_h[flux_dir];
+            rho_rhs[ijk] -= (rho_flux[ijk_p1] - rho_flux[ijk]) * inv_h;
+            tau_rhs[ijk] -= (tau_flux[ijk_p1] - tau_flux[ijk]) * inv_h;
+            S_x_rhs[ijk] -= (S_x_flux[ijk_p1] - S_x_flux[ijk]) * inv_h;
+            S_y_rhs[ijk] -= (S_y_flux[ijk_p1] - S_y_flux[ijk]) * inv_h;
+            S_z_rhs[ijk] -= (S_z_flux[ijk_p1] - S_z_flux[ijk]) * inv_h;
+            Y_e_rhs[ijk] -= (Y_e_flux[ijk_p1] - Y_e_flux[ijk]) * inv_h;
+            ent_rhs[ijk] -= (ent_flux[ijk_p1] - ent_flux[ijk]) * inv_h;
         }
         ENDLOOP3D
     }
