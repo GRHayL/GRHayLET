@@ -5,13 +5,6 @@ void GRHayLMHD_Convert_to_HydroBase(CCTK_ARGUMENTS)
     DECLARE_CCTK_ARGUMENTS;
     DECLARE_CCTK_PARAMETERS;
 
-    bool convert_enabled = Convert_to_HydroBase_every != 0;
-    bool time_to_convert = (cctk_iteration % Convert_to_HydroBase_every) == 0;
-
-    if(!convert_enabled || !time_to_convert) {
-        return;
-    }
-
     const int imin = 0, imax = cctk_lsh[0];
     const int jmin = 0, jmax = cctk_lsh[1];
     const int kmin = 0, kmax = cctk_lsh[2];

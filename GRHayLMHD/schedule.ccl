@@ -72,6 +72,11 @@ SCHEDULE GRHayLMHD_Outer_Boundaries_Hydro_Quantities IN GRHayLMHD_C2P AFTER GRHa
     LANG: C
 } "Outer boundaries to hydrodynamics quantities"
 
+SCHEDULE GRHayLMHD_Convert_to_HydroBase IN GRHayLMHD_C2P AFTER GRHayLMHD_Convert_to_HydroBase
+{
+    LANG: C
+} "Set hydrobase velocities and Lorentz factor"
+
 ##########################
 # GRMHD RIGHT-HAND SIDES #
 ##########################
