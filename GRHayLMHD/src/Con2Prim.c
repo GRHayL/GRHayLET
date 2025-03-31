@@ -64,6 +64,154 @@ static void print_header(const int it)
                cons_errors.entropy);                                                    \
     }
 
+static ghl_error_codes_t
+igm_entropy_con2prim_multi_method(const ghl_parameters *restrict params,
+                                  const ghl_eos_parameters *restrict eos,
+                                  const ghl_metric_quantities *restrict ADM_metric,
+                                  const ghl_ADM_aux_quantities *restrict metric_aux,
+                                  const ghl_conservative_quantities *restrict cons,
+                                  ghl_primitive_quantities *restrict prims,
+                                  ghl_con2prim_diagnostics *restrict diagnostics)
+{
+
+    if(params->calc_prim_guess) {
+        ghl_guess_primitives(eos, ADM_metric, cons, prims);
+    }
+
+    // Store primitive guesses (used if con2prim fails)
+    const ghl_primitive_quantities prims_guess = *prims;
+
+    // Backup 1 triggered
+    diagnostics->backup[1]  = true;
+    ghl_error_codes_t error = ghl_tabulated_Palenzuela1D_entropy(params,
+                                                                 eos,
+                                                                 ADM_metric,
+                                                                 metric_aux,
+                                                                 cons,
+                                                                 prims,
+                                                                 diagnostics);
+
+    if(error) {
+        // Reset guesses
+        *prims = prims_guess;
+
+        // Backup routine #1
+        error = ghl_tabulated_Palenzuela1D_energy(params,
+                                                  eos,
+                                                  ADM_metric,
+                                                  metric_aux,
+                                                  cons,
+                                                  prims,
+                                                  diagnostics);
+
+        if(error) {
+            diagnostics->backup[2] = false;
+
+            // Reset guesses
+            *prims = prims_guess;
+
+            // Backup routine #2
+            error = ghl_tabulated_Newman1D_entropy(params,
+                                                   eos,
+                                                   ADM_metric,
+                                                   metric_aux,
+                                                   cons,
+                                                   prims,
+                                                   diagnostics);
+
+            if(error) {
+                // Backup 3 triggered
+                diagnostics->backup[0] = true;
+
+                // Reset guesses
+                *prims = prims_guess;
+
+                // Backup routine #3
+                error = ghl_tabulated_Newman1D_energy(params,
+                                                      eos,
+                                                      ADM_metric,
+                                                      metric_aux,
+                                                      cons,
+                                                      prims,
+                                                      diagnostics);
+            }
+        }
+    }
+    return error;
+}
+
+static inline bool
+depsdT_check(const ghl_eos_parameters *eos, const double rho, const double Y_e, const double T)
+{
+    DECLARE_CCTK_PARAMETERS;
+
+    double P      = 0.0;
+    double eps    = 0.0;
+    double depsdT = 0.0;
+    ghl_tabulated_compute_P_eps_depsdT_from_T(eos, rho, Y_e, T, &P, &eps, &depsdT);
+
+    return depsdT < depsdT_threshold;
+}
+
+static inline double compute_W(const double q,
+                               const double r,
+                               const double s,
+                               const double t,
+                               const double x,
+                               const double inv_W_max_squared)
+{
+    double Wminus2 = 1.0 - (x * x * r + (2 * x + s) * t * t) / (x * x * (x + s) * (x + s));
+    Wminus2        = fmin(fmax(Wminus2, inv_W_max_squared), 1.0);
+    return pow(Wminus2, -0.5);
+}
+
+static inline bool use_entropy_check(const ghl_eos_parameters          *eos,
+                                     const ghl_metric_quantities       *ADM_metric,
+                                     const ghl_conservative_quantities *cons_undens,
+                                     const double                       T_guess,
+                                     const double                       inv_W_max_squared)
+{
+    double       SD[3]     = { cons_undens->SD[0], cons_undens->SD[1], cons_undens->SD[2] };
+    double       S_squared = ghl_compute_vec2_from_vec3D(ADM_metric->gammaUU, SD);
+    const double tau       = MAX(cons_undens->tau, 0.99 * eos->tau_atm);
+
+    const double S_squared_max = SQR(tau + cons_undens->rho);
+    if(S_squared > S_squared_max) {
+        // Step 2.2: Rescale S_{i}
+        const double rescale_factor = sqrt(0.9999 * S_squared_max / S_squared);
+        for(int i = 0; i < 3; i++) {
+            SD[i] *= rescale_factor;
+        }
+
+        // Step 2.3: Recompute S^{2}
+        S_squared = ghl_compute_vec2_from_vec3D(ADM_metric->gammaUU, SD);
+    }
+
+    const double invD = 1.0 / cons_undens->rho;
+    const double Y_e  = cons_undens->Y_e * invD;
+    const double q    = tau * invD;
+    const double r    = S_squared * invD * invD;
+    // zero magnetic fields
+    const double s    = 0.0;
+    const double t    = 0.0;
+
+    const double xlow     = 1.0 + q - s;
+    const double xlow_W   = compute_W(q, r, s, t, xlow, inv_W_max_squared);
+    const double xlow_rho = cons_undens->rho / xlow_W;
+    if(depsdT_check(eos, xlow_rho, Y_e, T_guess)) {
+        return true;
+    }
+
+    const double xup     = 2.0 + 2.0 * q - s;
+    const double xup_W   = compute_W(q, r, s, t, xup, inv_W_max_squared);
+    const double xup_rho = cons_undens->rho / xup_W;
+    if(depsdT_check(eos, xup_rho, Y_e, T_guess)) {
+        return true;
+    }
+
+    return false;
+}
+
 void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
 {
     DECLARE_CCTK_ARGUMENTS;
@@ -120,13 +268,35 @@ void GRHayLMHD_Con2Prim(CCTK_ARGUMENTS)
 
         ghl_primitive_quantities prims = { 0 };
 
-        ghl_error_codes_t error = ghl_con2prim_tabulated_multi_method(ghl_params,
-                                                                      ghl_eos,
-                                                                      &adm_metric,
-                                                                      &aux_metric,
-                                                                      &cons_undens,
-                                                                      &prims,
-                                                                      &diagnostics);
+        // Check whether or not to use the entropy equation first, following
+        // the logic inside IGM's con2prim. Note we hardcode T_guess for now.
+        const double T_guess = ghl_eos->T_max;
+
+        const bool use_entropy = use_entropy_check(ghl_eos,
+                                                   &adm_metric,
+                                                   &cons_undens,
+                                                   T_guess,
+                                                   ghl_params->inv_sq_max_Lorentz_factor);
+
+        ghl_error_codes_t error = ghl_success;
+        if(use_entropy) {
+            error = igm_entropy_con2prim_multi_method(ghl_params,
+                                                      ghl_eos,
+                                                      &adm_metric,
+                                                      &aux_metric,
+                                                      &cons_undens,
+                                                      &prims,
+                                                      &diagnostics);
+        }
+        else {
+            error = ghl_con2prim_tabulated_multi_method(ghl_params,
+                                                        ghl_eos,
+                                                        &adm_metric,
+                                                        &aux_metric,
+                                                        &cons_undens,
+                                                        &prims,
+                                                        &diagnostics);
+        }
 
         // TODO: averaging algorithm
         if(error) {

@@ -6,7 +6,12 @@ USES CCTK_BOOLEAN evolve_entropy
 
 #########################################################
 
-INT output_info_header_every "How often to output the info header (in multiples of cctk_iteration)"
+CCTK_INT output_info_header_every "How often to output the info header (in multiples of cctk_iteration)"
 {
   0:* :: "zero (diable) or positive (every N iterations)"
 } 256
+
+CCTK_REAL depsdT_threshold "If depsdT is smaller than this value, the entropy will be used during con2prim" STEERABLE=ALWAYS
+{
+  *:* :: "Can be anything. Negative values disable the entropy equation."
+} 1e-6
