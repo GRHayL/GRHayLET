@@ -42,7 +42,7 @@ void IllinoisGRMHD_A_flux_rhs(
         const int index_B1 = CCTK_GFINDEX3D(cctkGH,i+B1_offset[0],j+B1_offset[1],k+B1_offset[2]);
         const int index_B2 = CCTK_GFINDEX3D(cctkGH,i+B2_offset[0],j+B2_offset[1],k+B2_offset[2]);
 
-        HLL_vars vars;
+        ghl_HLL_vars vars;
 
         vars.v1rr = in_prims_r[VXR+dir1_offset][index_v];
         vars.v1rl = in_prims_l[VXR+dir1_offset][index_v];
