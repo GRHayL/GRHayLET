@@ -96,7 +96,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
                 &cons_undens, &prims, &diagnostics);
 
           if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
-                            prims.entropy)) {
+                            prims.entropy))
             error = ghl_error_c2p_singular;
         } else {
           ghl_set_prims_to_constant_atm(ghl_eos, &prims);
@@ -105,6 +105,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           error = ghl_success;
         }
 
+        if(error) {
           pointcount_avg++;
 
           // Reload cons for consistency (hybrid applies limits to cons)
