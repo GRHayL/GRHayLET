@@ -12,8 +12,6 @@ void GRHayLM1_compute_Tmunu(CCTK_ARGUMENTS){
 
         //Read in ADM quantities from grid functions
         //set ghl quantities
-        //TODO: Will m1_root_params be accessible globally like other ghl quantities? That means I would have access to E/F/P for assembly.
-        //I don't think I should have to be calcing the closure within this function...I think that should be done elsewhere, and then I access the E/F/P.
         m1_root_params ghl_m1_root_params;
         ghl_enforce_detgtij_and_initialize_ADM_metric(
           alp[index],
@@ -24,7 +22,7 @@ void GRHayLM1_compute_Tmunu(CCTK_ARGUMENTS){
 
         ghl_compute_ADM_auxiliaries(&ghl_m1_root_params.metric, &ghl_m1_root_params.adm_aux);
 
-        //Read in quantities for M1 treatment don't think I need these...
+        //Read in quantities for M1 treatment
         ghl_m1_root_params.prims.BU[0] = ghl_m1_root_params.prims.BU[1] = ghl_m1_root_params.prims.BU[2] = 0.0;
         ghl_m1_root_params.prims.rho = rho[index];
         ghl_m1_root_params.prims.press = press[index];
@@ -40,7 +38,7 @@ void GRHayLM1_compute_Tmunu(CCTK_ARGUMENTS){
         //double chi = 0.5;//chi determined by choice
 
 
-        //ghl_radiation_rootSolve_closure(&fparams);
+        ghl_radiation_rootSolve_closure(&ghl_m1_root_params);
         //ghl_radiation_apply_closure(&fparams.metric, &fparams.adm_aux, &fparams.prims,
         //                            fparams.E, &fparams.F4, chi, &fparams.P4);
         assemble_rT_lab_frame(&n4D, ghl_m1_root_params.E, &ghl_m1_root_params.F4, &ghl_m1_root_params.P4, &rTmunu);
