@@ -6,7 +6,7 @@
 
 #include "Symmetry.h"
 
-void GRHayLM1_set_symmetry(CCTK_ARGUMENTS){
+void GRHayLM1_InitSym(CCTK_ARGUMENTS){
   DECLARE_CCTK_ARGUMENTS_GRHayLM1_set_symmetry
   DECLARE_CCTK_PARAMETERS
 
