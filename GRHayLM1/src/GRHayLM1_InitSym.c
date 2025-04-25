@@ -7,8 +7,8 @@
 #include "Symmetry.h"
 
 void GRHayLM1_InitSym(CCTK_ARGUMENTS){
-  DECLARE_CCTK_ARGUMENTS_GRHayLM1_set_symmetry
-  DECLARE_CCTK_PARAMETERS
+  DECLARE_CCTK_PARAMETERS;
+  DECLARE_CCTK_ARGUMENTS;
 
   int size = 64;
   char vname[size]; 
@@ -18,7 +18,7 @@ void GRHayLM1_InitSym(CCTK_ARGUMENTS){
   int const sym_vecy[3] = {1,-1,1};
   int const sym_vecz[3] = {1,1,-1};
 
-  for (int i = 0; i < nspecies; ++i){
+  for (int i = 0; i < GRHayLM1_nspecies; ++i){
     snprintf(vname, size, "GRHayLM1::rN[%d]", i);
     SetCartSymVN(cctkGH, sym_scal, vname);
 

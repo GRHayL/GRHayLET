@@ -1,0 +1,4 @@
+CCTK_INT GRHayLM1_nspecies "Number of Neutrino species"
+{
+    1:* :: "Minimum of 1 species"
+} 3
