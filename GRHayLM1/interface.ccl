@@ -1,1 +1,9 @@
 implements: GRHayLM1
+inherits: ADMbase, Hydrobase, Tmunubase, GRHayLib
+
+CCTK_REAL GRHayLM1_rN[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 prolongation="none"' "Neutrino number density in lab frame"
+CCTK_REAL GRHayLM1_rE[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 prolongation="none"' "Energy density in lab frame"
+CCTK_REAL GRHayLM1_rF[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 prolongation="none"'
+{
+	GRHayLM1_rFx, GRHayLM1_rFy, GRHayLM1_rFz
+} "Radiation Flux in lab frame"

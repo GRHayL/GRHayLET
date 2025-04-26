@@ -1,1 +1,2 @@
-SRCS = GRHayLM1_InitSym.c
+SRCS = GRHayLM1_InitSym.c \
+       GRHayLM1_InitializeToZero.c
