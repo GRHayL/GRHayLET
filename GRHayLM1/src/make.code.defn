@@ -1,2 +1,3 @@
 SRCS = GRHayLM1_InitSym.c \
-       GRHayLM1_InitializeToZero.c
+       GRHayLM1_InitializeToZero.c \
+       GRHayLM1_compute_Tmunu.c

@@ -1,1 +1,17 @@
-#TODO
+# Begin storage stuff 
+# TODO
+# end storage stuff 
+
+# Begin function scheduling
+SCHEDULE GRHayLM1_InitSym AT CCTK_BASEGRID
+{
+    LANG: C
+    OPTIONS: GLOBAL
+} "Setup symmetries"
+
+SCHEDULE GRHayLM1_InitializeToZero AT CCTK_INITIAL
+# TODO(lrw): check if needed BEFORE (THC_M1_InitialData ReadInterpolate_ReadData)
+{
+    LANG: C
+} "Initialize everything to zero"
+# End function scheduling

@@ -4,19 +4,19 @@
 
 #include "Symmetry.h"
 
-void GRHayLM1_InitSym(CCTK_ARGUMENTS){
+void GRHayLM1_InitSym(CCTK_ARGUMENTS) {
   DECLARE_CCTK_PARAMETERS;
   DECLARE_CCTK_ARGUMENTS;
 
   int size = 64;
-  char vname[size]; 
+  char vname[size];
 
-  int const sym_scal[3] = {1,1,1};
-  int const sym_vecx[3] = {-1,1,1};
-  int const sym_vecy[3] = {1,-1,1};
-  int const sym_vecz[3] = {1,1,-1};
+  int const sym_scal[3] = {1, 1, 1};
+  int const sym_vecx[3] = {-1, 1, 1};
+  int const sym_vecy[3] = {1, -1, 1};
+  int const sym_vecz[3] = {1, 1, -1};
 
-  for (int i = 0; i < GRHayLM1_nspecies; ++i){
+  for (int i = 0; i < GRHayLM1_nspecies; ++i) {
     snprintf(vname, size, "GRHayLM1::rN[%d]", i);
     SetCartSymVN(cctkGH, sym_scal, vname);
 
@@ -31,8 +31,5 @@ void GRHayLM1_InitSym(CCTK_ARGUMENTS){
 
     snprintf(vname, size, "GRHayLM1::rFz[%d]", i);
     SetCartSymVN(cctkGH, sym_vecz, vname);
-
-
   }
-
 }
