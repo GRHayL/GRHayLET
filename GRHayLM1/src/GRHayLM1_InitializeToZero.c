@@ -1,8 +1,6 @@
 #include <string.h>
 
-#include "cctk.h"
-#include "cctk_Parameters.h"
-#include "cctk_Arguments.h"
+#include "GRHayLM1.h"
 
 void GRHayLM1_InitializeToZero(CCTK_ARGUMENTS){
 	DECLARE_CCTK_PARAMETERS;

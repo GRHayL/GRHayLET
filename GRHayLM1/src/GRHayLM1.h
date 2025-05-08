@@ -6,4 +6,4 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
-#endif GRHAYLM1_H
+#endif //GRHAYLM1_H

@@ -1,8 +1,6 @@
 #include <stdio.h>
 
-#include "cctk.h"
-#include "cctk_Parameters.h"
-#include "cctk_Arguments.h"
+#include "GRHayLM1.h"
 
 #include "Symmetry.h"
 
