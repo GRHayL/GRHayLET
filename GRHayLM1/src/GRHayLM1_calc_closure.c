@@ -1,0 +1,9 @@
+#include "GRHayLM1.h"
+
+void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
+  DECLARE_CCTK_PARAMETERS;
+  DECLARE_CCTK_ARGUMENTS;
+
+  
+
+}

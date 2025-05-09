@@ -1,1 +1,1 @@
-requires HDF5
+requires HDF5 GSL
