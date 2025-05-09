@@ -1,9 +1,4 @@
-<<<<<<< HEAD
-SRCS = GRHayLM1_InitSym.c \
-       GRHayLM1_InitializeToZero.c \
-       GRHayLM1_compute_Tmunu.c
-=======
 SRCS = GRHayLM1_calc_closure.c \
        GRHayLM1_InitSym.c \
-       GRHayLM1_InitializeToZero.c
->>>>>>> 480724c (Started work on calc_closure, but not much is finished at the moment)
+       GRHayLM1_InitializeToZero.c \
+       GRHayLM1_compute_Tmunu.c
