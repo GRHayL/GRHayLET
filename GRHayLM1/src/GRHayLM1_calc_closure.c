@@ -26,18 +26,18 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
         ghl_compute_ADM_auxiliaries(&metric, &adm_aux);
 
         ghl_primitive_quantities prims = {0};
-        prims.rho = rho[index];
-        prims.press = press[index];
-        prims.eps = eps[index];
-        prims.entropy = entropy[index];
-        prims.Y_e = Y_e[index];
+        prims.rho         = rho[index];
+        prims.press       = press[index];
+        prims.eps         = eps[index];
+        prims.entropy     = entropy[index];
+        prims.Y_e         = Y_e[index];
         prims.temperature = temperature[index];
-        prims.vU[0] = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 0)] - betax[index];
-        prims.vU[1] = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 1)] - betay[index];
-        prims.vU[2] = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 2)] - betaz[index];
-        prims.BU[0] = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 0)];
-        prims.BU[1] = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 1)];
-        prims.BU[2] = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 2)];//TODO(DRB): Confirm correct calcs and settings from Hydrobase.
+        prims.vU[0]       = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 0)] - betax[index];
+        prims.vU[1]       = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 1)] - betay[index];
+        prims.vU[2]       = alp[index] * vel[CCTK_GFINDEX4D(cctkGH, i, j, k, 2)] - betaz[index];
+        prims.BU[0]       = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 0)];
+        prims.BU[1]       = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 1)];
+        prims.BU[2]       = Bvec[CCTK_GFINDEX4D(cctkGH, i, j, k, 2)];//TODO(DRB): Confirm correct calcs and settings from Hydrobase.
 
         bool speed_limited = false;
         ghl_enforce_primitive_limits_and_compute_u0(ghl_params, ghl_eos, &metric, &prims, &speed_limited);
@@ -66,16 +66,39 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
         P4.DD[3][1] = P4.DD[1][3];
         P4.DD[3][2] = P4.DD[2][3];
 
-        root_params.metric = &metric;
+        root_params.metric  = &metric;
         root_params.adm_aux = &adm_aux;
-        root_params.prims = &prims;
-        root_params.E = GRHayLM1_rE[index];
-        root_params.F4 = &F4;
-        root_params.P4 = &P4;
+        root_params.prims   = &prims;
+        root_params.E       = GRHayLM1_rE[index];
+        root_params.F4      = &F4;
+        root_params.P4      = &P4;
 
         ghl_radiation_rootSolve_closure(&root_params);
 
-        //TODO(DRB): Assemble Tmunu to calc fluid frame GFs.
+        double n4D[4] = {alp[index],0,0,0};
+        double u4U[4] = {root_params.prims->u0,
+                         root_params.prims->u0*root_params.prims->vU[0],
+                         root_params.prims->u0*root_params.prims->vU[1],
+                         root_params.prims->u0*root_params.prims->vU[2]};
+        double v4U[4] = {0,0,0,0}; //TODO(DRB): velocities
+        ghl_radiation_metric_tensor proj = {0}; //TODO(DRB): projection needed.
+        ghl_stress_energy rT4DD = {0};
+        ghl_radiation_flux_vector H4 = {0};
+        ghl_radiation_con_flux_vector fnu = {0};
+
+        assemble_rT_lab_frame(&n4D, root_params.E, &root_params.F4, &root_params.P4, &rT4DD);
+
+        GRHayLM1_rJ[index] = calc_J_from_rT(&u4U, &proj, &rT4DD);
+        calc_H4D_from_rT(&u4U, &proj, &rT4DD, &H4);
+        GRHayLM1_rHt[index] = H4.U[0];
+        GRHayLM1_rHx[index] = H4.U[1];
+        GRHayLM1_rHy[index] = H4.U[2];
+        GRHayLM1_rHz[index] = H4.U[3];
+
+        assemble_fnu(&root_params.adm_aux, &u4U, GRHayLM1_rJ[index], &H4, &fnu);
+        const double Gamma = compute_Gamma(w_lorentz[index], &v4U, GRHayLM1_rJ[index], root_params.E, 0.0, 0.0, &root_params.F4); //TODO(DRB): Add in floor limits
+        GRHayLM1_rnnu[index] = GRHayLM1_rN[index]/Gamma;
+
 
       }
     }

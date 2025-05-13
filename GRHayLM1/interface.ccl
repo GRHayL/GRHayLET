@@ -16,7 +16,7 @@ CCTK_REAL GRHayLM1_rnnu[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 p
 CCTK_REAL GRHayLM1_rJ[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 prolongation="none"' "Energy density in fluid frame"
 CCTK_REAL GRHayLM1_rH[GRHayLM1_nspecies] type=GF TAGS='InterpNumTimelevels=1 prolongation="none"'
 {
-	GRHayLM1_rHx, GRHayLM1_rHy, GRHayLM1_rHz
+	GRHayLM1_rHt, GRHayLM1_rHx, GRHayLM1_rHy, GRHayLM1_rHz
 } "Radiation Flux in fluid frame"
 
 
