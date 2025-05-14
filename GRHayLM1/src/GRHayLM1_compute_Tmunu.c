@@ -40,17 +40,42 @@ void GRHayLM1_compute_Tmunu(CCTK_ARGUMENTS) {
 
         // TODO: Fill in to assemble Tmunu
         ghl_stress_energy rTmunu;
-        // double chi = 0.5;//chi determined by choice
+        ghl_radiation_flux_vector F4;
+        ghl_radiation_pressure_tensor P4;
+
+        F4.D[0] = 0.0;
+        F4.D[1] = GRHayLM1_rFx[index];
+        F4.D[2] = GRHayLM1_rFy[index];
+        F4.D[3] = GRHayLM1_rFz[index];
+
+        P4.DD[0][0] = 0.0;
+        for (int a = 0; a < 4; a++){
+          P4.DD[0][a] = 0.0;
+          P4.DD[a][0] = 0.0;
+        }
+        P4.DD[1][1] = GRHayLM1_rPxx[index];
+        P4.DD[1][2] = GRHayLM1_rPxy[index];
+        P4.DD[1][3] = GRHayLM1_rPxz[index];
+        P4.DD[2][2] = GRHayLM1_rPyy[index];
+        P4.DD[2][3] = GRHayLM1_rPyz[index];
+        P4.DD[3][3] = GRHayLM1_rPzz[index];
+        P4.DD[2][1] = P4.DD[1][2];
+        P4.DD[3][1] = P4.DD[1][3];
+        P4.DD[3][2] = P4.DD[2][3];
 
         m1_root_params root_params = {0};
         root_params.prims = &prims;
         root_params.metric = &adm_metric;
         root_params.adm_aux = &aux_metric;
+        root_params.E = GRHayLM1_rE[index];
+        root_params.F4 = &F4;
+        root_params.P4 = &P4;
+        
         ghl_radiation_rootSolve_closure(&root_params);
-        // ghl_radiation_apply_closure(&fparams.metric, &fparams.adm_aux,
-        // &fparams.prims,
-        //                             fparams.E, &fparams.F4, chi,
-        //                             &fparams.P4);
+        ghl_radiation_apply_closure(&root_params.metric, &root_params.adm_aux, &root_params.prims,
+                                     root_params.E, &root_params.F4, root_params.chi,
+                                     &root_params.P4);
+        
         double n4D[4] = {-lapse, 0, 0, 0};
         assemble_rT_lab_frame(&n4D, root_params.E, &root_params.F4,
                               &root_params.P4, &rTmunu);

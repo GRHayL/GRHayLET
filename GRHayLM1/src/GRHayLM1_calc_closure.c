@@ -74,6 +74,9 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
         root_params.P4      = &P4;
 
         ghl_radiation_rootSolve_closure(&root_params);
+        ghl_radiation_apply_closure(&root_params.metric, &root_params.adm_aux, &root_params.prims,
+                                    root_params.E, &root_params.F4, root_params.chi,
+                                    &root_params.P4);
 
         double n4D[4] = {alp[index],0,0,0};
         double u4U[4] = {root_params.prims->u0,
