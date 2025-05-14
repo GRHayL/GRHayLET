@@ -80,8 +80,19 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
                          root_params.prims->u0*root_params.prims->vU[0],
                          root_params.prims->u0*root_params.prims->vU[1],
                          root_params.prims->u0*root_params.prims->vU[2]};
-        double v4U[4] = {0,0,0,0}; //TODO(DRB): velocities
-        ghl_radiation_metric_tensor proj = {0}; //TODO(DRB): projection needed.
+        double v4U[4] = {0,root_params.prims->vU[0],root_params.prims->vU[1],root_params.prims->vU[2]};
+        ghl_radiation_metric_tensor proj = {0}; 
+        for (int a = 0; a < 4; a++){
+          for (int b = 0; b < 4; b++){
+            if(a==b){
+              proj.UD[a][b] += 1;
+            }
+            for (int c = 0; c < 4; c++){
+              proj.UD[a][b] += u4U[a]*u4U[c]*root_params.adm_aux->g4DD[b][c];
+            }
+          }
+        }
+
         ghl_stress_energy rT4DD = {0};
         ghl_radiation_flux_vector H4 = {0};
         ghl_radiation_con_flux_vector fnu = {0};
