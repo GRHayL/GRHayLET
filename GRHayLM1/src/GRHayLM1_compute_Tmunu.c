@@ -72,13 +72,13 @@ void GRHayLM1_compute_Tmunu(CCTK_ARGUMENTS) {
         root_params.P4 = &P4;
         
         ghl_radiation_rootSolve_closure(&root_params);
-        ghl_radiation_apply_closure(&root_params.metric, &root_params.adm_aux, &root_params.prims,
-                                     root_params.E, &root_params.F4, root_params.chi,
-                                     &root_params.P4);
+        ghl_radiation_apply_closure(root_params.metric, root_params.adm_aux, root_params.prims,
+                                     root_params.E, root_params.F4, root_params.chi,
+                                     root_params.P4);
         
         double n4D[4] = {-lapse, 0, 0, 0};
-        assemble_rT_lab_frame(&n4D, root_params.E, &root_params.F4,
-                              &root_params.P4, &rTmunu);
+        assemble_rT_lab_frame(n4D, root_params.E, root_params.F4,
+                              root_params.P4, &rTmunu);
 
         eTtt[index] += rTmunu.T4[0][0];
         eTtx[index] += rTmunu.T4[0][1];
