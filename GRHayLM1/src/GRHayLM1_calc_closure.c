@@ -74,9 +74,9 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
         root_params.P4      = &P4;
 
         ghl_radiation_rootSolve_closure(&root_params);
-        ghl_radiation_apply_closure(&root_params.metric, &root_params.adm_aux, &root_params.prims,
-                                    root_params.E, &root_params.F4, root_params.chi,
-                                    &root_params.P4);
+        ghl_radiation_apply_closure(root_params.metric, root_params.adm_aux, root_params.prims,
+                                    root_params.E, root_params.F4, root_params.chi,
+                                    root_params.P4);
 
         double n4D[4] = {alp[index],0,0,0};
         double u4U[4] = {root_params.prims->u0,
@@ -100,17 +100,17 @@ void GRHayLM1_calc_closure(CCTK_ARGUMENTS){
         ghl_radiation_flux_vector H4 = {0};
         ghl_radiation_con_flux_vector fnu = {0};
 
-        assemble_rT_lab_frame(&n4D, root_params.E, &root_params.F4, &root_params.P4, &rT4DD);
+        assemble_rT_lab_frame(n4D, root_params.E, root_params.F4, root_params.P4, &rT4DD);
 
-        GRHayLM1_rJ[index] = calc_J_from_rT(&u4U, &proj, &rT4DD);
-        calc_H4D_from_rT(&u4U, &proj, &rT4DD, &H4);
+        GRHayLM1_rJ[index] = calc_J_from_rT(u4U, &proj, &rT4DD);
+        calc_H4D_from_rT(u4U, &proj, &rT4DD, &H4);
         GRHayLM1_rHt[index] = H4.U[0];
         GRHayLM1_rHx[index] = H4.U[1];
         GRHayLM1_rHy[index] = H4.U[2];
         GRHayLM1_rHz[index] = H4.U[3];
 
-        assemble_fnu(&root_params.adm_aux, &u4U, GRHayLM1_rJ[index], &H4, &fnu);
-        const double Gamma = compute_Gamma(w_lorentz[index], &v4U, GRHayLM1_rJ[index], root_params.E, 0.0, 0.0, &root_params.F4); //TODO(DRB): Add in floor limits
+        assemble_fnu(root_params.adm_aux, u4U, GRHayLM1_rJ[index], &H4, &fnu);
+        const double Gamma = compute_Gamma(w_lorentz[index], v4U, GRHayLM1_rJ[index], root_params.E, 0.0, 0.0, root_params.F4); //TODO(DRB): Add in floor limits
         GRHayLM1_rnnu[index] = GRHayLM1_rN[index]/Gamma;
 
 
