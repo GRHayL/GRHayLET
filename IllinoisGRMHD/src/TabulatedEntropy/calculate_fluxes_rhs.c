@@ -85,26 +85,20 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
       for(int i=vimin; i<vimax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
 
-        CCTK_REAL press_stencil[6], v_flux[6];
         CCTK_REAL vx_data[6], vy_data[6], vz_data[6];
         CCTK_REAL vxr, vxl, vyr, vyl, vzr, vzl;
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
           const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux[ind] = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-          press_stencil[ind] = press[stencil];
           vx_data[ind] = vx[stencil];
           vy_data[ind] = vy[stencil];
           vz_data[ind] = vz[stencil];
         }
 
-        CCTK_REAL ftilde[2];
-        ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
-
-        ghl_ppm_reconstruction(ftilde, vx_data, &vxr, &vxl);
-        ghl_ppm_reconstruction(ftilde, vy_data, &vyr, &vyl);
-        ghl_ppm_reconstruction(ftilde, vz_data, &vzr, &vzl);
+        ghl_wenoz_reconstruction(vx_data, &vxr, &vxl);
+        ghl_wenoz_reconstruction(vy_data, &vyr, &vyl);
+        ghl_wenoz_reconstruction(vz_data, &vzr, &vzl);
 
         vel_r[0][index] = vxr;
         vel_r[1][index] = vyr;
