@@ -152,17 +152,12 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
           Ye_stencil[ind]    = Y_e[stencil];
         }
 
-        CCTK_REAL ftilde[2];
-        ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
-
-        // We use Gamma effective = 1, consistent with the Spritz code
-        ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
-
-        ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
-        ghl_ppm_reconstruction(ftilde, B1_stencil, &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
-        ghl_ppm_reconstruction(ftilde, B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
-        ghl_ppm_reconstruction(ftilde, ent_stencil, &prims_r.entropy, &prims_l.entropy);
-        ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
+        ghl_wenoz_reconstruction(rho_stencil, &prims_r.rho, &prims_l.rho);
+        ghl_wenoz_reconstruction(press_stencil, &prims_r.press, &prims_l.press);
+        ghl_wenoz_reconstruction(B1_stencil, &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
+        ghl_wenoz_reconstruction(B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
+        ghl_wenoz_reconstruction(ent_stencil, &prims_r.entropy, &prims_l.entropy);
+        ghl_wenoz_reconstruction(Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
 
         // B_stagger is densitized, but B_center is not.
         prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
