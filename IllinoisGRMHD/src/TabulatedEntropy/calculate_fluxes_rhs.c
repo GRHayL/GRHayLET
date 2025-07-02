@@ -130,20 +130,24 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
               gyy, gyz, gzz,
               &ADM_metric_face);
 
-        CCTK_REAL rho_stencil[6], T_stencil[6], v_flux[6];
+        CCTK_REAL rho_stencil[6], T_stencil[4], v_flux[6];
         CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6];
         ghl_primitive_quantities prims_r, prims_l;
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
-          const int stencil  = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
-          v_flux[ind]        = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
-          rho_stencil[ind]   = rho[stencil];
-          B1_stencil[ind]    = B_center[B_recon[1]][stencil];
-          B2_stencil[ind]    = B_center[B_recon[2]][stencil];
-          ent_stencil[ind]   = entropy[stencil];
-          Ye_stencil[ind]    = Y_e[stencil];
-          T_stencil[ind]     = temperature[stencil];
+          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-3), j+ydir*(ind-3), k+zdir*(ind-3));
+          v_flux[ind]       = v_flux_dir[stencil]; // Could be smaller; doesn't use full stencil
+          rho_stencil[ind]  = rho[stencil];
+          B1_stencil[ind]   = B_center[B_recon[1]][stencil];
+          B2_stencil[ind]   = B_center[B_recon[2]][stencil];
+          ent_stencil[ind]  = entropy[stencil];
+          Ye_stencil[ind]   = Y_e[stencil];
+        }
+        for(int ind=0; ind<4; ind++) {
+          // Stencil from -2 to +1 reconstructs to e.g. i-1/2
+          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-2), j+ydir*(ind-2), k+zdir*(ind-2));
+          T_stencil[ind]    = temperature[stencil];
         }
 
         ghl_wenoz_reconstruction(rho_stencil, &prims_r.rho, &prims_l.rho);
@@ -151,7 +155,7 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
         ghl_wenoz_reconstruction(B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
         ghl_wenoz_reconstruction(ent_stencil, &prims_r.entropy, &prims_l.entropy);
         ghl_wenoz_reconstruction(Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
-        ghl_wenoz_reconstruction(T_stencil, &prims_r.temperature, &prims_l.temperature);
+        ghl_mc_reconstruction(T_stencil, &prims_r.temperature, &prims_l.temperature);
 
         // We must now compute eps and T
         ghl_tabulated_enforce_bounds_rho_Ye_T(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.temperature);
