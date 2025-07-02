@@ -137,7 +137,7 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
               &ADM_metric_face);
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
-        CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6], T_stencil[6];
+        CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6], T_stencil[4];
         ghl_primitive_quantities prims_r, prims_l;
 
         for(int ind=0; ind<6; ind++) {
@@ -150,7 +150,11 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
           B2_stencil[ind]    = B_center[B_recon[2]][stencil];
           ent_stencil[ind]   = entropy[stencil];
           Ye_stencil[ind]    = Y_e[stencil];
-          T_stencil[ind]     = temperature[stencil];
+        }
+        for(int ind=0; ind<4; ind++) {
+          // Stencil from -2 to +1 reconstructs to e.g. i-1/2
+          const int stencil = CCTK_GFINDEX3D(cctkGH, i+xdir*(ind-2), j+ydir*(ind-2), k+zdir*(ind-2));
+          T_stencil[ind]    = temperature[stencil];
         }
 
         CCTK_REAL ftilde[2];
@@ -163,7 +167,7 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
         ghl_ppm_reconstruction(ftilde, ent_stencil, &prims_r.entropy, &prims_l.entropy);
         ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
-        ghl_ppm_reconstruction(ftilde, T_stencil, &prims_r.temperature, &prims_l.temperature);
+        ghl_mc_reconstruction(T_stencil, &prims_r.temperature, &prims_l.temperature);
 
         // B_stagger is densitized, but B_center is not.
         prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
