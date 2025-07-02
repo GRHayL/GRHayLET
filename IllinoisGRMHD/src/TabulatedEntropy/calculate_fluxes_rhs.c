@@ -137,7 +137,7 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
               &ADM_metric_face);
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
-        CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6];
+        CCTK_REAL B1_stencil[6], B2_stencil[6], ent_stencil[6], Ye_stencil[6], T_stencil[6];
         ghl_primitive_quantities prims_r, prims_l;
 
         for(int ind=0; ind<6; ind++) {
@@ -150,6 +150,7 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
           B2_stencil[ind]    = B_center[B_recon[2]][stencil];
           ent_stencil[ind]   = entropy[stencil];
           Ye_stencil[ind]    = Y_e[stencil];
+          T_stencil[ind]     = temperature[stencil];
         }
 
         CCTK_REAL ftilde[2];
@@ -158,11 +159,11 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
         // We use Gamma effective = 1, consistent with the Spritz code
         ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
-        ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
         ghl_ppm_reconstruction(ftilde, B1_stencil, &prims_r.BU[B_recon[1]], &prims_l.BU[B_recon[1]]);
         ghl_ppm_reconstruction(ftilde, B2_stencil, &prims_r.BU[B_recon[2]], &prims_l.BU[B_recon[2]]);
         ghl_ppm_reconstruction(ftilde, ent_stencil, &prims_r.entropy, &prims_l.entropy);
         ghl_ppm_reconstruction(ftilde, Ye_stencil, &prims_r.Y_e, &prims_l.Y_e);
+        ghl_ppm_reconstruction(ftilde, T_stencil, &prims_r.temperature, &prims_l.temperature);
 
         // B_stagger is densitized, but B_center is not.
         prims_r.BU[B_recon[0]] = prims_l.BU[B_recon[0]] = B_stagger[indm1]/ADM_metric_face.sqrt_detgamma;
@@ -175,7 +176,14 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        prims_r.temperature = prims_l.temperature = temperature[index];
+        // We must now compute P, eps, and S on the right and left faces
+        ghl_tabulated_enforce_bounds_rho_Ye_T(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.temperature);
+        ghl_tabulated_compute_P_eps_S_from_T(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.temperature,
+                                             &prims_r.press, &prims_r.eps, &prims_r.entropy);
+
+        ghl_tabulated_enforce_bounds_rho_Ye_T(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.temperature);
+        ghl_tabulated_compute_P_eps_S_from_T(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.temperature,
+                                             &prims_l.press, &prims_l.eps, &prims_l.entropy);
 
         bool speed_limited;
         ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited);
@@ -184,15 +192,6 @@ void IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs(
         error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
         if(error)
           ghl_read_error_codes(error);
-
-        // We must now compute eps and T
-        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
-        ghl_tabulated_compute_eps_S_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
-                                           &prims_r.eps, &prims_r.entropy, &prims_r.temperature);
-
-        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
-        ghl_tabulated_compute_eps_S_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
-                                           &prims_l.eps, &prims_l.entropy, &prims_l.temperature);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
