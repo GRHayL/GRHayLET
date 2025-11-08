@@ -1,0 +1,635 @@
+# Low resolution BNS parameter file
+
+ActiveThorns = "
+  ADMBase
+  ADMCoupling
+  ADMMacros
+  AEILocalInterp
+  AHFinderDirect
+  Baikal
+  Boundary
+  Carpet
+  CarpetInterp
+  CarpetIOASCII
+  CarpetIOBasic
+  CarpetIOHDF5
+  CarpetIOScalar
+  CarpetLib
+  CarpetReduce
+  CarpetRegrid2
+  CarpetSlab
+  CartGrid3D
+  CoordBase
+  CoordGauge
+  CycleClock
+  EOS_Omni
+  FFTW3
+  HydroBase
+  InitBase
+  IOUtil
+  LocalInterp
+  LocalReduce
+  LoopControl
+  LORENE
+  Meudon_Bin_NS
+  MoL
+  Multipole
+  NewRad
+  particle_tracerET
+  QuasiLocalMeasures
+  Seed_Magnetic_Fields
+  Slab
+  smallbPoynET
+  SpaceMask
+  SphericalSurface
+  StaticConformal
+  SummationByParts
+  SymBase
+  SystemStatistics
+  TerminationTrigger
+  TGRtensor
+  Time
+  Timers
+  TmunuBase
+  Trigger
+  Vectors
+  VolumeIntegrals_GRMHD
+  VolumeIntegrals_vacuum
+  WeylScal4
+
+  GRHayLib
+  GRHayLID
+  IllinoisGRMHD
+#  NRPyLeakageET
+"
+# Output directory name
+IOUtil::out_dir = "output_directory"
+
+# Parameters of thorn ADMBase (implementing ADMBase)
+ADMBase::dtlapse_evolution_method = "Baikal"
+ADMBase::dtshift_evolution_method = "Baikal"
+ADMBase::evolution_method         = "Baikal"
+ADMBase::initial_data             = "Meudon_Bin_NS"
+ADMBase::initial_dtlapse          = "zero"
+ADMBase::initial_dtshift          = "zero"
+ADMBase::initial_lapse            = "Meudon_Bin_NS"
+ADMBase::initial_shift            = "zero"
+ADMBase::lapse_evolution_method   = "Baikal"
+ADMBase::lapse_timelevels         = 3
+ADMBase::metric_timelevels        = 3
+ADMBase::metric_type              = "physical"
+ADMBase::shift_evolution_method   = "Baikal"
+ADMBase::shift_timelevels         = 3
+
+# Parameters of thorn ADMMacros (implementing ADMMacros)
+ADMMacros::spatial_order = 4
+
+#----------------------AHFinderDirect configuration---------------------
+AHFinderDirect::find_after_individual_time[1]            = 1650
+AHFinderDirect::find_after_individual_time[2]            = 1650
+AHFinderDirect::find_every                               = 32
+AHFinderDirect::geometry_interpolator_name               = "Lagrange polynomial interpolation"
+AHFinderDirect::geometry_interpolator_pars               = "order=4"
+AHFinderDirect::initial_guess__coord_sphere__radius[1]   = 1
+AHFinderDirect::initial_guess__coord_sphere__radius[2]   = 3
+AHFinderDirect::initial_guess__coord_sphere__x_center[1] = 0
+AHFinderDirect::initial_guess__coord_sphere__x_center[2] = 0
+AHFinderDirect::initial_guess__coord_sphere__y_center[1] = 0
+AHFinderDirect::initial_guess__coord_sphere__z_center[1] = 0
+AHFinderDirect::max_allowable_horizon_radius[1]          = 15
+AHFinderDirect::max_allowable_horizon_radius[2]          = 15
+AHFinderDirect::max_allowable_theta_growth_iterations    = 10
+AHFinderDirect::max_allowable_theta_nonshrink_iterations = 10
+AHFinderDirect::max_newton_iterations__initial           = 50
+AHFinderDirect::max_newton_iterations__subsequent        = 50
+AHFinderDirect::move_origins                             = yes
+AHFinderDirect::n_horizons                               = 2
+AHFinderDirect::origin_x[1]                              = 0
+AHFinderDirect::origin_x[2]                              = 0
+AHFinderDirect::output_h_every                           = 128
+AHFinderDirect::predict_origin_movement                  = yes
+AHFinderDirect::reset_horizon_after_not_finding[1]       = no
+AHFinderDirect::reset_horizon_after_not_finding[2]       = no
+AHFinderDirect::reshape_while_moving                     = yes
+AHFinderDirect::surface_interpolator_name                = "Lagrange polynomial interpolation"
+AHFinderDirect::surface_interpolator_pars                = "order=4"
+AHFinderDirect::verbose_level                            = "algorithm details"
+AHFinderDirect::which_surface_to_store_info[1]           = 0
+AHFinderDirect::which_surface_to_store_info[2]           = 1
+
+# Parameters of thorn Baikal (implementing Baikal)
+Baikal::diss_strength = 0.2
+Baikal::eta           = 1.0/2.782293851369 # M_ADM = 2.782293851369 (from LORENE)
+
+# Parameters of thorn Boundary (implementing boundary)
+Boundary::radpower = 2
+
+# Parameters of thorn Cactus (implementing Cactus)
+Cactus::cctk_full_warnings = "yes"
+Cactus::cctk_itlast        = 1000000
+Cactus::cctk_run_title     = "IllinoisGRMHD_BNS_Production"
+
+# Parameters of thorn Carpet (implementing Driver)
+Carpet::check_for_poison         = "no"
+Carpet::convergence_level        = 0
+Carpet::domain_from_coordbase    = "yes"
+Carpet::enable_all_storage       = "no"
+Carpet::ghost_size               = 3
+Carpet::init_3_timelevels        = "no"
+Carpet::init_fill_timelevels     = "yes"
+Carpet::max_refinement_levels    = 10
+Carpet::output_timers_every      = 512
+Carpet::poison_new_timelevels    = "yes"
+Carpet::prolongation_order_space = 5
+Carpet::prolongation_order_time  = 2
+Carpet::storage_verbose          = "no"
+Carpet::use_buffer_zones         = "yes"
+Carpet::verbose                  = "no"
+Carpet::veryverbose              = "no"
+Carpet::time_refinement_factors  = "[1,2,4,4,8,16,32,64,128,256]" # N_repeats = 1 (see dtfac below)
+
+# Parameters of thorn CarpetInterp (implementing interp)
+CarpetInterp::check_tree_search = "no"
+CarpetInterp::tree_search       = "yes"
+
+# Parameters of thorn CarpetIOASCII (implementing IOASCII)
+CarpetIOASCII::one_file_per_group     = "no"
+CarpetIOASCII::out0D_every            = 256
+CarpetIOASCII::out0D_vars             = "Carpet::physical_time_per_hour"
+
+CarpetIOASCII::out1D_d     = "no"
+CarpetIOASCII::out1D_dir   = IOUtil::out_dir + "/ascii_output_1d"
+CarpetIOASCII::out1D_every = 1024
+CarpetIOASCII::out1D_vars  = "
+  ADMBase::lapse
+  ADMBase::shift
+  ADMBase::metric
+  ADMBase::curv
+  Baikal::aux_variables
+  HydroBase::rho
+  HydroBase::press
+  HydroBase::eps
+  HydroBase::temperature
+  HydroBase::entropy
+  HydroBase::Y_e
+  IllinoisGRMHD::grmhd_velocities
+  smallbPoynET::minus_one_minus_u_0
+#  NRPyLeakageET::NRPyLeakageET_optical_depths
+#  NRPyLeakageET::NRPyLeakageET_opacities
+  smallbPoynET::smallb2
+"
+
+CarpetIOASCII::out2D_every = 1024
+CarpetIOASCII::out2D_dir   = IOUtil::out_dir + "/ascii_output_2d"
+CarpetIOASCII::out2D_vars  = "
+  ADMBase::lapse
+  ADMBase::shift
+  ADMBase::metric
+  ADMBase::curv
+  Baikal::aux_variables
+  HydroBase::rho
+  HydroBase::press
+  HydroBase::eps
+  HydroBase::temperature
+  HydroBase::entropy
+  HydroBase::Y_e
+  IllinoisGRMHD::grmhd_velocities
+  smallbPoynET::minus_one_minus_u_0
+  smallbPoynET::smallb2
+  WeylScal4::psi4r
+"
+
+CarpetIOASCII::out3D_ghosts           = "no"
+CarpetIOASCII::output_symmetry_points = "no"
+
+# Parameters of thorn CarpetIOBasic (implementing IOBasic)
+CarpetIOBasic::outInfo_every = -1
+
+# Parameters of thorn CarpetIOHDF5 (implementing IOHDF5)
+CarpetIOHDF5::checkpoint                    = "yes"
+CarpetIOHDF5::compression_level             = 0
+CarpetIOHDF5::one_file_per_group            = "yes"
+CarpetIOHDF5::open_one_input_file_at_a_time = "yes"
+
+CarpetIOHDF5::out2D_dir   = IOUtil::out_dir + "/hdf5_output_2d"
+CarpetIOHDF5::out2D_every = 512
+CarpetIOHDF5::out2D_vars  = "
+  ADMBase::lapse
+  ADMBase::shift
+  ADMBase::metric
+  ADMBase::curv
+  Baikal::aux_variables
+  HydroBase::rho
+  HydroBase::press
+  HydroBase::eps
+  HydroBase::temperature
+  HydroBase::entropy
+  HydroBase::Y_e
+  IllinoisGRMHD::grmhd_velocities
+"
+
+# NOTE: Disable 3D output
+CarpetIOHDF5::out_every = -1
+CarpetIOHDF5::out_vars  = "
+  ADMBase::lapse
+  ADMBase::shift
+  ADMBase::metric
+  ADMBase::curv
+  Baikal::aux_variables
+  HydroBase::rho
+  HydroBase::press
+  HydroBase::eps
+  HydroBase::temperature
+  HydroBase::entropy
+  HydroBase::Y_e
+  IllinoisGRMHD::grmhd_velocities
+"
+
+# Parameters of thorn CarpetIOScalar (implementing IOScalar)
+CarpetIOScalar::one_file_per_group   = "no"
+CarpetIOScalar::outScalar_every      = 256
+CarpetIOScalar::outScalar_reductions = "minimum maximum norm2"
+CarpetIOScalar::outScalar_vars       = "
+  ADMBase::lapse
+  Baikal::aux_variables
+  HydroBase::rho
+  HydroBase::press
+  HydroBase::eps
+  HydroBase::temperature
+  HydroBase::entropy
+  HydroBase::Y_e
+  smallbPoynET::minus_one_minus_u_0
+  smallbPoynET::smallb2
+"
+
+# Parameters of thorn CarpetLib (implementing CarpetLib)
+CarpetLib::combine_recompose           = "no"
+CarpetLib::poison_new_memory           = "yes"
+CarpetLib::poison_value                = 255
+CarpetLib::print_memstats_every        = -1
+CarpetLib::support_staggered_operators = "yes"
+
+# Parameters of thorn CarpetReduce (implementing reduce)
+CarpetReduce::verbose = "no"
+
+# Parameters of thorn CarpetRegrid2 (implementing CarpetRegrid2)
+CarpetRegrid2::freeze_unaligned_levels = "yes"
+CarpetRegrid2::movement_threshold_1    = 0.1
+CarpetRegrid2::movement_threshold_2    = 0.1
+
+CarpetRegrid2::num_centres  = 3
+CarpetRegrid2::num_levels_1 = 8
+CarpetRegrid2::num_levels_2 = 8
+CarpetRegrid2::num_levels_3 = 8
+
+CarpetRegrid2::position_x_1 = -25.0/1.476625038050125
+CarpetRegrid2::position_x_2 = +25.0/1.476625038050125
+
+CarpetRegrid2::radius_1[1] = 1920
+CarpetRegrid2::radius_1[2] =  960
+CarpetRegrid2::radius_1[3] =  168
+CarpetRegrid2::radius_1[4] =   96
+CarpetRegrid2::radius_1[5] =   48
+CarpetRegrid2::radius_1[6] =   18
+CarpetRegrid2::radius_1[7] =   12
+CarpetRegrid2::radius_1[8] =    6
+CarpetRegrid2::radius_1[9] =    3
+
+CarpetRegrid2::radius_2[1] = CarpetRegrid2::radius_1[1]
+CarpetRegrid2::radius_2[2] = CarpetRegrid2::radius_1[2]
+CarpetRegrid2::radius_2[3] = CarpetRegrid2::radius_1[3]
+CarpetRegrid2::radius_2[4] = CarpetRegrid2::radius_1[4]
+CarpetRegrid2::radius_2[5] = CarpetRegrid2::radius_1[5]
+CarpetRegrid2::radius_2[6] = CarpetRegrid2::radius_1[6]
+CarpetRegrid2::radius_2[7] = CarpetRegrid2::radius_1[7]
+
+CarpetRegrid2::radius_x_3[1] = CarpetRegrid2::radius_1[1] + 10.0
+CarpetRegrid2::radius_y_3[1] = CarpetRegrid2::radius_1[1] + 10.0
+CarpetRegrid2::radius_z_3[1] = CarpetRegrid2::radius_1[1]
+
+CarpetRegrid2::radius_x_3[2] = CarpetRegrid2::radius_1[2] + 10.0
+CarpetRegrid2::radius_y_3[2] = CarpetRegrid2::radius_1[2] + 10.0
+CarpetRegrid2::radius_z_3[2] = CarpetRegrid2::radius_1[2]
+
+CarpetRegrid2::radius_x_3[3] = CarpetRegrid2::radius_1[3] + 10.0
+CarpetRegrid2::radius_y_3[3] = CarpetRegrid2::radius_1[3] + 10.0
+CarpetRegrid2::radius_z_3[3] = CarpetRegrid2::radius_1[3]
+
+CarpetRegrid2::radius_x_3[4] = CarpetRegrid2::radius_1[4] + 10.0
+CarpetRegrid2::radius_y_3[4] = CarpetRegrid2::radius_1[4] + 10.0
+CarpetRegrid2::radius_z_3[4] = CarpetRegrid2::radius_1[4]
+
+CarpetRegrid2::radius_x_3[5] = CarpetRegrid2::radius_1[5] + 10.0
+CarpetRegrid2::radius_y_3[5] = CarpetRegrid2::radius_1[5] + 10.0
+CarpetRegrid2::radius_z_3[5] = CarpetRegrid2::radius_1[5]
+
+CarpetRegrid2::radius_x_3[6] = CarpetRegrid2::radius_1[6] + 10.0
+CarpetRegrid2::radius_y_3[6] = CarpetRegrid2::radius_1[6] + 10.0
+CarpetRegrid2::radius_z_3[6] = CarpetRegrid2::radius_1[6]
+
+CarpetRegrid2::radius_x_3[7] = CarpetRegrid2::radius_1[7] + 10.0
+CarpetRegrid2::radius_y_3[7] = CarpetRegrid2::radius_1[7] + 10.0
+CarpetRegrid2::radius_z_3[7] = CarpetRegrid2::radius_1[7]
+
+CarpetRegrid2::regrid_every         = 256
+CarpetRegrid2::symmetry_rotating180 = "no"
+CarpetRegrid2::verbose              = "no"
+
+# Parameters of thorn CartGrid3D (implementing grid)
+CartGrid3D::type         = "CoordBase"
+CartGrid3D::domain       = "full"
+CartGrid3D::avoid_origin = "no"
+
+# Parameters of thorn CoordBase (implementing CoordBase)
+CoordBase::boundary_size_x_lower = 3
+CoordBase::boundary_size_x_upper = 3
+CoordBase::boundary_size_y_lower = 3
+CoordBase::boundary_size_y_upper = 3
+CoordBase::boundary_size_z_lower = 3
+CoordBase::boundary_size_z_upper = 3
+CoordBase::domainsize            = "minmax"
+CoordBase::spacing               = "gridspacing"
+CoordBase::dx                    = 16
+CoordBase::xmax                  = 3840
+CoordBase::dy                    = CoordBase::dx
+CoordBase::dz                    = CoordBase::dx
+CoordBase::xmin                  = -CoordBase::xmax
+CoordBase::ymax                  = +CoordBase::xmax
+CoordBase::ymin                  = -CoordBase::xmax
+CoordBase::zmax                  = +CoordBase::xmax
+CoordBase::zmin                  = -CoordBase::xmax
+
+# Parameters of thorn EOS_Omni (implementing EOS_Omni)
+EOS_Omni::do_energy_shift   = "yes"
+EOS_Omni::nuceos_read_table = "yes"
+EOS_Omni::nuceos_table_name = "Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817_adjusted.h5"
+
+# Parameters of thorn HydroBase (implementing HydroBase)
+HydroBase::initial_Aphi        = "zero"
+HydroBase::initial_Avec        = "zero"
+HydroBase::initial_Bvec        = "zero"
+HydroBase::initial_hydro       = "Meudon_Bin_NS"
+HydroBase::initial_entropy     = "GRHayLID"
+HydroBase::initial_temperature = "GRHayLID"
+HydroBase::initial_Y_e         = "GRHayLID"
+HydroBase::timelevels          = 1
+HydroBase::prolongation_type   = "None"
+
+#---------GRHayLib---------
+GRHayLib::EOS_type                    = "tabulated"
+GRHayLib::EOS_tablepath               = "Hempel_SFHoEOS_rho222_temp180_ye60_version_1.1_20120817_adjusted.h5"
+GRHayLib::evolve_temperature          = yes
+GRHayLib::evolve_entropy              = yes
+GRHayLib::con2prim_routine            = "Palenzuela1D"
+GRhayLib::con2prim_backup_routines[0] = "Newman1D"
+GRhayLib::con2prim_backup_routines[1] = "Palenzuela1D_entropy"
+GRhayLib::con2prim_backup_routines[2] = "Newman1D_entropy"
+GRHayLib::rho_b_atm                   = 1e-12
+GRHayLib::rho_b_min                   = GRHayLib::rho_b_atm
+GRHayLib::rho_b_max                   = 0.004
+GRHayLib::Y_e_atm                     = 0.5
+GRHayLib::Y_e_max                     = GRHayLib::Y_e_atm
+GRHayLib::T_atm                       = 1e-2
+GRHayLib::T_min                       = GRHayLib::T_atm
+GRHayLib::T_max                       = 90
+GRHayLib::Psi6threshold               = 60
+GRHayLib::Lorenz_damping_factor       = 0.1
+GRHayLib::calc_primitive_guess        = yes
+
+#---------GRHayLID---------
+GRHayLID::impose_beta_equilibrium = "yes"
+GRHayLID::beq_temperature         = GRHayLib::T_atm
+
+#---------IllinoisGRMHD---------
+IllinoisGRMHD::Convert_to_HydroBase_every = 1
+
+# Parameters of thorn InitBase (implementing InitBase)
+InitBase::initial_data_setup_method = "init_all_levels"
+
+# Parameters of thorn IOUtil (implementing IO)
+IOUtil::checkpoint_dir                  = IOUtil::out_dir + "/checkpoints"
+IOUtil::recover_dir                     = "output_directory_01/checkpoints"
+IOUtil::checkpoint_every_walltime_hours = 12
+IOUtil::checkpoint_keep                 = 1
+IOUtil::checkpoint_on_terminate         = "yes"
+IOUtil::out_fileinfo                    = "none"
+IOUtil::parfile_write                   = "generate"
+IOUtil::recover                         = "autoprobe"
+IOUtil::recover_and_remove              = "no"
+
+# Parameters of thorn Meudon_Bin_NS (implementing Meudon_Bin_NS)
+Meudon_Bin_NS::eos_table = "nuc_eos"
+Meudon_Bin_NS::filename  = "resu.d"
+
+# Parameters of thorn MoL (implementing MethodOfLines)
+MoL::MoL_Intermediate_Steps                     = 4
+MoL::MoL_Num_Scratch_Levels                     = 1
+MoL::ODE_Method                                 = "RK4"
+MoL::run_MoL_PostStep_in_Post_Recover_Variables = "no"
+
+#----------------------Multipole configuration--------------------------
+Multipole::l_max        = 4
+Multipole::nphi         = 240
+Multipole::nradii       = 6
+Multipole::ntheta       = 120
+Multipole::out_every    = 64
+Multipole::output_ascii = yes
+Multipole::output_hdf5  = yes
+Multipole::radius[0]    = 50
+Multipole::radius[1]    = 100
+Multipole::radius[2]    = 200.
+Multipole::radius[3]    = 300.
+Multipole::radius[4]    = 500.
+Multipole::radius[5]    = 850.
+Multipole::variables    = "WeylScal4::Psi4r{sw=-2 cmplx='WeylScal4::Psi4i' name='psi4'}"
+
+#---------NRPyLeakageET---------
+# NRPyLeakageET::verbosity_level              = 1
+# NRPyLeakageET::optical_depth_evolution_type = "PathOfLeastResistance"
+# NRPyLeakageET::max_iterations               = 1024
+# NRPyLeakageET::minInitRefLevel              = 7
+# NRPyLeakageET::maxInitRefLevel              = 7
+# NRPyLeakageET::rho_min_threshold            = IllinoisGRMHD::rho_b_atm*(1+1e-10)
+# NRPyLeakageET::rho_max_threshold            = IllinoisGRMHD::rho_b_max
+# NRPyLeakageET::psi6_threshold               = IllinoisGRMHD::Psi6threshold
+
+#---------particle_tracerET---------
+particle_tracerET::verbose                              = 2
+particle_tracerET::num_particles                        = 5000
+particle_tracerET::density_max                          = 0.00143754124856831
+particle_tracerET::seed_particles_inside_sphere__radius = 50
+particle_tracerET::update_RK4_freq                      = 8
+particle_tracerET::out_of_bounds_xyz                    = 800.0
+
+#----------------------QuasiLocalMeasures configuration-----------------
+QuasiLocalMeasures::interpolator         = "Lagrange polynomial interpolation"
+QuasiLocalMeasures::interpolator_options = "order=4"
+QuasiLocalMeasures::num_surfaces         = 4
+QuasiLocalMeasures::spatial_order        = 4
+QuasiLocalMeasures::surface_index[0]     = 0
+QuasiLocalMeasures::surface_index[1]     = 1
+QuasiLocalMeasures::surface_index[2]     = 5
+QuasiLocalMeasures::surface_index[3]     = 6
+
+#----------------------Seed_Magnetic_Fields_BNS configuration-----------
+Seed_Magnetic_Fields::enable_IllinoisGRMHD_staggered_A_fields = "yes"
+Seed_Magnetic_Fields::have_two_NSs_along_x_axis               = "yes"
+Seed_Magnetic_Fields::Afield_type                             = "BNS_poloidal_A_interior"
+Seed_Magnetic_Fields::n_s                                     = 2.0
+Seed_Magnetic_Fields::P_cut                                   = 1.2e-07 * 0.04 # <- 4% max initial pressure
+Seed_Magnetic_Fields::A_b                                     = 0.0
+
+#----------------------smallbPoynET configuration-----------------------
+smallbPoynET::smallbPoynET_compute_every = 256
+
+# Parameters of thorn SpaceMask (implementing SpaceMask)
+SpaceMask::use_mask = "yes"
+
+#----------------------SphericalSurface configuration-------------------
+SphericalSurface::nsurfaces              = 7
+
+SphericalSurface::maxnphi                = 240
+SphericalSurface::maxntheta              = 140
+SphericalSurface::nghostsphi[0]          = 2
+SphericalSurface::nghostsphi[1]          = 2
+SphericalSurface::nghostsphi[2]          = 2
+SphericalSurface::nghostsphi[3]          = 2
+SphericalSurface::nghostsphi[4]          = 2
+SphericalSurface::nghostsphi[5]          = 2
+SphericalSurface::nghostsphi[6]          = 2
+
+SphericalSurface::nghoststheta[0]        = 2
+SphericalSurface::nghoststheta[1]        = 2
+SphericalSurface::nghoststheta[2]        = 2
+SphericalSurface::nghoststheta[3]        = 2
+SphericalSurface::nghoststheta[4]        = 2
+SphericalSurface::nghoststheta[5]        = 2
+SphericalSurface::nghoststheta[6]        = 2
+
+SphericalSurface::nphi[0]                = 96
+SphericalSurface::nphi[1]                = 96
+SphericalSurface::nphi[2]                = 96
+SphericalSurface::nphi[3]                = 96
+SphericalSurface::nphi[4]                = 96
+SphericalSurface::nphi[5]                = 96
+SphericalSurface::nphi[6]                = 96
+
+SphericalSurface::ntheta[0]              = 55
+SphericalSurface::ntheta[1]              = 55
+SphericalSurface::ntheta[2]              = 55
+SphericalSurface::ntheta[3]              = 55
+SphericalSurface::ntheta[4]              = 55
+SphericalSurface::ntheta[5]              = 55
+SphericalSurface::ntheta[6]              = 55
+
+SphericalSurface::radius[2]              = 50
+SphericalSurface::radius[3]              = 100
+SphericalSurface::radius[4]              = 200
+SphericalSurface::radius[5]              = 500
+SphericalSurface::radius[6]              = 850
+
+SphericalSurface::set_spherical[2]       = yes
+SphericalSurface::set_spherical[3]       = yes
+SphericalSurface::set_spherical[4]       = yes
+SphericalSurface::set_spherical[5]       = yes
+SphericalSurface::set_spherical[6]       = yes
+
+SphericalSurface::symmetric_z[0]         = no
+SphericalSurface::symmetric_z[1]         = no
+SphericalSurface::symmetric_z[2]         = no
+SphericalSurface::symmetric_z[3]         = no
+SphericalSurface::symmetric_z[4]         = no
+SphericalSurface::symmetric_z[5]         = no
+SphericalSurface::symmetric_z[6]         = no
+
+# Parameters of thorn TerminationTrigger (implementing TerminationTrigger)
+TerminationTrigger::create_termination_file = "yes"
+TerminationTrigger::max_walltime            = 168
+TerminationTrigger::on_remaining_walltime   = 60
+TerminationTrigger::termination_file        = "TERMINATE"
+TerminationTrigger::termination_from_file   = "yes"
+
+# Parameters of thorn Time (implementing time)
+Time::dtfac = 0.25
+
+# Parameters of thorn TmunuBase (implementing TmunuBase)
+TmunuBase::prolongation_type     = "none"
+TmunuBase::stress_energy_at_RHS  = "yes"
+TmunuBase::stress_energy_storage = "yes"
+TmunuBase::timelevels            = 1
+
+# Parameters of thorn Trigger (implementing trigger)
+Trigger::Trigger_Number                  = 1
+Trigger::Trigger_Reaction[0]             = "steerscalar"
+Trigger::Trigger_Checked_Variable[0]     = "ADMBase::alp"
+Trigger::Trigger_Reduction[0]            = "minimum"
+Trigger::Trigger_Relation[0]             = "<"
+Trigger::Trigger_Checked_Value[0]        = 0.1
+Trigger::Trigger_Steered_Scalar[0]       = "CarpetRegrid2::num_levels[0]"
+Trigger::Trigger_Steered_Scalar_Value[0] = "10"
+
+# Parameters of thorn VolumeIntegrals_GRMHD (implementing VolumeIntegrals_GRMHD)
+VolumeIntegrals_GRMHD::amr_centre__tracks__volintegral_inside_sphere[2] = 0
+VolumeIntegrals_GRMHD::amr_centre__tracks__volintegral_inside_sphere[3] = 0
+VolumeIntegrals_GRMHD::amr_centre__tracks__volintegral_inside_sphere[4] = 1
+VolumeIntegrals_GRMHD::amr_centre__tracks__volintegral_inside_sphere[5] = 1
+VolumeIntegrals_GRMHD::enable_file_output                               = 1
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[1]                  = "one"
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[2]                  = "centerofmass"
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[3]                  = "one"
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[4]                  = "centerofmass"
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[5]                  = "one"
+VolumeIntegrals_GRMHD::Integration_quantity_keyword[6]                  = "restmass"
+VolumeIntegrals_GRMHD::NumIntegrals                                     = 6
+VolumeIntegrals_GRMHD::outVolIntegral_dir                               = IOUtil::out_dir + "/volume_integration"
+VolumeIntegrals_GRMHD::verbose                                          = 1
+VolumeIntegrals_GRMHD::volintegral_inside_sphere__radius[2]             = 10
+VolumeIntegrals_GRMHD::volintegral_inside_sphere__radius[3]             = 10
+VolumeIntegrals_GRMHD::volintegral_inside_sphere__radius[4]             = 10
+VolumeIntegrals_GRMHD::volintegral_inside_sphere__radius[5]             = 10
+VolumeIntegrals_GRMHD::VolIntegral_out_every                            = 1
+VolumeIntegrals_GRMHD::volintegral_sphere__center_x_initial[2]          = CarpetRegrid2::position_x_1
+VolumeIntegrals_GRMHD::volintegral_sphere__center_x_initial[3]          = CarpetRegrid2::position_x_1
+VolumeIntegrals_GRMHD::volintegral_sphere__center_x_initial[4]          = CarpetRegrid2::position_x_2
+VolumeIntegrals_GRMHD::volintegral_sphere__center_x_initial[5]          = CarpetRegrid2::position_x_2
+
+#----------------------VolumeIntegrals_vacuum configuration-------------
+VolumeIntegrals_vacuum::HamiltonianVarString                   = "Baikal::HGF"
+VolumeIntegrals_vacuum::Momentum0VarString                     = "Baikal::MU0GF"
+VolumeIntegrals_vacuum::Momentum1VarString                     = "Baikal::MU1GF"
+VolumeIntegrals_vacuum::Momentum2VarString                     = "Baikal::MU2GF"
+VolumeIntegrals_vacuum::NumIntegrals                           = 13
+VolumeIntegrals_vacuum::VolIntegral_out_every                  = 256 # to be consistent with frequency of Carpet regridding
+VolumeIntegrals_vacuum::enable_file_output                     = 1
+VolumeIntegrals_vacuum::outVolIntegral_dir                     = IOUtil::out_dir + "/volume_integration"
+VolumeIntegrals_vacuum::verbose                                = 1
+VolumeIntegrals_vacuum::Integration_quantity_keyword[1]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[2]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[3]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[4]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[5]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[6]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[7]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[8]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[9]        = "H_M_CnstraintsL2"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[10]       = "ADM_Mass"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[11]       = "ADM_Mass"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[12]       = "ADM_Mass"
+VolumeIntegrals_vacuum::Integration_quantity_keyword[13]       = "ADM_Mass"
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[2]  = 4.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[3]  = 8.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[4]  = 16.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[5]  = 32.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[6]  = 64.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[7]  = 128.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[8]  = 256.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[9]  = 512.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[11] = 100.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[12] = 200.
+VolumeIntegrals_vacuum::volintegral_outside_sphere__radius[13] = 300.
+VolumeIntegrals_vacuum::enable_time_reparameterization         = "no"
+VolumeIntegrals_vacuum::VIv_time_reparam_t0                    = 10
+VolumeIntegrals_vacuum::VIv_time_reparam_w                     = 5
+
+#----------------------WeylScal4 configuration--------------------------
+WeylScal4::fd_order = "4th"
