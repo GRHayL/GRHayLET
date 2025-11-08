@@ -1,0 +1,5 @@
+# Interface definition for thorn GRHayLib
+
+implements: GRHayLib
+
+INCLUDE HEADER: GRHayLib.h in GRHayLib.h

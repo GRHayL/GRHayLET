@@ -1,0 +1,9 @@
+SUBDIRS = Atmosphere     \
+          Con2Prim       \
+          EOS            \
+          Flux_Source    \
+          GRHayL_Core    \
+          include        \
+          Induction      \
+          Neutrinos      \
+          Reconstruction
