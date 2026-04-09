@@ -218,7 +218,7 @@ schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS af
 #########################################################
 
 if(Convert_to_HydroBase_every) {
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
@@ -598,7 +598,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
             HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
