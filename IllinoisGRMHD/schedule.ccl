@@ -205,7 +205,7 @@ if(CCTK_IsThornActive("NRPyLeakageET"))
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
 
-schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS after evaluate_fluxes_rhs
+schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_fluxes_rhs
 {
   LANG: C
   READS:  ADMBase::lapse, ADMBase::shift, ADMBase::metric,
