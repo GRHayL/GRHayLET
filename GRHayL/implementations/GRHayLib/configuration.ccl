@@ -1,5 +1,0 @@
-PROVIDES GRHayL
-{
-}
-
-requires HDF5

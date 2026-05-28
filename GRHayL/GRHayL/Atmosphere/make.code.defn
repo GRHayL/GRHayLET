@@ -1,4 +1,0 @@
-# Primary make.code.defn for gem Atmosphere
-
-# Source files in this directory that need compiled:
-SRCS = set_prims_to_constant_atm.c
