@@ -124,12 +124,12 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           cons_neigh_avg.SD[2]   = 0.0;
           cons_neigh_avg.entropy = 0.0;
 
-          const int iavg_min = MAX(0, i-1);
-          const int javg_min = MAX(0, j-1);
-          const int kavg_min = MAX(0, k-1);
-          const int iavg_max = MIN(imax, i+2);
-          const int javg_max = MIN(jmax, j+2);
-          const int kavg_max = MIN(kmax, k+2);
+          const int iavg_min = ghl_imax(0, i-1);
+          const int javg_min = ghl_imax(0, j-1);
+          const int kavg_min = ghl_imax(0, k-1);
+          const int iavg_max = ghl_imin(imax, i+2);
+          const int javg_max = ghl_imin(jmax, j+2);
+          const int kavg_max = ghl_imin(kmax, k+2);
 
           int n_avg = 0;
           // We compute the average of neighboring points once and
