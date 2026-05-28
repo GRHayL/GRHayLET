@@ -193,8 +193,8 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
 
   if( CCTK_EQUALS(initial_optical_depth,"PathOfLeastResistance") ) {
 
-    const int startRefLev = MIN(MAX(minInitRefLevel,0),Carpet::reflevels-1);
-    const int endRefLev   = maxInitRefLevel == 0 ? Carpet::reflevels-1 : MIN(maxInitRefLevel,Carpet::reflevels-1);
+    const int startRefLev = ghl_imin(ghl_imax(minInitRefLevel,0),Carpet::reflevels-1);
+    const int endRefLev   = maxInitRefLevel == 0 ? Carpet::reflevels-1 : ghl_imin(maxInitRefLevel,Carpet::reflevels-1);
 
     if(verbosity_level>0) {
       CCTK_VINFO("Optical depths will be initialized on levels %d through %d with the path of least resistance algorithm",startRefLev,endRefLev);

@@ -147,9 +147,8 @@ if( CCTK_IsThornActive("NRPyLeakageET") ) {
 #########################################################
 # Set HydroBase variables for analysis
 #########################################################
-
 if(Convert_to_HydroBase_every) {
-  schedule convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  schedule convert_GRHayLHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL

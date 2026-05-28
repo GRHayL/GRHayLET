@@ -1,4 +1,0 @@
-TEST spheretest_octant
-{
-        NPROCS 2
-}
