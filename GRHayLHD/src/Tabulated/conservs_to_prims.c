@@ -194,8 +194,7 @@ void GRHayLHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
         // Enforce limits on primitive variables and recompute conservatives.
         error = ghl_enforce_primitive_limits_and_compute_u0(
               ghl_params, ghl_eos, &ADM_metric, &prims, &diagnostics.speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
 
         rho[index]         = prims.rho;
         press[index]       = prims.press;

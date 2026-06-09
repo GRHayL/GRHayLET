@@ -182,13 +182,12 @@ void IllinoisGRMHD_hybrid_entropy_calculate_flux_dir_rhs(
         prims_l.vU[1] = vel_l[1][index];
         prims_l.vU[2] = vel_l[2][index];
 
-        bool speed_limited;
+        bool speed_limited = false;
         ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
+
         error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
 
         ghl_conservative_quantities cons_fluxes;
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);

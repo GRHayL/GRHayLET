@@ -47,8 +47,7 @@ void GRHayLHD_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
 
         bool speed_limited;
         ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims, &speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
 
         ghl_metric_quantities ADM_metric_derivs_x;
         GRHayLHD_compute_metric_derivs(

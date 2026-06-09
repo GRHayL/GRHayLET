@@ -51,10 +51,9 @@ void IllinoisGRMHD_hybrid_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
 
-        bool speed_limited;
+        bool speed_limited = false;
         ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims, &speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
 
         ghl_metric_quantities ADM_metric_derivs_x;
         IllinoisGRMHD_compute_metric_derivs(

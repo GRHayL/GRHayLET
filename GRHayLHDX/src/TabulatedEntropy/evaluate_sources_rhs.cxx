@@ -45,10 +45,9 @@ void GRHayLHDX_tabulated_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
     prims.Y_e         = Ye(index);
     prims.temperature = temperature(index);
 
-    bool speed_limited;
+    bool speed_limited = false;
     ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims, &speed_limited);
-    if(error)
-      ghl_read_error_codes(error);
+    ghl_abort_if_error(error);
 
     const Loop::GF3D2index indm2x(layout, p.I - 2*p.DI[0]);
     const Loop::GF3D2index indm1x(layout, p.I -   p.DI[0]);

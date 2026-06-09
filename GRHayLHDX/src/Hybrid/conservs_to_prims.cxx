@@ -126,11 +126,9 @@ extern "C" void GRHayLHDX_hybrid_conservs_to_prims(CCTK_ARGUMENTS) {
     //--------------------------------------------------
     error = ghl_enforce_primitive_limits_and_compute_u0(
           ghl_params, ghl_eos, &ADM_metric, &prims, &diagnostics.speed_limited);
-    if(error)
-      ghl_read_error_codes(error);
+    ghl_abort_if_error(error);
 
-    ghl_compute_conservs(
-          &ADM_metric, &metric_aux, &prims, &cons);
+    ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
     rho(index)   = prims.rho;
     press(index) = prims.press;
