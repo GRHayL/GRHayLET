@@ -1,6 +1,6 @@
 #include "GRHayLID.h"
 
-void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
+void GRHayLID_BetaEquilibrium(CCTK_ARGUMENTS) {
 
   CCTK_INFO("Starting routine to impose neutrino free beta-equilibrium");
 
@@ -32,10 +32,18 @@ void GRHayLID_BetaEquilibrium( CCTK_ARGUMENTS ) {
           temperature[index] = ghl_eos->T_atm;
         } else {
           const double tempL = beq_temperature;
-          const double YeL   = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL);
+          double YeL = 0.0, pressL = 0.0, epsL = 0.0;
+          ghl_error_codes_t err = ghl_success;
 
-          double pressL, epsL;
-          ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
+          err = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL, &YeL);
+          if(err != ghl_success) {
+            CCTK_ERROR("ghl_tabulated_compute_Ye_from_rho failed.");
+          }
+
+          err = ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
+          if(err != ghl_success) {
+            CCTK_ERROR("ghl_tabulated_compute_P_eps_from_T failed.");
+          }
 
           press      [index] = pressL;
           eps        [index] = epsL;
