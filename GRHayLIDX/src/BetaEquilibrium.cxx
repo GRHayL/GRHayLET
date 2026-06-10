@@ -16,7 +16,9 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
 
   CHECK_PARAMETER(beq_temperature);
 
-  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_error_codes_t err = ghl_success;
+  err = ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_abort_if_error(err);
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 

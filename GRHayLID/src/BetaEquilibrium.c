@@ -16,7 +16,9 @@ void GRHayLID_BetaEquilibrium(CCTK_ARGUMENTS) {
 
   CHECK_PARAMETER(beq_temperature);
 
-  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_error_codes_t err = ghl_success;
+  err = ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_abort_if_error(err);
 
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
