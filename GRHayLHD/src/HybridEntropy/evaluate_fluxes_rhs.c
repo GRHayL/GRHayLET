@@ -112,13 +112,12 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           prims_r.BU[0] = prims_r.BU[1] = prims_r.BU[2] = 0.0;
           prims_l.BU[0] = prims_l.BU[1] = prims_l.BU[2] = 0.0;
 
-          bool speed_limited;
+          bool speed_limited = false;
           ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited);
-          if(error)
-            ghl_read_error_codes(error);
+          ghl_abort_if_error(error);
+
           error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
-          if(error)
-            ghl_read_error_codes(error);
+          ghl_abort_if_error(error);
 
           CCTK_REAL cmin, cmax;
           ghl_conservative_quantities cons_fluxes;

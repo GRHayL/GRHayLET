@@ -16,7 +16,9 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
 
   CHECK_PARAMETER(beq_temperature);
 
-  ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_error_codes_t err = ghl_success;
+  err = ghl_tabulated_compute_Ye_of_rho_beq_constant_T(beq_temperature, ghl_eos);
+  ghl_abort_if_error(err);
 
   const Loop::GF3D2layout layout(cctkGH, {1, 1, 1});
 
@@ -34,10 +36,18 @@ void GRHayLIDX_BetaEquilibrium( CCTK_ARGUMENTS ) {
       temperature(index) = ghl_eos->T_atm;
     } else {
       const double tempL = beq_temperature;
-      const double YeL   = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL);
+      double pressL = 0.0, epsL = 0.0, YeL = 0.0;
+      ghl_error_codes_t err = ghl_success;
 
-      double pressL, epsL;
-      ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
+      err = ghl_tabulated_compute_Ye_from_rho(ghl_eos, rhoL, &YeL);
+      if(err != ghl_success) {
+        CCTK_ERROR("ghl_tabulated_compute_Ye_from_rho failed.");
+      }
+
+      err = ghl_tabulated_compute_P_eps_from_T(ghl_eos, rhoL, YeL, tempL, &pressL, &epsL);
+      if(err != ghl_success) {
+        CCTK_ERROR("ghl_tabulated_compute_P_eps_from_T failed.");
+      }
 
       press      (index) = pressL;
       eps        (index) = epsL;

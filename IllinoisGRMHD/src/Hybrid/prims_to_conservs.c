@@ -35,15 +35,13 @@ void IllinoisGRMHD_hybrid_prims_to_conservs(CCTK_ARGUMENTS) {
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
 
-        bool speed_limited; 
+        bool speed_limited = false;
         const ghl_error_codes_t error = ghl_enforce_primitive_limits_and_compute_u0(
               ghl_params, ghl_eos, &ADM_metric, &prims, &speed_limited);
-        if(error)
-          ghl_read_error_codes(error);
+        ghl_abort_if_error(error);
 
         ghl_conservative_quantities cons;
-        ghl_compute_conservs(
-              &ADM_metric, &metric_aux, &prims, &cons);
+        ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
         rho[index]   = prims.rho;
         press[index] = prims.press;

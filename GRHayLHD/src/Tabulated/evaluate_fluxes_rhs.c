@@ -104,13 +104,12 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
 
           prims_r.temperature = prims_l.temperature = temperature[index];
 
-          bool speed_limited;
+          bool speed_limited = false;
           ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited);
-          if(error)
-            ghl_read_error_codes(error);
+          ghl_abort_if_error(error);
+
           error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
-          if(error)
-            ghl_read_error_codes(error);
+          ghl_abort_if_error(error);
 
           // We must now compute eps and T
           ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
