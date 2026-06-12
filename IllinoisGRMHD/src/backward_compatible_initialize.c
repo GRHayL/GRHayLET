@@ -16,8 +16,8 @@ void IllinoisGRMHD_backward_compatible_initialize(CCTK_ARGUMENTS) {
   ghl_params = (ghl_parameters *)malloc(sizeof(ghl_parameters));
   ghl_eos = (ghl_eos_parameters *)malloc(sizeof(ghl_eos_parameters));
 
-  const int main = Noble2D;
-  const int backups[3] = {Font1D, None, None};
+  const ghl_con2prim_id_t main = ghl_con2prim_id_Noble2D;
+  const ghl_con2prim_id_t backups[3] = {ghl_con2prim_id_Font1D, ghl_con2prim_id_None, ghl_con2prim_id_None};
 
   const bool bc_evolve_entropy = false;
   const bool bc_evolve_temperature = false;
