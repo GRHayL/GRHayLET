@@ -1,6 +1,6 @@
 # Purpose and Build Surface
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 07-18-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -15,8 +15,9 @@ behavior.
 GRHayLHD documentation describes a general-relativistic hydrodynamics thorn
 built on GRHayL through GRHayLib. The ThornGuide calls it a trimmed-down
 IllinoisGRMHD form whose magnetic fields are set to zero and says it evolves
-systems without magnetic fields. Local manifests list seven common C units and
-the same seven unit names in each of four variant directories.
+systems without magnetic fields. Local manifests list seven common C units,
+plus a distinct set of seven variant unit names that is repeated identically in
+each of the four variant directories.
 
 ## Variant Applicability
 
@@ -33,7 +34,7 @@ the same seven unit names in each of four variant directories.
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
 | `ARCH-PURPOSE-01` | README states GRHD purpose and GRHayLib use. | declared | Purpose section | `doc:GRHayLHD/README#section=1. Purpose` |
-| `ARCH-PURPOSE-02` | ThornGuide describes magnetic fields as zero and not evolved. | declared | Introduction | `doc:GRHayLHD/doc/documentation.tex#section=Introduction` |
+| `ARCH-PURPOSE-02` | ThornGuide Introduction says GRHayLHD provides an implementation for evolving systems without magnetic fields. | declared | Introduction | `doc:GRHayLHD/doc/documentation.tex#section=Introduction` |
 | `ARCH-SURFACE-01` | Interface CCL declares GRHayLHD implementation plus inherited/include/function boundaries. | declared | Complete interface declaration | `ccl:GRHayLHD/interface.ccl#implementation=GRHayLHD` |
 | `ARCH-SURFACE-02` | Configuration CCL declares an HDF5 requirement. | declared | Requirement declaration | `ccl:GRHayLHD/configuration.ccl#requirement=HDF5` |
 | `ARCH-BUILD-01` | Root manifest lists seven common units. | declared | `SRCS` field | `build:GRHayLHD/src/make.code.defn#field=SRCS` |

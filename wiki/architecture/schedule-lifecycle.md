@@ -1,6 +1,6 @@
 # Schedule Lifecycle
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 07-18-2026
 > Up: [Architecture](index.md)
 
 ## Summary
@@ -33,17 +33,19 @@ Setup declares:
 their scalar RHS variables, and registers conservative groups against their RHS
 groups. Entropy and electron-fraction groups are conditional. HydroBase rho,
 pressure, and eps are constrained; entropy and Y_e/temperature are conditional;
-Tmunu groups are constrained when enabled. ADMBase lapse, shift, metric, and
-curvature are save-and-restore groups. Any accumulated registration error calls
-`CCTK_ERROR`.
+Tmunu groups are constrained when enabled, but the three Tmunu registration
+return values are not accumulated into `ierr`. Failures returned by those calls
+therefore do not reach the later `CCTK_ERROR` checks through `ierr`. ADMBase
+lapse, shift, metric, and curvature are save-and-restore groups. Every other
+registration call accumulates its return value into `ierr` before a check.
 
 Claim evidence:
-- Claim: Local code requests these MoL registration classes conditionally; this does not establish MoL internals or successful registration at runtime.
+- Claim: Local code requests these MoL registration classes conditionally; the three enabled Tmunu calls do not accumulate their return values into `ierr`, so the local error checks do not test those returned statuses; this does not establish MoL internals or successful registration at runtime.
 - Role: descriptive behavior
 - Deciding authority: registered `IllinoisGRMHD/src/MoL_registration.c`, `IllinoisGRMHD_RegisterVars`
 - Corroboration: registered `IllinoisGRMHD/interface.ccl`, MoL alias declarations; `IllinoisGRMHD/schedule.ccl`, `MoL_Register` entry
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=evolve_entropy,tabulated EOS,update_Tmunu branches; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=three Tmunu return statuses inspected-not-run; options=evolve_entropy,tabulated EOS,update_Tmunu branches; date=07-18-2026`
 
 ### Declared Phase Graph
 
@@ -79,11 +81,12 @@ not establish external release policy.
 ### Sync Handoffs
 
 The initial B reconstruction declares synchronization of centered and staggered
-B. Recurring `IllinoisGRMHD_sync` declares synchronization of conservatives,
-conditional Ye/entropy groups, and EM potential state before A boundaries. Its
-local C function body is empty; synchronization is expressed by the CCL `SYNC`
-clause. Variant Prim2Con and hydro-boundary entries add mode-specific `SYNC`
-lists. These are declared handoffs, not observed communication.
+B. Recurring `IllinoisGRMHD_sync` unconditionally lists conservatives,
+`Ye_star`, `ent_star` (groups whose storage is conditional), and EM potential
+state in its `SYNC` clause before A boundaries. Its local C function body is
+empty; synchronization is expressed by the CCL `SYNC` clause. Variant Prim2Con
+and hydro-boundary entries add mode-specific `SYNC` lists. These are declared
+handoffs, not observed communication.
 
 Claim evidence:
 - Claim: `IllinoisGRMHD_sync` has an empty C body while its schedule entry carries the conservative/EM `SYNC` declaration; static inspection does not prove synchronization execution.

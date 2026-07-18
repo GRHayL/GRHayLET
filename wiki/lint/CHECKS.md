@@ -1,6 +1,6 @@
 # IllinoisGRMHD KB Lint Checks
 
-> Deterministic checks and manual review boundary. · Status: confirmed · Last reconciled: 07-17-2026
+> Deterministic checks and manual review boundary. · Status: confirmed · Last reconciled: 07-18-2026
 
 ## Canonical Command
 
@@ -17,9 +17,12 @@ file path and never writes to `IllinoisGRMHD/`.
   existing Markdown anchors. Authors use this form for KB routing and
   citations; images, reference-style links, and multiline/nested CommonMark
   forms are outside deterministic validation. Obsidian links are forbidden.
-- Exact 31-node inventory must exist: root, 28 wiki pages, source manifest,
-  and checker. Missing required nodes produce stable diagnostics without later
-  dereference. All wiki pages must be reachable from root. Routers must have
+- Exact 31-node inventory must exist for this branch: root, 28 wiki pages
+  outside the `wiki/grhaylhd/**` namespace, source manifest, and checker. Pages
+  and registry files under `wiki/grhaylhd/**` and `raw/grhaylhd/**` are checked
+  by the separate GRHayLHD profile and excluded from this inventory. Missing
+  required nodes produce stable diagnostics without later dereference. All
+  Illinois-branch wiki pages must be reachable from root. Routers must have
   exact immediate-child fan-out, no `Detail`/`Sources`, and no illegal edges.
 - Every leaf must begin with H1, blank line, exact status/date line, exact
   `Up:` line, blank line, and immediate `Summary`; its H2 order is `Summary`,
@@ -51,8 +54,9 @@ file path and never writes to `IllinoisGRMHD/`.
   backlinks, and matching active affected-page sets.
 - Glossary table requires a delimiter row; every row has exactly one live wiki
   owner page and no duplicate term.
-- Governed text (`AGENTS.md`, `wiki/**/*.md`, `raw/SOURCES.md`, and
-  `tools/kb_lint.py`) requires final newline and forbids trailing horizontal
+- Governed text (`AGENTS.md`, `wiki/**/*.md`, `raw/SOURCES.md`,
+  `raw/grhaylhd/SOURCES.md`, and `tools/kb_lint.py`) requires final newline and
+  forbids trailing horizontal
   whitespace, Obsidian links, unfilled template markers, stored source
   fingerprints/modification-time values, every empty or invalid retained date,
   generic formatted or plain `Hash:`/`Digest:` values (including `0x` hex),

@@ -1,6 +1,6 @@
 # Test Harness and Oracles
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 07-18-2026
 > Up: [Validation](index.md)
 
 ## Summary
@@ -20,7 +20,7 @@ Claim evidence:
   and `IllinoisGRMHD/test/**/*.asc` oracle roles and headers
 - Corroboration: no checked-in current command/environment/result record is available
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-run; tool_version=not-run; backend=not-run; precision=not-run; GPU=not-run; restart=not-run; distributed=not-run; error_path=not-run; options=static inventory only; date=07-17-2026`
+- Dimensions: `platform=not-run; tool_version=not-run; backend=not-run; precision=not-run; GPU=not-run; restart=not-run; distributed=not-run; error_path=not-run; options=static inventory only; date=07-18-2026`
 
 ## Detail
 
@@ -58,10 +58,12 @@ come from local tree.
 | `test/<case>/*.asc` | 40 | Checked-in generated evidence used as reference outputs/oracles for visible fixture context. |
 | `test/test.ccl` | 1 | Test registration and comparison options. |
 
-Total visible inventory: 52 files. Balsara1, 2, 3, and 5 each have eight
-profile files: `rho`, `press`, `vx`, `vy`, `vz`, and centered `Bx`, `By`, `Bz`,
-all `.x.asc`. Magnetized TOV has minimum and maximum scalar files for `rho`
-and each centered B component, eight files total.
+Total visible inventory: 58 files, of which 52 are test-harness files (`test/`
+parfiles, fixtures, oracles, and `test.ccl`) and six are `par/` examples.
+Balsara1, 2, 3, and 5 each have eight profile files: `rho`, `press`, `vx`, `vy`,
+`vz`, and centered `Bx`, `By`, `Bz`, all `.x.asc`. Magnetized TOV has minimum
+and maximum scalar files for `rho` and each centered B component, eight files
+total.
 
 `.asc` headers identify CarpetIOASCII or CarpetIOScalar, source parameter
 filename, variables, and recorded samples. They are generated evidence for

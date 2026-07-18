@@ -1,6 +1,6 @@
 # IllinoisGRMHD Knowledge Base Schema
 
-> Governance contract. · Status: confirmed · Last reconciled: 07-17-2026
+> Governance contract. · Status: confirmed · Last reconciled: 07-18-2026
 
 ## Summary
 
@@ -159,9 +159,11 @@ external semantics is a gap until two authoritative claims actually disagree.
 
 ## Catalog, Glossary, and Source Map
 
-Catalog lists every `wiki/**/*.md` page once using exact columns
+Catalog lists every `wiki/**/*.md` page outside the separately governed
+`wiki/grhaylhd/**` namespace once, using exact columns
 `Page | Type | One-line answer | Route | Tags | Aliases / Query terms | Status |
-Last reconciled`. Glossary defines recurring local routing terms, with exactly
+Last reconciled`. Pages under `wiki/grhaylhd/**` are owned by that branch's own
+catalog and schema. Glossary defines recurring local routing terms, with exactly
 one valid owner page each. Source map includes every manifest ID exactly once
 and uses exact columns `Source / aggregate | Authority tier | Dependency
 coverage | Dependent pages | Covered paths / stable locators | Known gaps |

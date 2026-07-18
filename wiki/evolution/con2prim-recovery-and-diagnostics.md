@@ -1,6 +1,6 @@
 # Con2Prim Recovery and Diagnostics
 
-> Status: contested · Last reconciled: 07-17-2026
+> Status: contested · Last reconciled: 07-18-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -22,7 +22,7 @@ Claim evidence:
 - Deciding authority: registered exact sources `illinoisgrmhd-hybrid-con2prim`, `illinoisgrmhd-hybrid-entropy-con2prim`, `illinoisgrmhd-tabulated-con2prim`, and `illinoisgrmhd-tabulated-entropy-con2prim`; terminal branches and final `failure_checker[index]` assignments
 - Corroboration: same functions' decoder comments state the intended hundreds marker; Tabulated functions also lack a local Font1D call
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=Hybrid,HybridEntropy,Tabulated,TabulatedEntropy; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=Hybrid,HybridEntropy,Tabulated,TabulatedEntropy; date=07-18-2026`
 
 ## Detail
 
@@ -33,10 +33,11 @@ diagnostics and metric data, loads centered B and family conservatives, and
 uses the library's default guess; source comments explicitly say a prior-
 timelevel guess is not implemented.
 
-1. For positive `rho_star`, conservatives are divided by
-   `sqrt_detgamma` and passed to `ghl_con2prim_multi_method`. Hybrid families
-   first call `ghl_apply_conservative_limits`; tabulated families do not make
-   that local call on the primary path.
+1. For positive `rho_star`, conservatives are passed with `sqrt_detgamma` to
+   `ghl_undensitize_conservatives`, and its result is passed to
+   `ghl_con2prim_multi_method`. Hybrid families first call
+   `ghl_apply_conservative_limits`; tabulated families do not make that local
+   call on the primary path.
 2. A NaN product across every expected output field converts an otherwise
    returned result into `ghl_error_c2p_singular`. Entropy and tabulated fields
    are included only in families that carry them.

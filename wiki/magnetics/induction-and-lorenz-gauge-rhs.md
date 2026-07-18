@@ -1,6 +1,6 @@
 # Induction and Lorenz-Gauge RHS
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 07-18-2026
 > Up: [Magnetics](index.md)
 
 ## Summary
@@ -18,7 +18,7 @@ Claim evidence:
 - Deciding authority: registered `IllinoisGRMHD/src/A_flux_rhs.c` and `evaluate_phitilde_and_A_gauge_rhs.c` named functions
 - Corroboration: registered four family `evaluate_fluxes_rhs.c` callers and `IllinoisGRMHD/schedule.ccl` RHS ordering
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-run; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-run; options=all four EOS callers; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-run; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-run; options=all four EOS callers; date=07-18-2026`
 
 ## Detail
 
@@ -67,10 +67,12 @@ builds a 2-by-2-by-2 cell-centered metric stencil and 3-by-3-by-3 A stencils,
 then calls `ghl_interpolate_with_cell_centered_ADM`. The local source comment
 says interpolation, not reconstruction, is intentional for this gauge stage.
 
-Over interior points, backward differences of the interpolated
-`alpha*Phi - beta^j*A_j` value are added to each `A_i` RHS. Five-point shift
-and `phitilde` stencils plus two-point `sqrt(gamma) A^i` data are then passed
-to `ghl_calculate_phitilde_rhs`; its return value replaces
+Over interior points, the negated backward difference of the interpolated
+`alpha*Phi - beta^j*A_j` value, `(f[i-1] - f[i])/dx`, is added to each `A_i`
+RHS, implementing the source-commented
+`-partial_i(alpha*Phi - beta^j A_j)` gauge term. Five-point shift and
+`phitilde` stencils plus two-point `sqrt(gamma) A^i` data are then passed to
+`ghl_calculate_phitilde_rhs`; its return value replaces
 `phitilde_rhs[index]`. The damping input is exactly
 `ghl_params->Lorenz_damping_factor`. Local code establishes this input and
 stencil handoff, not GRHayL's internal gauge formula.

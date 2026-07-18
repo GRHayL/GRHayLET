@@ -1,7 +1,7 @@
 # GRHayLHD Architecture
 
 > Page status: router · Last reviewed: n/a
-> Up: [GRHayLHD Catalog](../catalog.md)
+> Up: [GRHayLHD Knowledge Base](../index.md)
 
 | Page | Use it for |
 | --- | --- |

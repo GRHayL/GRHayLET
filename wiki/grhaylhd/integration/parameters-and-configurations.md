@@ -1,6 +1,6 @@
 # Parameters and Configurations
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 07-18-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -41,8 +41,8 @@ selections.
 | `INT-PAR-04` | Authored Balsara0 input sets `update_Tmunu=no`, Simple EOS, and copy matter boundary. | checked-in-observation | Authored test input | `par:GRHayLHD/test/Balsara0.par#parameter=GRHayLHD::update_Tmunu` |
 | `INT-PAR-05` | Authored TOV input sets Hybrid EOS. | checked-in-observation | Exact authored assignment | `par:GRHayLHD/test/TOV.par#parameter=GRHayLib::EOS_type` |
 | `INT-PAR-06` | Balsara0 companion contains checked-in Cactus-generation and original-path header assertions. | checked-in-observation | Whole companion file | `par:GRHayLHD/test/Balsara0/Balsara0.par#file` |
-| `INT-PAR-08` | Authored TOV input omits explicit assignments for all nine local GRHayLHD controls. | checked-in-observation | Full authored-input inspection | `par:GRHayLHD/test/TOV.par#file` |
-| `INT-PAR-09` | TOV companion contains checked-in Cactus-generation and original-path header assertions. | checked-in-observation | Whole companion file | `par:GRHayLHD/test/TOV/TOV.par#file` |
+| `INT-PAR-07` | Authored TOV input omits explicit assignments for all nine local GRHayLHD controls. | checked-in-observation | Full authored-input inspection | `par:GRHayLHD/test/TOV.par#file` |
+| `INT-PAR-08` | TOV companion contains checked-in Cactus-generation and original-path header assertions. | checked-in-observation | Whole companion file | `par:GRHayLHD/test/TOV/TOV.par#file` |
 
 ## Details
 

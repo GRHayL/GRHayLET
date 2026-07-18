@@ -16,7 +16,7 @@ routing are owned by the branch index and root router.
 | `grhaylhd.contradictions` | [Issues](contradictions.md) | governance | reviewed | 07-17-2026 | contradictions; mismatches; hazards; ambiguities |
 | `grhaylhd.workflows` | [Workflows](workflows.md) | governance | reviewed | 07-17-2026 | registration; reconciliation; verification |
 | `grhaylhd.architecture` | [Architecture](architecture/index.md) | router | router | n/a | purpose; build; variables; lifecycle |
-| `grhaylhd.architecture.purpose-build-surface` | [Purpose and Build Surface](architecture/purpose-build-surface.md) | leaf | reviewed | 07-17-2026 | GRHD; non-magnetic; manifests; HDF5 |
+| `grhaylhd.architecture.purpose-build-surface` | [Purpose and Build Surface](architecture/purpose-build-surface.md) | leaf | reviewed | 07-18-2026 | GRHD; non-magnetic; manifests; HDF5 |
 | `grhaylhd.architecture.variables-and-storage` | [Variables and Storage](architecture/variables-and-storage.md) | leaf | reviewed | 07-17-2026 | conservatives; RHS; flux; storage; timelevels |
 | `grhaylhd.architecture.schedule-lifecycle` | [Declared Schedule Lifecycle](architecture/schedule-lifecycle.md) | leaf | reviewed | 07-17-2026 | schedule; guards; ordering; reads; writes; syncs |
 | `grhaylhd.evolution` | [Evolution](evolution/index.md) | router | router | n/a | EOS; conversion; recovery; RHS; boundaries; perturbations |
@@ -30,7 +30,7 @@ routing are owned by the branch index and root router.
 | `grhaylhd.integration.hydrobase-velocity-conversion` | [HydroBase Velocity Conversion](integration/hydrobase-velocity-conversion.md) | leaf | reviewed | 07-17-2026 | native velocity; Valencia; Lorentz factor; cadence |
 | `grhaylhd.integration.grhaylib-contract` | [GRHayLib Contract](integration/grhaylib-contract.md) | leaf | reviewed | 07-17-2026 | GRHayLib; API calls; EOS handle; delegation |
 | `grhaylhd.integration.adm-mol-tmunu-contracts` | [ADM, MoL, and Tmunu Contracts](integration/adm-mol-tmunu-contracts.md) | leaf | reviewed | 07-17-2026 | ADMBase; MoL; TmunuBase; registration; u0 |
-| `grhaylhd.integration.parameters-and-configurations` | [Parameters and Configurations](integration/parameters-and-configurations.md) | leaf | reviewed | 07-17-2026 | local parameters; shared selections; parfiles; provenance |
+| `grhaylhd.integration.parameters-and-configurations` | [Parameters and Configurations](integration/parameters-and-configurations.md) | leaf | reviewed | 07-18-2026 | local parameters; shared selections; parfiles; provenance |
 | `grhaylhd.validation` | [Validation](validation/index.md) | router | router | n/a | tests; tolerances; oracles; coverage; provenance |
 | `grhaylhd.validation.test-inventory-and-oracles` | [Test Inventory and Oracles](validation/test-inventory-and-oracles.md) | leaf | reviewed | 07-17-2026 | Balsara0; TOV; parfiles; ASCII; RELTOL |
 | `grhaylhd.validation.coverage-gaps` | [Coverage Gaps](validation/coverage-gaps.md) | leaf | reviewed | 07-17-2026 | missing modes; internal state; lifecycle; proposals; risk |
