@@ -1,8 +1,8 @@
 # GRHayLET Knowledge Base
 
-This root selects between evidence-isolated knowledge-base branches. Each
-branch admits only its matching source tree as domain evidence; neither branch
-is authority for the other.
+This root selects among evidence-isolated knowledge-base branches. Each branch
+admits only its matching source tree as domain evidence; no branch is authority
+for another.
 
 ## Branch Selector
 
@@ -10,6 +10,7 @@ is authority for the other.
 | --- | --- | --- |
 | IllinoisGRMHD | `IllinoisGRMHD/**` | [IllinoisGRMHD routes](#illinoisgrmhd-knowledge-base) |
 | GRHayLHD | `GRHayLHD/**` | [GRHayLHD routes](wiki/grhaylhd/index.md) |
+| GRHayLID | `GRHayLID/**` | [GRHayLID routes](wiki/grhaylid/index.md) |
 
 ## GRHayLHD Router
 
@@ -37,6 +38,33 @@ is authority for the other.
 | Use HydroBase/GRHayLib/ADM/MoL/Tmunu or inspect parameters | [Integration](wiki/grhaylhd/integration/index.md) |
 | Inspect tests, tolerances, parfiles, or checked-in observations | [Validation](wiki/grhaylhd/validation/index.md) |
 | Maintain the GRHayLHD branch | [Workflows](wiki/grhaylhd/workflows.md) |
+
+## GRHayLID Router
+
+| Go to | Use it for |
+| --- | --- |
+| [Architecture](wiki/grhaylid/architecture/index.md) | Purpose, build surface, owned-state boundary, and declared schedule lifecycle. |
+| [Initial Data](wiki/grhaylid/initial-data/index.md) | One- and three-dimensional setups, magnetic initialization, and standalone beta-equilibrium and entropy features. |
+| [Integration](wiki/grhaylid/integration/index.md) | HydroBase keyword extensions, GRHayLib boundary, parameters, and configurations. |
+| [Validation](wiki/grhaylid/validation/index.md) | Checked-in test absence, coverage gaps, and ranked evidence proposals. |
+| [Catalog](wiki/grhaylid/catalog.md) | Exact namespaced page inventory and query aliases. |
+| [Glossary](wiki/grhaylid/glossary.md) | Canonical recurring terms and their owner pages. |
+| [Workflows](wiki/grhaylid/workflows.md) | Source registration, reconciliation, verification, and publication. |
+| [Schema](wiki/grhaylid/SCHEMA.md) | Page, claim, issue, locator, registry, and publication contracts. |
+| [Sources](raw/grhaylid/SOURCES.md) | Source identity, ownership, provenance class, lifecycle, and ingest state. |
+| [Source Map](wiki/grhaylid/source-map.md) | Canonical source-to-page evidence edges and next actions. |
+| [Issues](wiki/grhaylid/contradictions.md) | Open mismatches, hazards, and lifecycle ambiguities. |
+| [Lint Checks](wiki/grhaylid/lint/CHECKS.md) | Deterministic checks and the manual proof boundary. |
+
+## GRHayLID Task Shortcuts
+
+| Task | Read first |
+| --- | --- |
+| Understand purpose, build shape, owned-state boundary, or declared scheduling | [Architecture](wiki/grhaylid/architecture/index.md) |
+| Pick or modify an initial-data family, initialize magnetic data, impose beta equilibrium, or compute entropy for any initial-data thorn | [Initial Data](wiki/grhaylid/initial-data/index.md) |
+| Use HydroBase keywords, inspect the GRHayLib boundary, or change parameters | [Integration](wiki/grhaylid/integration/index.md) |
+| Inspect checked-in test absence or coverage gaps | [Validation](wiki/grhaylid/validation/index.md) |
+| Maintain the GRHayLID branch | [Workflows](wiki/grhaylid/workflows.md) |
 
 ---
 
@@ -91,6 +119,11 @@ oracles are evidence; sibling workspace trees are outside scope.
 Run `python tools/kb_lint.py`. `--all` is an identical compatibility alias,
 not stronger coverage. Checker is deterministic and never mutates
 `IllinoisGRMHD/`.
+
+Checked-in KB-linter tests, regression harnesses, and fixture suites are
+forbidden regardless of filename or location. Reproduce checker regressions
+only with disposable manual fixtures outside the repository. The canonical
+checker is the sole checked-in KB validation infrastructure.
 
 Exact coordination exemptions are `plan1.md`, `plan2.md`, `plan3.md`,
 `plan_synth.md`, `tasks1.md`, `tasks2.md`, `tasks3.md`, and `tasks4.md`. They

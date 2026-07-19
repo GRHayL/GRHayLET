@@ -21,6 +21,7 @@ CATALOG = WIKI / "catalog.md"
 GLOSSARY = WIKI / "glossary.md"
 SOURCE_MAP = WIKI / "source-map.md"
 CONTRADICTIONS = WIKI / "contradictions.md"
+ISOLATED_NAMESPACES = (WIKI / "grhaylhd", WIKI / "grhaylid")
 
 LEAF_SECTIONS = ["Summary", "Detail", "Sources", "See Also"]
 PAGE_STATUSES = {"confirmed", "provisional", "contested", "stale"}
@@ -165,6 +166,11 @@ def inside(path: Path, parent: Path) -> bool:
     return True
 
 
+def in_isolated(path: Path) -> bool:
+    """Return whether path belongs to an additive evidence namespace."""
+    return any(inside(path, namespace) for namespace in ISOLATED_NAMESPACES)
+
+
 def fail(failures: list[str], path: Path, message: str, line: int | None = None) -> None:
     """Append stable diagnostic."""
     location = rel(path)
@@ -184,6 +190,9 @@ def governed_files() -> list[Path]:
     grhaylhd_sources = ROOT / "raw/grhaylhd/SOURCES.md"
     if grhaylhd_sources.is_file():
         files.append(grhaylhd_sources)
+    grhaylid_sources = ROOT / "raw/grhaylid/SOURCES.md"
+    if grhaylid_sources.is_file():
+        files.append(grhaylid_sources)
     files.extend(sorted(WIKI.rglob("*.md")))
     return sorted({path.resolve() for path in files})
 
@@ -296,6 +305,11 @@ def links(path: Path) -> list[tuple[int, str, str, Path | None, str]]:
     return result
 
 
+def exact_link_match(cell: str) -> re.Match[str] | None:
+    """Return one ordinary Markdown link only when it fills the table cell."""
+    return LINK_RE.fullmatch(mask_inline_code(cell))
+
+
 def source_path_mentions(text: str) -> list[tuple[int, str]]:
     """Return IllinoisGRMHD path/glob mentions independent of Markdown style."""
     masked = mask_code(text)
@@ -367,6 +381,54 @@ def table(path: Path, first_column: str) -> tuple[list[str], list[tuple[int, lis
     return [], []
 
 
+def named_section_table(
+    path: Path, heading: str, expected_header: list[str]
+) -> tuple[bool, list[tuple[int, list[str]]]]:
+    """Return one exact simple table from one uniquely named H2 section."""
+    lines = mask_code(read(path)).splitlines()
+    headings = [
+        index
+        for index, line in enumerate(lines)
+        if line == f"## {heading}"
+    ]
+    if len(headings) != 1:
+        return False, []
+    start = headings[0] + 1
+    end = next(
+        (
+            index
+            for index in range(start, len(lines))
+            if re.match(r"^##\s+", lines[index])
+        ),
+        len(lines),
+    )
+
+    def cells(line: str) -> list[str]:
+        if not line.startswith("|"):
+            return []
+        return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+    headers = [
+        index
+        for index in range(start, end)
+        if cells(lines[index]) == expected_header
+    ]
+    if len(headers) != 1 or headers[0] + 1 >= end:
+        return False, []
+    separator = cells(lines[headers[0] + 1])
+    if len(separator) != len(expected_header) or not all(
+        re.fullmatch(r":?-{3,}:?", cell) for cell in separator
+    ):
+        return False, []
+    rows: list[tuple[int, list[str]]] = []
+    for index in range(headers[0] + 2, end):
+        row = cells(lines[index])
+        if not row:
+            break
+        rows.append((index + 1, row))
+    return True, rows
+
+
 def valid_date(value: str, allow_na: bool = False) -> bool:
     """Validate MM-DD-YYYY calendar date."""
     if allow_na and value.lower() in {"n/a", "-"}:
@@ -408,7 +470,7 @@ def check_inventory(failures: list[str]) -> None:
     live = {
         path.relative_to(WIKI).as_posix()
         for path in wiki_pages()
-        if not inside(path, WIKI / "grhaylhd")
+        if not in_isolated(path)
     }
     for missing in sorted(EXPECTED_WIKI - live):
         fail(failures, WIKI / missing, "required wiki page missing")
@@ -420,7 +482,8 @@ def check_inventory(failures: list[str]) -> None:
         if path.is_file()
     }
     for extra in sorted(
-        path for path in raw_files - {"SOURCES.md"} if not path.startswith("grhaylhd/")
+        path for path in raw_files - {"SOURCES.md"}
+        if not path.startswith(("grhaylhd/", "grhaylid/"))
     ):
         fail(failures, ROOT / "raw" / extra, "unexpected file outside exact KB tree")
 
@@ -547,7 +610,10 @@ def check_routers(failures: list[str]) -> None:
             {
                 (GR_WIKI / item).resolve()
                 for item in GR_ROOT_ROUTES
-            } | {GR_REGISTRY.resolve()}
+            } | {
+                (GID_WIKI / item).resolve()
+                for item in GID_ROOT_ROUTES
+            } | {GR_REGISTRY.resolve(), GID_REGISTRY.resolve()}
             if router == AGENTS.resolve() else set()
         )
         for missing in sorted(child_paths - targets):
@@ -560,7 +626,7 @@ def check_routers(failures: list[str]) -> None:
 def check_leaves(failures: list[str]) -> None:
     """Check leaf header, section, parent, source, and neighbor contract."""
     for path in wiki_pages():
-        if inside(path, WIKI / "grhaylhd"):
+        if in_isolated(path):
             continue
         if path.name == "index.md" or path in {item.resolve() for item in SUPPORT_PAGES}:
             continue
@@ -765,7 +831,7 @@ def check_source_citations(
     """Check all leaf local citations stay in scope and Sources has evidence."""
     allowed_support = {AGENTS.resolve(), SOURCES.resolve(), Path(__file__).resolve()}
     for path in wiki_pages():
-        if inside(path, WIKI / "grhaylhd"):
+        if in_isolated(path):
             continue
         if path.name == "index.md" or path in {item.resolve() for item in SUPPORT_PAGES}:
             continue
@@ -843,7 +909,7 @@ def check_reachability(failures: list[str], graph: dict[Path, set[Path]]) -> Non
         reached.add(current)
         queue.extend(sorted(graph.get(current, set()) - reached))
     for path in wiki_pages():
-        if inside(path, WIKI / "grhaylhd"):
+        if in_isolated(path):
             continue
         if path not in reached:
             fail(failures, path, "wiki page not reachable from AGENTS.md")
@@ -870,7 +936,7 @@ def check_catalog(failures: list[str]) -> None:
             continue
         seen.append((target, number, row))
     counts = Counter(target for target, _, _ in seen)
-    live = {path for path in wiki_pages() if not inside(path, WIKI / "grhaylhd")}
+    live = {path for path in wiki_pages() if not in_isolated(path)}
     for path in sorted(live):
         if counts[path] == 0:
             fail(failures, CATALOG, f"missing wiki page: {rel(path)}")
@@ -929,7 +995,7 @@ def direct_source_dependents(
     support = {item.resolve() for item in SUPPORT_PAGES}
 
     for path in wiki_pages():
-        if inside(path, WIKI / "grhaylhd"):
+        if in_isolated(path):
             continue
         if path.name == "index.md" or (path in support and path != CONTRADICTIONS.resolve()):
             continue
@@ -1101,7 +1167,7 @@ def check_contradictions(failures: list[str]) -> None:
     )
     found: dict[str, set[str]] = defaultdict(set)
     for path in wiki_pages():
-        if inside(path, WIKI / "grhaylhd"):
+        if in_isolated(path):
             continue
         if path.name == "index.md" or path in {item.resolve() for item in SUPPORT_PAGES}:
             continue
@@ -1282,11 +1348,125 @@ GR_ISSUE_COLUMNS = [
     "Resolved",
 ]
 
+# Active-profile knobs used by the shared GRHayL* checker. Defaults preserve
+# the established GRHayLHD diagnostics and grammar byte-for-byte.
+GR_CHECK_PREFIX = "GRH"
+GR_PAGE_PREFIX = "grhaylhd"
+GR_TREE_NAME = "GRHayLHD"
+GR_SOURCE_ID_PATTERN = r"grhaylhd-[a-z0-9-]+"
+GR_ISSUE_ID_PATTERN = r"GRH-\d{4}"
+GR_LOCATOR_TYPES = ("doc", "ccl", "build", "c", "macro", "par", "test", "oracle")
+GR_LOCATOR_ADMITTED = {
+    "doc": {"section"},
+    "ccl": {"group", "parameter", "schedule", "storage", "implementation", "requirement"},
+    "build": {"field"},
+    "c": {"symbol", "call"},
+    "macro": {"name", "include"},
+    "par": {"parameter", "file"},
+    "test": {"case"},
+    "oracle": {"dataset", "file"},
+}
+GR_LOCATOR_QUERIES = {
+    ("doc", "section"): {"occurrence"},
+    ("ccl", "group"): {"occurrence"},
+    ("ccl", "parameter"): {"occurrence"},
+    ("ccl", "schedule"): {"context", "occurrence"},
+    ("ccl", "storage"): {"occurrence"},
+    ("ccl", "implementation"): {"occurrence"},
+    ("ccl", "requirement"): {"occurrence"},
+    ("build", "field"): {"occurrence"},
+    ("c", "symbol"): set(),
+    ("c", "call"): {"function"},
+    ("macro", "name"): set(),
+    ("macro", "include"): set(),
+    ("par", "parameter"): {"occurrence"},
+    ("par", "file"): set(),
+    ("test", "case"): {"occurrence"},
+    ("oracle", "dataset"): set(),
+    ("oracle", "file"): set(),
+}
+GR_PARAMETER_REFERENCE_PATTERN = r"USES\s+(?:KEYWORD|CCTK_\w+)"
+GR_FORBID_MAGNETIC_NAMES = True
+GR_ROOT_INDEX_CHILDREN = {
+    "architecture/index.md", "evolution/index.md", "integration/index.md",
+    "validation/index.md", "SCHEMA.md", "catalog.md", "glossary.md",
+    "workflows.md", "source-map.md", "contradictions.md", "lint/CHECKS.md",
+}
+GR_APPLICABILITY_LABEL = "variant"
+
+GID_ROOT = ROOT / "GRHayLID"
+GID_WIKI = WIKI / "grhaylid"
+GID_REGISTRY = ROOT / "raw/grhaylid/SOURCES.md"
+GID_FOUNDATION = {"SCHEMA.md", "lint/CHECKS.md", "catalog.md", "source-map.md"}
+GID_TARGET = GID_FOUNDATION | {
+    "index.md", "glossary.md", "workflows.md", "contradictions.md",
+    "architecture/index.md", "architecture/purpose-and-build-surface.md",
+    "architecture/schedule-lifecycle.md", "initial-data/index.md",
+    "initial-data/one-d-tests-hydro.md", "initial-data/one-d-tests-magnetic.md",
+    "initial-data/isotropic-gas.md", "initial-data/constant-density-sphere.md",
+    "initial-data/beta-equilibrium.md", "initial-data/entropy-computation.md",
+    "integration/index.md", "integration/hydrobase-keyword-extensions.md",
+    "integration/grhaylib-contract.md", "integration/parameters-and-configurations.md",
+    "validation/index.md", "validation/coverage-gaps.md",
+}
+GID_ROOT_ROUTES = {
+    "index.md", "architecture/index.md", "initial-data/index.md",
+    "integration/index.md", "validation/index.md", "SCHEMA.md", "catalog.md",
+    "glossary.md", "workflows.md", "source-map.md", "contradictions.md",
+    "lint/CHECKS.md",
+}
+GID_LEAF_SECTIONS = [
+    "Scope and Non-Scope", "Summary", "Mode Applicability", "Claim-Evidence",
+    "Details", "Caveats", "Sources", "Related Pages",
+]
+GID_CLAIM_STATUSES = {
+    "declared", "visible-implementation", "unresolved", "coverage-gap",
+    "out-of-scope",
+}
+GID_CLAIM_KINDS = {
+    "stated-purpose", "cactus-interface", "parameter", "schedule-intent",
+    "build-surface", "visible-dataflow", "visible-formula",
+    "visible-call-order", "external-behavior",
+}
+GID_APPLICABILITY = {
+    "Common", "HydroTest1D", "HydroTest1D+Magnetic", "IsotropicGas",
+    "ConstantDensitySphere", "BetaEquilibrium", "Entropy/Hybrid",
+    "Entropy/Tabulated",
+}
+GID_PROVENANCE_CLASSES = {"narrative", "declaration", "build input", "implementation"}
+GID_ROOT_INDEX_CHILDREN = {
+    "architecture/index.md", "initial-data/index.md", "integration/index.md",
+    "validation/index.md", "SCHEMA.md", "catalog.md", "glossary.md",
+    "workflows.md", "source-map.md", "contradictions.md", "lint/CHECKS.md",
+}
+GID_LOCATOR_ADMITTED = {
+    "doc": {"section"},
+    "ccl": {"parameter", "schedule", "implementation", "requirement"},
+    "build": {"field"},
+    "c": {"symbol", "call"},
+    "macro": {"name", "include"},
+}
+GID_LOCATOR_QUERIES = {
+    key: value for key, value in GR_LOCATOR_QUERIES.items()
+    if key[0] in GID_LOCATOR_ADMITTED and key[1] in GID_LOCATOR_ADMITTED[key[0]]
+}
+GID_SIBLING_PATH_RES = tuple(
+    re.compile(
+        r"(?<![\w/.])(?:(?:\.\./)+|\./)?"
+        + rf"(?P<source>{re.escape(tree)}/[A-Za-z0-9_./*?+\[\]-]+)"
+    )
+    for tree in (
+        "IllinoisGRMHD", "GRHayLHD", "GRHayLHDX", "GRHayLIDX",
+        "NRPyLeakageET",
+    )
+)
+
 
 def gr_fail(
     failures: list[str], check_id: str, path: Path, message: str, line: int | None = None
 ) -> None:
     """Append GRHayLHD diagnostic sortable by check ID then path."""
+    check_id = GR_CHECK_PREFIX + check_id[3:]
     location = rel(path)
     if line is not None:
         location += f":{line}"
@@ -1306,9 +1486,9 @@ def gr_live_pages() -> dict[str, Path]:
 def gr_expected_page_id(relative_name: str) -> str:
     """Derive canonical Page ID from namespace-relative path."""
     special_ids = {
-        "SCHEMA.md": "grhaylhd.schema",
-        "lint/CHECKS.md": "grhaylhd.lint",
-        "index.md": "grhaylhd.index",
+        "SCHEMA.md": f"{GR_PAGE_PREFIX}.schema",
+        "lint/CHECKS.md": f"{GR_PAGE_PREFIX}.lint",
+        "index.md": f"{GR_PAGE_PREFIX}.index",
     }
     if relative_name in special_ids:
         return special_ids[relative_name]
@@ -1316,7 +1496,7 @@ def gr_expected_page_id(relative_name: str) -> str:
         relative_name = relative_name.removesuffix("/index.md")
     else:
         relative_name = relative_name.removesuffix(".md")
-    return "grhaylhd." + relative_name.replace("/", ".")
+    return GR_PAGE_PREFIX + "." + relative_name.replace("/", ".")
 
 
 def gr_metadata(path: Path) -> tuple[str | None, str | None]:
@@ -1345,7 +1525,9 @@ def gr_catalog(
         if len(row) != len(header):
             gr_fail(failures, "GRH021", GR_CATALOG, "catalog row has wrong field count", number)
             continue
-        identifier_match = re.fullmatch(r"`(grhaylhd\.[a-z0-9.-]+)`", row[0])
+        identifier_match = re.fullmatch(
+            rf"`({re.escape(GR_PAGE_PREFIX)}\.[a-z0-9.-]+)`", row[0]
+        )
         link_matches = list(LINK_RE.finditer(row[1]))
         if identifier_match is None or len(link_matches) != 1:
             gr_fail(failures, "GRH021", GR_CATALOG, "catalog row needs one valid Page ID and link", number)
@@ -1354,6 +1536,12 @@ def gr_catalog(
         target, _ = resolve_link(GR_CATALOG, link_matches[0].group(2))
         if target is None or not inside(target, GR_WIKI):
             gr_fail(failures, "GRH021", GR_CATALOG, "catalog target outside namespace", number)
+            continue
+        if not target.is_file():
+            gr_fail(
+                failures, "GRH023", GR_CATALOG,
+                f"catalog target is not a live page: {rel(target)}", number,
+            )
             continue
         if identifier in page_ids:
             gr_fail(failures, "GRH021", GR_CATALOG, f"duplicate Page ID: {identifier}", number)
@@ -1429,7 +1617,7 @@ def gr_registry(
         if len(row) != len(header):
             gr_fail(failures, "GRH031", GR_REGISTRY, "registry row has wrong field count", number)
             continue
-        source_match = re.fullmatch(r"`(grhaylhd-[a-z0-9-]+)`", row[0])
+        source_match = re.fullmatch(rf"`({GR_SOURCE_ID_PATTERN})`", row[0])
         path_match = re.fullmatch(r"`([^`]+)`", row[1])
         if source_match is None or path_match is None:
             gr_fail(failures, "GRH031", GR_REGISTRY, "Source ID and Provenance need one literal", number)
@@ -1448,7 +1636,7 @@ def gr_registry(
         components = pattern.split("/")
         invalid = (
             not pattern or "\\" in pattern or pattern.startswith("/")
-            or components[0] != "GRHayLHD"
+            or not pattern.startswith(f"{GR_TREE_NAME}/")
             or any(part in {"", ".", ".."} for part in components)
             or any("**" in part and part != "**" for part in components)
         )
@@ -1463,13 +1651,20 @@ def gr_registry(
         if not matches:
             gr_fail(failures, "GRH033", GR_REGISTRY, f"unmatched provenance: {pattern}", number)
             continue
+        nonfiles = [item for item in matches if not item.is_file()]
+        if GR_PAGE_PREFIX == "grhaylid" and nonfiles:
+            gr_fail(
+                failures, "GRH033", GR_REGISTRY,
+                f"provenance expansion includes non-file: {pattern}", number,
+            )
+            continue
         files = [item for item in matches if item.is_file()]
         if not files:
             gr_fail(failures, "GRH033", GR_REGISTRY, f"directory-only provenance: {pattern}", number)
             continue
         for item in files:
             if not inside(item, GR_ROOT):
-                gr_fail(failures, "GRH032", GR_REGISTRY, f"provenance escapes GRHayLHD: {rel(item)}", number)
+                gr_fail(failures, "GRH032", GR_REGISTRY, f"provenance escapes {GR_TREE_NAME}: {rel(item)}", number)
                 continue
             item_name = rel(item)
             if item_name in owners:
@@ -1480,7 +1675,7 @@ def gr_registry(
             else:
                 owners[item_name] = identifier
     command = subprocess.run(
-        ["rg", "--files", "GRHayLHD"], cwd=ROOT, text=True,
+        ["rg", "--files", GR_TREE_NAME], cwd=ROOT, text=True,
         capture_output=True, check=False,
     )
     if command.returncode not in {0, 1}:
@@ -1489,7 +1684,7 @@ def gr_registry(
     else:
         actual = set(filter(None, command.stdout.splitlines()))
     for path in sorted(actual - set(owners)):
-        gr_fail(failures, "GRH035", ROOT / path, "GRHayLHD file is unregistered")
+        gr_fail(failures, "GRH035", ROOT / path, f"{GR_TREE_NAME} file is unregistered")
     for path in sorted(set(owners) - actual):
         gr_fail(failures, "GRH035", ROOT / path, "registry expansion is outside rg inventory")
     return records, owners
@@ -1525,6 +1720,21 @@ def gr_ccl_schedule_container(text: str, match: re.Match[str]) -> str | None:
     return container.group(1) if container else None
 
 
+def gr_mask_c_literals(text: str) -> str:
+    """Mask C comments and literals while retaining offsets and newlines."""
+    pattern = re.compile(
+        r"//[^\n]*|/\*.*?(?:\*/|$)|\"(?:\\.|[^\"\\])*\"|"
+        r"'(?:\\.|[^'\\])*'",
+        re.DOTALL,
+    )
+    return pattern.sub(
+        lambda match: "".join(
+            "\n" if char == "\n" else " " for char in match.group(0)
+        ),
+        text,
+    )
+
+
 def gr_occurrence_count(path: Path, locator_type: str, key: str, value: str, query: dict[str, str]) -> int:
     """Count exact stable-locator targets in one local file."""
     text = read(path)
@@ -1536,7 +1746,11 @@ def gr_occurrence_count(path: Path, locator_type: str, key: str, value: str, que
         if key == "group":
             pattern = rf"^\s*CCTK_[A-Z0-9_]+\s+{escaped}\s+type\s*="
         elif key == "parameter":
-            pattern = rf"^\s*(?:(?:INT|REAL|KEYWORD|STRING|CCTK_(?:BOOLEAN|INT|REAL|STRING))\s+|USES\s+(?:KEYWORD|CCTK_\w+)\s+){escaped}\b"
+            pattern = (
+                rf"^\s*(?:(?:INT|REAL|KEYWORD|STRING|"
+                rf"CCTK_(?:BOOLEAN|INT|REAL|STRING))\s+|"
+                rf"{GR_PARAMETER_REFERENCE_PATTERN}\s+){escaped}\b"
+            )
         elif key == "schedule":
             pattern = rf"^\s*schedule(?:\s+group)?\s+{escaped}\b"
         elif key == "storage":
@@ -1566,21 +1780,38 @@ def gr_occurrence_count(path: Path, locator_type: str, key: str, value: str, que
     if locator_type == "macro" and key == "include":
         return len(re.findall(rf'^\s*#\s*include\s+[<"]{escaped}[>"]', text, re.MULTILINE))
     if locator_type == "c" and key == "symbol":
+        symbol_text = (
+            gr_mask_c_literals(text)
+            if GR_PAGE_PREFIX == "grhaylid" else text
+        )
         pattern = rf"^\s*(?!if\b|for\b|while\b|switch\b)(?:[A-Za-z_]\w*[\s*]+)+{escaped}\s*\([^;]*\)\s*\{{"
-        return len(re.findall(pattern, text, re.MULTILINE))
+        return len(re.findall(pattern, symbol_text, re.MULTILINE))
     if locator_type == "c" and key == "call":
         function = query.get("function")
         if not function:
             return 0
-        function_start = re.search(rf"^\s*(?:[A-Za-z_]\w*[\s*]+)+{re.escape(function)}\s*\([^;]*\)\s*\{{", text, re.MULTILINE)
+        masked = gr_mask_c_literals(text)
+        function_start = re.search(
+            rf"^\s*(?:[A-Za-z_]\w*[\s*]+)+{re.escape(function)}"
+            rf"\s*\([^;]*\)\s*\{{",
+            masked,
+            re.MULTILINE,
+        )
         if function_start is None:
             return 0
-        next_definition = re.search(
-            r"^\s*(?:[A-Za-z_]\w*[\s*]+)+[A-Za-z_]\w*\s*\([^;]*\)\s*\{",
-            text[function_start.end():], re.MULTILINE,
-        )
-        body_end = function_start.end() + next_definition.start() if next_definition else len(text)
-        return len(re.findall(rf"\b{escaped}\s*\(", text[function_start.end():body_end]))
+        depth = 1
+        body_end = len(masked)
+        for index in range(function_start.end(), len(masked)):
+            if masked[index] == "{":
+                depth += 1
+            elif masked[index] == "}":
+                depth -= 1
+                if depth == 0:
+                    body_end = index
+                    break
+        return len(re.findall(
+            rf"\b{escaped}\s*\(", masked[function_start.end():body_end]
+        ))
     if locator_type == "par" and key == "parameter":
         return len(re.findall(rf"^\s*{escaped}\s*=", text, re.MULTILINE | re.IGNORECASE))
     if locator_type == "par" and key == "file" and value == "file":
@@ -1599,7 +1830,12 @@ def gr_resolve_locator(
     expected_source: str | None, source_path: Path, line: int | None = None,
 ) -> bool:
     """Resolve one typed locator and enforce registry ownership/uniqueness."""
-    match = re.fullmatch(r"(doc|ccl|build|c|macro|par|test|oracle):(GRHayLHD/[^#?]+)#([^?]+)(?:\?(.*))?", locator)
+    locator_types = "|".join(re.escape(item) for item in GR_LOCATOR_TYPES)
+    match = re.fullmatch(
+        rf"({locator_types}):({re.escape(GR_TREE_NAME)}/[^#?]+)"
+        rf"#([^?]+)(?:\?(.*))?",
+        locator,
+    )
     if match is None:
         gr_fail(failures, "GRH040", source_path, f"malformed typed locator: {locator}", line)
         return False
@@ -1639,40 +1875,10 @@ def gr_resolve_locator(
     else:
         gr_fail(failures, "GRH040", source_path, f"malformed locator qualifier: {locator}", line)
         return False
-    admitted = {
-        "doc": {"section"},
-        "ccl": {
-            "group", "parameter", "schedule", "storage", "implementation",
-            "requirement",
-        },
-        "build": {"field"}, "c": {"symbol", "call"},
-        "macro": {"name", "include"},
-        "par": {"parameter", "file"}, "test": {"case"},
-        "oracle": {"dataset", "file"},
-    }
-    if key not in admitted[locator_type] or not value:
+    if key not in GR_LOCATOR_ADMITTED[locator_type] or not value:
         gr_fail(failures, "GRH040", source_path, f"qualifier not admitted for {locator_type}: {fragment}", line)
         return False
-    allowed_queries = {
-        ("doc", "section"): {"occurrence"},
-        ("ccl", "group"): {"occurrence"},
-        ("ccl", "parameter"): {"occurrence"},
-        ("ccl", "schedule"): {"context", "occurrence"},
-        ("ccl", "storage"): {"occurrence"},
-        ("ccl", "implementation"): {"occurrence"},
-        ("ccl", "requirement"): {"occurrence"},
-        ("build", "field"): {"occurrence"},
-        ("c", "symbol"): set(),
-        ("c", "call"): {"function"},
-        ("macro", "name"): set(),
-        ("macro", "include"): set(),
-        ("par", "parameter"): {"occurrence"},
-        ("par", "file"): set(),
-        ("test", "case"): {"occurrence"},
-        ("oracle", "dataset"): set(),
-        ("oracle", "file"): set(),
-    }
-    if set(query) - allowed_queries[(locator_type, key)]:
+    if set(query) - GR_LOCATOR_QUERIES[(locator_type, key)]:
         gr_fail(failures, "GRH040", source_path, f"query not admitted for qualifier: {locator}", line)
         return False
     if locator_type == "ccl" and "context" in query and "occurrence" in query:
@@ -1699,7 +1905,7 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
     for extra in sorted(set(live) - GR_TARGET):
         gr_fail(failures, "GRH010", GR_WIKI / extra, "page outside exact target tree")
     for name, path in sorted(live.items()):
-        if "magnetic" in name.casefold():
+        if GR_FORBID_MAGNETIC_NAMES and "magnetic" in name.casefold():
             gr_fail(failures, "GRH011", path, "Magnetics branch forbidden for GRHayLHD")
         status, reviewed = gr_metadata(path)
         if status not in GR_PAGE_STATUSES:
@@ -1729,6 +1935,16 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
                 for index in range(len(masked_lines) - 1)
             )
             h1_count = atx_h1_count + setext_h1_count
+            up_match = (
+                re.fullmatch(r"> Up: \[[^]]+\]\(([^)]+)\)", raw_lines[3])
+                if len(raw_lines) > 3 else None
+            )
+            up_is_valid = up_match is not None
+            if GR_PAGE_PREFIX == "grhaylid" and up_match is not None:
+                up_is_valid = (
+                    resolve_link(path, up_match.group(1))[0]
+                    == (path.parent / "index.md").resolve()
+                )
             exact_leaf_preamble = (
                 len(raw_lines) >= 5
                 and h1_count == 1
@@ -1739,9 +1955,7 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
                     r"\d{2}-\d{2}-\d{4}",
                     raw_lines[2],
                 ))
-                and bool(re.fullmatch(
-                    r"> Up: \[[^]]+\]\([^)]+\)", raw_lines[3]
-                ))
+                and up_is_valid
                 and raw_lines[4] == ""
             )
             if not exact_leaf_preamble:
@@ -1775,11 +1989,26 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
                     gr_fail(failures, "GRH014", path, f"duplicate Claim ID: {identifier}")
             applicability_header, applicability_rows = table(path, "Applicability")
             if not applicability_header or not applicability_rows:
-                gr_fail(failures, "GRH014", path, "variant-applicability table missing or empty")
+                gr_fail(
+                    failures, "GRH014", path,
+                    f"{GR_APPLICABILITY_LABEL}-applicability table missing or empty",
+                )
             for number, row in applicability_rows:
                 if not row or row[0] not in GR_APPLICABILITY:
-                    gr_fail(failures, "GRH014", path, "invalid variant applicability", number)
+                    gr_fail(
+                        failures, "GRH014", path,
+                        f"invalid {GR_APPLICABILITY_LABEL} applicability", number,
+                    )
         elif name.endswith("index.md") or name == "index.md":
+            if GR_PAGE_PREFIX == "grhaylid":
+                router_h1s = re.findall(
+                    r"^[ ]{0,3}#(?!#)[ \t]+\S.*$", text, re.MULTILINE
+                )
+                if len(router_h1s) != 1:
+                    gr_fail(
+                        failures, "GRH015", path,
+                        "router must contain exactly one nonempty H1",
+                    )
             if status != "router":
                 gr_fail(failures, "GRH015", path, "router must use router status")
             up_matches = [
@@ -1803,12 +2032,7 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
             if name == "index.md":
                 expected_children = {
                     child for child_name, child in live.items()
-                    if child_name in {
-                        "architecture/index.md", "evolution/index.md",
-                        "integration/index.md", "validation/index.md",
-                        "SCHEMA.md", "catalog.md", "glossary.md", "workflows.md",
-                        "source-map.md", "contradictions.md", "lint/CHECKS.md",
-                    }
+                    if child_name in GR_ROOT_INDEX_CHILDREN
                 }
             else:
                 branch = name.removesuffix("/index.md") + "/"
@@ -1817,18 +2041,43 @@ def gr_pages(failures: list[str], live: dict[str, Path]) -> None:
                     if child_name.startswith(branch) and child_name != name
                     and "/" not in child_name[len(branch):]
                 }
-            routed = {
-                target
-                for _, row in route_rows
-                if row
-                for match in LINK_RE.finditer(row[0])
-                for target, _ in [resolve_link(path, match.group(2))]
-                if target is not None and target in set(live.values())
-            }
+            if GR_PAGE_PREFIX == "grhaylid":
+                routed_counts: Counter[Path] = Counter()
+                live_paths = set(live.values())
+                for number, row in route_rows:
+                    matches = list(LINK_RE.finditer(row[0])) if len(row) == 2 else []
+                    if len(row) != 2 or any(not cell for cell in row) or len(matches) != 1:
+                        gr_fail(failures, "GRH016", path, "invalid router row", number)
+                        continue
+                    target, _ = resolve_link(path, matches[0].group(2))
+                    if target is None or not target.is_file() or target not in live_paths:
+                        gr_fail(
+                            failures, "GRH016", path,
+                            "invalid or missing router target", number,
+                        )
+                        continue
+                    routed_counts[target] += 1
+                routed = set(routed_counts)
+            else:
+                routed = {
+                    target
+                    for _, row in route_rows
+                    if row
+                    for match in LINK_RE.finditer(row[0])
+                    for target, _ in [resolve_link(path, match.group(2))]
+                    if target is not None and target in set(live.values())
+                }
             for child in sorted(expected_children - routed):
                 gr_fail(failures, "GRH016", path, f"router misses live child: {rel(child)}")
             for child in sorted(routed - expected_children):
                 gr_fail(failures, "GRH016", path, f"router table has non-child: {rel(child)}")
+            if GR_PAGE_PREFIX == "grhaylid":
+                for child, count in sorted(routed_counts.items()):
+                    if child in expected_children and count != 1:
+                        gr_fail(
+                            failures, "GRH016", path,
+                            f"router repeats live child: {rel(child)}",
+                        )
 
 
 def gr_edges(
@@ -1924,7 +2173,9 @@ def gr_resolve_resolution_locator(
         return gr_resolve_locator(
             failures, locator, owners, None, GR_ISSUES, line
         )
-    match = re.fullmatch(r"kb:(wiki/grhaylhd/[^#]+)#section=(.+)", locator)
+    match = re.fullmatch(
+        rf"kb:(wiki/{re.escape(GR_PAGE_PREFIX)}/[^#]+)#section=(.+)", locator
+    )
     if match is None:
         gr_fail(
             failures, "GRH061", GR_ISSUES,
@@ -1972,7 +2223,7 @@ def gr_issues(
             gr_fail(failures, "GRH061", GR_ISSUES, "issue row contains empty cell", number)
             continue
         identifier = row[0].strip("` ")
-        if not re.fullmatch(r"GRH-\d{4}", identifier) or identifier in seen:
+        if not re.fullmatch(GR_ISSUE_ID_PATTERN, identifier) or identifier in seen:
             gr_fail(failures, "GRH061", GR_ISSUES, f"malformed/duplicate issue ID: {identifier}", number)
         seen.add(identifier)
         if row[1] not in GR_ISSUE_KINDS or row[2] not in GR_ISSUE_STATUSES:
@@ -2006,7 +2257,9 @@ def gr_issues(
         for locator in row[4:6]:
             if locator not in {"-", "n/a"}:
                 gr_resolve_locator(failures, locator.strip("` "), owners, None, GR_ISSUES, number)
-        affected = re.findall(r"`(grhaylhd\.[a-z0-9.-]+)`", row[6])
+        affected = re.findall(
+            rf"`({re.escape(GR_PAGE_PREFIX)}\.[a-z0-9.-]+)`", row[6]
+        )
         affected_pages[identifier] = set(affected)
         if not affected:
             gr_fail(failures, "GRH061", GR_ISSUES, "issue lacks affected Page IDs", number)
@@ -2048,22 +2301,117 @@ def gr_navigation(failures: list[str], live: dict[str, Path]) -> str:
             gr_fail(failures, "GRH070", index, f"invalid publication state: {publication}")
     root_targets = {
         target for _, _, _, target, _ in links(AGENTS)
-        if target is not None and inside(target, GR_WIKI)
+        if target is not None and (
+            inside(target, GR_WIKI)
+            or (GR_PAGE_PREFIX == "grhaylid" and target == GR_REGISTRY.resolve())
+        )
     }
     if publication != "ready" and root_targets:
-        gr_fail(failures, "GRH071", AGENTS, "root GRHayLHD route exists while branch is unpublished")
-    if publication == "ready" and index.resolve() not in root_targets:
-        gr_fail(failures, "GRH071", AGENTS, "ready branch lacks root index route")
+        gr_fail(failures, "GRH071", AGENTS, f"root {GR_TREE_NAME} route exists while branch is unpublished")
+    if publication == "ready":
+        if GR_PAGE_PREFIX == "grhaylid":
+            expected_router_targets = {
+                (GR_WIKI / item).resolve()
+                for item in GR_ROOT_ROUTES - {"index.md"}
+            } | {GR_REGISTRY.resolve()}
+            router_valid, router_rows = named_section_table(
+                AGENTS, "GRHayLID Router", ["Go to", "Use it for"]
+            )
+            if not router_valid:
+                gr_fail(
+                    failures, "GRH071", AGENTS,
+                    "ready branch lacks exact GRHayLID Router table",
+                )
+            router_targets: Counter[Path] = Counter()
+            for number, row in router_rows:
+                match = exact_link_match(row[0]) if len(row) == 2 else None
+                if len(row) != 2 or any(not cell for cell in row) or match is None:
+                    gr_fail(
+                        failures, "GRH071", AGENTS,
+                        "invalid GRHayLID Router row", number,
+                    )
+                    continue
+                target, _ = resolve_link(AGENTS, match.group(2))
+                if target is None or target not in expected_router_targets:
+                    gr_fail(
+                        failures, "GRH071", AGENTS,
+                        "invalid GRHayLID Router target", number,
+                    )
+                    continue
+                router_targets[target] += 1
+            for target in sorted(expected_router_targets - set(router_targets)):
+                gr_fail(
+                    failures, "GRH071", AGENTS,
+                    f"ready branch lacks root route: {rel(target)}",
+                )
+            for target, count in sorted(router_targets.items()):
+                if count != 1:
+                    gr_fail(
+                        failures, "GRH071", AGENTS,
+                        f"ready branch repeats root route: {rel(target)}",
+                    )
+
+            selector_valid, selector_rows = named_section_table(
+                AGENTS,
+                "Branch Selector",
+                ["Branch", "Exclusive evidence scope", "Start here"],
+            )
+            gid_selector_rows = [
+                (number, row)
+                for number, row in selector_rows
+                if row and "GRHayLID" in row[0]
+            ]
+            if not selector_valid or len(gid_selector_rows) != 1:
+                gr_fail(
+                    failures, "GRH071", AGENTS,
+                    "ready branch needs exactly one GRHayLID Branch Selector row",
+                )
+            else:
+                number, row = gid_selector_rows[0]
+                match = exact_link_match(row[2]) if len(row) == 3 else None
+                target = (
+                    resolve_link(AGENTS, match.group(2))[0]
+                    if match is not None else None
+                )
+                if (
+                    len(row) != 3
+                    or row[0] != "GRHayLID"
+                    or row[1] != "`GRHayLID/**`"
+                    or match is None
+                    or target != index.resolve()
+                ):
+                    gr_fail(
+                        failures, "GRH071", AGENTS,
+                        "invalid GRHayLID Branch Selector row", number,
+                    )
+        elif index.resolve() not in root_targets:
+            gr_fail(failures, "GRH071", AGENTS, "ready branch lacks root index route")
     allowed_governance = {
         AGENTS.resolve(), GR_REGISTRY.resolve(), Path(__file__).resolve(),
         (WIKI / "lint/CHECKS.md").resolve(),
     }
     for name, path in sorted(live.items()):
-        for number, mentioned in source_path_mentions(read(path)):
+        if GR_PAGE_PREFIX == "grhaylhd":
+            forbidden_mentions = source_path_mentions(read(path))
+        else:
+            masked = mask_code(read(path))
+            forbidden_mentions = [
+                (
+                    masked.count("\n", 0, match.start()) + 1,
+                    match.group("source").rstrip(".,;:"),
+                )
+                for pattern in GID_SIBLING_PATH_RES
+                for match in pattern.finditer(masked)
+            ]
+        for number, mentioned in forbidden_mentions:
+            message = (
+                "IllinoisGRMHD source citation forbidden in GRHayLHD branch: "
+                if GR_PAGE_PREFIX == "grhaylhd"
+                else f"sibling source citation forbidden in {GR_TREE_NAME} branch: "
+            )
             gr_fail(
                 failures, "GRH072", path,
-                f"IllinoisGRMHD source citation forbidden in GRHayLHD branch: "
-                f"{mentioned}",
+                f"{message}{mentioned}",
                 number,
             )
         for number, _, raw, target, _ in links(path):
@@ -2121,6 +2469,60 @@ def check_grhaylhd(failures: list[str]) -> None:
     gr_navigation(failures, live)
 
 
+def check_grhaylid(failures: list[str]) -> None:
+    """Run isolated additive GRHayLID profile when namespace exists."""
+    if not GID_WIKI.exists() and not GID_REGISTRY.exists():
+        return
+    profile = {
+        "GR_ROOT": GID_ROOT,
+        "GR_WIKI": GID_WIKI,
+        "GR_REGISTRY": GID_REGISTRY,
+        "GR_CATALOG": GID_WIKI / "catalog.md",
+        "GR_GLOSSARY": GID_WIKI / "glossary.md",
+        "GR_SOURCE_MAP": GID_WIKI / "source-map.md",
+        "GR_ISSUES": GID_WIKI / "contradictions.md",
+        "GR_SCHEMA": GID_WIKI / "SCHEMA.md",
+        "GR_FOUNDATION": GID_FOUNDATION,
+        "GR_TARGET": GID_TARGET,
+        "GR_ROOT_ROUTES": GID_ROOT_ROUTES,
+        "GR_LEAF_SECTIONS": GID_LEAF_SECTIONS,
+        "GR_CLAIM_STATUSES": GID_CLAIM_STATUSES,
+        "GR_CLAIM_KINDS": GID_CLAIM_KINDS,
+        "GR_APPLICABILITY": GID_APPLICABILITY,
+        "GR_PROVENANCE_CLASSES": GID_PROVENANCE_CLASSES,
+        "GR_CHECK_PREFIX": "GID",
+        "GR_PAGE_PREFIX": "grhaylid",
+        "GR_TREE_NAME": "GRHayLID",
+        "GR_SOURCE_ID_PATTERN": r"grhaylid-[a-z0-9-]+",
+        "GR_ISSUE_ID_PATTERN": r"GID-\d{4}",
+        "GR_LOCATOR_TYPES": ("doc", "ccl", "build", "c", "macro"),
+        "GR_LOCATOR_ADMITTED": GID_LOCATOR_ADMITTED,
+        "GR_LOCATOR_QUERIES": GID_LOCATOR_QUERIES,
+        "GR_PARAMETER_REFERENCE_PATTERN": (
+            r"(?:USES|EXTENDS)\s+(?:KEYWORD|CCTK_\w+)"
+        ),
+        "GR_FORBID_MAGNETIC_NAMES": False,
+        "GR_ROOT_INDEX_CHILDREN": GID_ROOT_INDEX_CHILDREN,
+        "GR_APPLICABILITY_LABEL": "mode",
+    }
+    previous = {name: globals()[name] for name in profile}
+    globals().update(profile)
+    try:
+        live = gr_live_pages()
+        gr_pages(failures, live)
+        page_ids, path_ids = gr_catalog(failures, live)
+        gr_glossary(failures, live)
+        required_registry = GR_REGISTRY.exists() or any(
+            name in live for name in {"workflows.md", "contradictions.md"}
+        )
+        records, owners = gr_registry(failures, required_registry)
+        gr_edges(failures, page_ids, path_ids, records, owners)
+        gr_issues(failures, page_ids, owners)
+        gr_navigation(failures, live)
+    finally:
+        globals().update(previous)
+
+
 def main() -> int:
     """Run one deterministic dispatcher for default and --all modes."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -2154,6 +2556,7 @@ def main() -> int:
     check_glossary(failures)
     check_contradictions(failures)
     check_grhaylhd(failures)
+    check_grhaylid(failures)
 
     if failures:
         print("KB lint failed:")

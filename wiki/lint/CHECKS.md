@@ -1,6 +1,6 @@
 # IllinoisGRMHD KB Lint Checks
 
-> Deterministic checks and manual review boundary. · Status: confirmed · Last reconciled: 07-18-2026
+> Deterministic checks and manual review boundary. · Status: confirmed · Last reconciled: 07-19-2026
 
 ## Canonical Command
 
@@ -18,9 +18,10 @@ file path and never writes to `IllinoisGRMHD/`.
   citations; images, reference-style links, and multiline/nested CommonMark
   forms are outside deterministic validation. Obsidian links are forbidden.
 - Exact 31-node inventory must exist for this branch: root, 28 wiki pages
-  outside the `wiki/grhaylhd/**` namespace, source manifest, and checker. Pages
-  and registry files under `wiki/grhaylhd/**` and `raw/grhaylhd/**` are checked
-  by the separate GRHayLHD profile and excluded from this inventory. Missing
+  outside the `wiki/grhaylhd/**` and `wiki/grhaylid/**` namespaces, source
+  manifest, and checker. Pages and registry files under `wiki/grhaylhd/**`,
+  `raw/grhaylhd/**`, `wiki/grhaylid/**`, and `raw/grhaylid/**` are checked by
+  their separate profiles and excluded from this inventory. Missing
   required nodes produce stable diagnostics without later dereference. All
   Illinois-branch wiki pages must be reachable from root. Routers must have
   exact immediate-child fan-out, no `Detail`/`Sources`, and no illegal edges.
@@ -55,7 +56,8 @@ file path and never writes to `IllinoisGRMHD/`.
 - Glossary table requires a delimiter row; every row has exactly one live wiki
   owner page and no duplicate term.
 - Governed text (`AGENTS.md`, `wiki/**/*.md`, `raw/SOURCES.md`,
-  `raw/grhaylhd/SOURCES.md`, and `tools/kb_lint.py`) requires final newline and
+  `raw/grhaylhd/SOURCES.md`, `raw/grhaylid/SOURCES.md`, and `tools/kb_lint.py`)
+  requires final newline and
   forbids trailing horizontal
   whitespace, Obsidian links, unfilled template markers, stored source
   fingerprints/modification-time values, every empty or invalid retained date,
