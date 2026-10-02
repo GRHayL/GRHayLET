@@ -125,10 +125,26 @@ verbs here mean “declares” or “schedules,” never “was observed to exec
 Claim evidence:
 - Claim: The declared graph orders synchronized initial perturbation before curl and names the registered recovery sync alias; additive arrays and converter fields are declared at their own occurrences.
 - Role: public/scientific contract
-- Deciding authority: registered `IllinoisGRMHD/schedule.ccl, affected schedule occurrences`
-- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Deciding authority: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_perturb_primitives` in `IllinoisGRMHD_Prim2Con2Prim` (after import, before curl); all five variant occurrences in `IllinoisGRMHD_perturb_primitives` with `SYNC: Ax, Ay, Az, phitilde`: `IllinoisGRMHD_hybrid_entropy_perturb_primitives` under Hybrid/Simple with entropy; `IllinoisGRMHD_hybrid_perturb_primitives` under Hybrid/Simple without entropy; `IllinoisGRMHD_tabulated_entropy_perturb_primitives` under Tabulated with entropy; `IllinoisGRMHD_tabulated_perturb_primitives` under Tabulated without entropy; and the second `IllinoisGRMHD_hybrid_perturb_primitives` under `CCTK_IsThornActive("ID_converter_ILGRMHD")` in `Backward compatibility scheduling`; `IllinoisGRMHD_sync` in `IllinoisGRMHD_Con2Prim` as `IllinoisGRMHD_sync_conservatives` and the following `IllinoisGRMHD_A_i_outer_boundaries` occurrence; `IllinoisGRMHD_compute_Tmunu` in `AddToTmunu` (`READS`/`WRITES`); `convert_IllinoisGRMHD_to_HydroBase` in `IllinoisGRMHD_Prim2Con2Prim` and `IllinoisGRMHD_convert_HydroBase_diagnostics` at `CCTK_ANALYSIS` under `Convert_to_HydroBase_every && !CCTK_IsThornActive("ID_converter_ILGRMHD")`; `convert_IllinoisGRMHD_to_HydroBase` in `IllinoisGRMHD_RHS` under active `NRPyLeakageET`; and the second initial converter and analysis-wrapper occurrences under active `ID_converter_ILGRMHD` in `Backward compatibility scheduling` (all converter occurrences: `READS`/`WRITES`).
+- Corroboration: registered `IllinoisGRMHD/src/Hybrid/perturb_primitives.c`, `IllinoisGRMHD_hybrid_perturb_primitives` potential updates; registered `IllinoisGRMHD/src/sync.c`, empty `IllinoisGRMHD_sync` body; registered `IllinoisGRMHD/src/compute_Tmunu.c`, `IllinoisGRMHD_compute_Tmunu` additive destination updates; registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` field accesses and `IllinoisGRMHD_convert_HydroBase_diagnostics` delegation. These bodies independently support operations/access only. For declared ordering, alias registration, and synchronization, `none available`: these declarations are owned solely by `schedule.ccl`; function bodies do not independently establish schedule order or synchronization execution.
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
 - Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
+
+
+IllinoisGRMHD conservatively rejects any active `smallbPoynET` at startup,
+including disabled diagnostics and locally modified consumers, until a separately
+owned canonical-Bvec consumer update is integrated and verified. Removing it
+from `ActiveThorns` is the supported route in this checkout; changing import
+normalization or export cadence cannot bypass the restriction. No coupled
+schedule execution or external consumer correctness is established here.
+
+Claim evidence:
+- Claim: The local startup check rejects active smallbPoynET independently of export cadence and legacy import normalization; this is a conservative restriction, not consumer-version detection.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_check_HydroBase_diagnostics`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_check_HydroBase_diagnostics` at `CCTK_WRAGH`; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=unconditional active-thorn restriction; date=10-02-2026`
 
 ## Sources
 

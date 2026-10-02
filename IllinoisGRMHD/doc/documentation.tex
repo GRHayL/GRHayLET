@@ -162,7 +162,15 @@ old initial data thorns, rescale\_magnetics defaults to yes and divides
 imported \hydrobase{} $A_i$ by $\sqrt{4\pi}$. Set it to no for initial
 potentials that already use the normalized convention. Exported
 \hydrobase{} $B^i$ always uses the canonical normalized convention, regardless
-of this import setting. Legacy diagnostics must convert that output explicitly.
+of this import setting. The retained smallbPoynET diagnostic applies an
+additional magnetic normalization and is incompatible with this output.
+IllinoisGRMHD rejects active smallbPoynET at startup, even if diagnostic export
+is disabled. Remove it from ActiveThorns. This conservative restriction also
+applies to locally modified copies until a separately owned canonical-Bvec
+consumer update is integrated and verified, including scheduled flat-space
+checks of $b^2=1$ for normalized $B=(1,0,0)$ and stationary fluid, and
+$b^2=0.91$, $S^y=0.3$ for transverse Valencia $v^y=0.3$.
+Neither export cadence nor rescale\_magnetics changes this restriction.
 
 Diagnostic export uses Convert\_to\_HydroBase\_every: zero disables it and
 positive values select divisible iterations. Mandatory conversion for leakage

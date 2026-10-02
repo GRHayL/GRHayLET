@@ -1,5 +1,12 @@
 #include "IllinoisGRMHD.h"
 
+// The retained smallbPoynET consumer normalizes Bvec a second time.
+// Reject this pairing until a canonical-Bvec consumer is integrated and verified.
+void IllinoisGRMHD_check_HydroBase_diagnostics(CCTK_ARGUMENTS) {
+  if(CCTK_IsThornActive("smallbPoynET"))
+    CCTK_ERROR("IllinoisGRMHD exports canonical normalized HydroBase::Bvec. Active smallbPoynET is unsupported until its consumer uses canonical Bvec without another 1/sqrt(4*pi). Remove smallbPoynET from ActiveThorns; changing rescale_magnetics or export cadence does not resolve this incompatibility.");
+}
+
 void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_IllinoisGRMHD_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
