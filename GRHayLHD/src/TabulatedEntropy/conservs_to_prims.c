@@ -5,6 +5,10 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLHD_tabulated_entropy_conservs_to_prims;
   DECLARE_CCTK_PARAMETERS;
 
+  // Previous-state guesses are not implemented, including after recovery steering.
+  if(!ghl_params->calc_prim_guess)
+    CCTK_ERROR("GRHayLHD requires GRHayLib::calc_primitive_guess=yes.");
+
   const int imax = cctk_lsh[0];
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
@@ -64,15 +68,15 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        // Read in primitive variables from gridfunctions
-        // The code has only ever been tested using the default GRHayL guess,
-        // so using the previous timelevel as an initial guess would need to
-        // be implemented here.
-        ghl_primitive_quantities prims;
+        if(ADM_metric.sqrt_detgamma > ghl_params->psi6threshold)
+          pointcount_inhoriz++;
+
+        // GRHayL constructs the active primitive guess; inactive scalars stay defined.
+        ghl_primitive_quantities prims = {0};
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
 
         // Read in conservative variables from gridfunctions
-        ghl_conservative_quantities cons, cons_undens;
+        ghl_conservative_quantities cons = {0}, cons_undens = {0};
         cons.rho     = rho_star[index];
         cons.tau     = tau[index];
         cons.SD[0]   = Stildex[index];
@@ -103,7 +107,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         if(error) {
           pointcount_avg++;
 
-          ghl_conservative_quantities cons_neigh_avg, cons_avg;
+          ghl_conservative_quantities cons_neigh_avg = {0}, cons_avg = {0};
           cons_neigh_avg.rho     = 0.0;
           cons_neigh_avg.tau     = 0.0;
           cons_neigh_avg.SD[0]   = 0.0;
@@ -142,13 +146,10 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           }
 
           int avg_weight = 1;
-          while(error && avg_weight < 5) {
-            // last point doesn't add central point and has 1 less point
-            // being averaged.
-            n_avg += (avg_weight!=4);
-
-            const CCTK_REAL wfac = avg_weight/4.0;
-            const CCTK_REAL cfac = 1.0 - wfac;
+          // No neighbors (a one-point local grid) means no averaging retries.
+          while(error && n_avg > 0 && avg_weight < 5) {
+            const double wfac = (avg_weight/4.0)/n_avg;
+            const double cfac = 1.0 - avg_weight/4.0;
             cons_avg.rho     = wfac*cons_neigh_avg.rho     + cfac*cons.rho;
             cons_avg.tau     = wfac*cons_neigh_avg.tau     + cfac*cons.tau;
             cons_avg.SD[0]   = wfac*cons_neigh_avg.SD[0]   + cfac*cons.SD[0];
@@ -156,14 +157,6 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
             cons_avg.SD[2]   = wfac*cons_neigh_avg.SD[2]   + cfac*cons.SD[2];
             cons_avg.entropy = wfac*cons_neigh_avg.entropy + cfac*cons.entropy;
             cons_avg.Y_e     = wfac*cons_neigh_avg.Y_e     + cfac*cons.Y_e;
-
-            cons_avg.rho     /= n_avg;
-            cons_avg.tau     /= n_avg;
-            cons_avg.SD[0]   /= n_avg;
-            cons_avg.SD[1]   /= n_avg;
-            cons_avg.SD[2]   /= n_avg;
-            cons_avg.entropy /= n_avg;
-            cons_avg.Y_e     /= n_avg;
 
             ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
 
@@ -181,14 +174,13 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
             // We are still failing after exhausting the averaging options.
             // We'll surrender and resort to atmospheric reset...
 
-            failure_checker[index] += 100;
+            local_failure_checker += 100;
 
             ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
             failures++;
             if(ADM_metric.sqrt_detgamma > ghl_params->psi6threshold) {
               failures_inhoriz++;
-              pointcount_inhoriz++;
             }
           } // atmospheric backup
         } // if c2p failed
@@ -269,7 +261,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
         prims.rho         = rho[index];
         prims.press       = press[index];
@@ -282,7 +274,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         prims.Y_e         = Y_e[index];
         prims.temperature = temperature[index];
 
-        ghl_conservative_quantities cons, cons_orig;
+        ghl_conservative_quantities cons = {0}, cons_orig = {0};
         cons_orig.rho     = rho_star[index];
         cons_orig.tau     = tau[index];
         cons_orig.SD[0]   = Stildex[index];
@@ -323,9 +315,9 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
   /*
     Failure checker decoder:
-       1: atmosphere reset when rho_star < 0
+       1: atmosphere reset when rho_star <= 0
       10: Limiting velocity u~ after C2P/Font Fix or v in ghl_enforce_primitive_limits_and_compute_u0
-     100: Both C2P and Font Fix failed
+     100: All allowed recovery attempts failed; atmosphere reset
       1k: backups used
      10k: tau~ was reset in ghl_apply_conservative_limits
     100k: S~ was reset in ghl_apply_conservative_limits
@@ -342,7 +334,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
     CCTK_VINFO(
         "C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d\n"
-        "                 Averaged pts = %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+        "                 Averaged pts = %d | Failures: %d AbovePsi6Threshold= %d / %d | %.2f iters/gridpt\n"
         "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e | "
         "Y_e %.3e, %.3e\n"
         "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",

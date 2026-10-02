@@ -1,6 +1,6 @@
 # Matter Boundaries and Symmetry
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -87,9 +87,10 @@ parameter range. That branch spells momentum `Stilde_z`, while interface
 declares `Stildez`. Three recovery equatorial branches also request
 `grhd_conservatives` rather than declared `grmhd_conservatives`.
 
-All four boundary file headers describe vector-potential and magnetic-field
-stages absent from local declared state/lifecycle. These comments do not expand
-scope or prove magnetic behavior.
+All four boundary file headers describe recovery before primitive boundary
+copy/outflow clipping, followed by limiting and conservative reprojection.
+The stale magnetic-stage wording is resolved at
+[GRH-0005](../contradictions.md#grh-0005).
 
 ## Caveats
 
@@ -99,7 +100,8 @@ scope or prove magnetic behavior.
   [GRH-0003](../contradictions.md#grh-0003).
 - Recovery group spelling differs; see
   [GRH-0002](../contradictions.md#grh-0002).
-- Boundary headers retain magnetic stages; see
+- Boundary headers now describe hydro operations; the historical magnetic
+  wording defect is resolved at
   [GRH-0005](../contradictions.md#grh-0005).
 - External `GetRefinementLevel`, symmetry, ghost-zone, and synchronization
   semantics remain unverified.

@@ -25,7 +25,7 @@ void GRHayLHD_tabulated_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
         prims.rho         = rho[index];
         prims.press       = press[index];
@@ -40,7 +40,7 @@ void GRHayLHD_tabulated_prims_to_conservs(CCTK_ARGUMENTS) {
               ghl_params, ghl_eos, &ADM_metric, &prims, &speed_limited);
         ghl_abort_if_error(error);
 
-        ghl_conservative_quantities cons;
+        ghl_conservative_quantities cons = {0};
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
         rho[index]         = prims.rho;

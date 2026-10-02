@@ -1,6 +1,6 @@
 # RHS Fluxes and Sources
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -73,8 +73,10 @@ then obtains metric derivatives in all three directions through
 `GRHayLHD_compute_metric_derivs` samples offsets minus two, minus one, plus one,
 plus two and applies `COMPUTE_DERIV` times inverse spacing to lapse, shift, and
 six spatial-metric components. Header comment explicitly labels this macro
-fourth-order. Claim is limited to local label and formula; no measured order is
-asserted.
+fourth-order. It zero-initializes derivative storage and assigns raw lapse,
+shift, and symmetric metric derivatives without calling the physical-metric
+constructor or computing an inverse. Claim is limited to the local label and
+formula; no measured order is asserted.
 
 ### Face metric and primitive reconstruction
 
@@ -89,7 +91,12 @@ extras. It calls `ghl_compute_ftilde`, density PPM reconstruction with
 steepening, ordinary PPM reconstruction for pressure/velocity/extras, and
 zeros left/right `BU`. Hybrid families obtain effective Gamma from a local
 helper; tabulated families pass `1.0` to density steepening and visibly invoke
-tabulated bound and pressure-to-energy/temperature helpers.
+tabulated bound and pressure-to-energy/temperature helpers. Both tabulated
+families pass each inversion status to `ghl_abort_if_error` before characteristic
+speeds or HLLE fluxes. API-facing stencil buffers, callback signatures, and
+wave-speed outputs use `double`, with scalar conversion at grid reads/writes.
+Every primitive/conservative API object is initialized, and speed-limit flags
+start at false before their first accumulation call.
 
 Directional function pointers select characteristic-speed and mode-specific
 HLLE helpers for axes 0, 1, 2. Returned core and optional conservative fluxes

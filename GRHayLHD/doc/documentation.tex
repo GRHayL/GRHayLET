@@ -43,12 +43,19 @@ is much slower than not evolving them, and \ghd{} provides an
 implementation for evolving systems without magnetic
 fields.
 
-This thorn provides support for hybrid and tabulated EOS, both
+This thorn provides support for Simple, Hybrid, and Tabulated EOS, all
 with and without entropy. The core functions all come from \glib,
 ensuring that any improvements or updates to the library can
 be easily adopted by the thorn. The conservative-to-primitive
 solver is selected at runtime, allowing for users to take
-advantage of any Con2Prim methods provided by \grhayl.
+advantage of EOS- and entropy-compatible Con2Prim methods provided by \grhayl.
+\ghd{} requires \texttt{GRHayLib::calc\_primitive\_guess=yes}; disabling
+library guesses is rejected at each recovery entry, including after restart.
+After configured methods and neighbor retries fail, the explicit cold Font1D
+fallback is used only for Hybrid EOS. Simple and Tabulated EOS instead reset
+to their configured atmosphere. All final primitives are limited and projected
+back to conservative variables. Tabulated face pressure-inversion errors abort
+before characteristic speeds or fluxes are evaluated.
 
 \section{Parameters}
 
@@ -59,18 +66,18 @@ parameters in the thorn which control diagnostic or debugging
 features. Most are self-explanatory, but some parameters deserve
 a more detailed explanation.
 
-First, many analysis or diagnostic thorns use \hydrobase{} variables.
-By default, \ghd{} never copies the data back from \ghd{} variables
-to \hydrobase{} variables, which would prevent the usage of these
-thorns. The \textbf{Convert\_to\_HydroBase\_every} parameter
-sets how often to copy back this data. Naturally, copying more
-frequently will slow down the simulation, so this should be set
-on the same frequency as the analysis or IO thorn that is using
-the \hydrobase{} variable. We reduced the amount of data copying in \ghd{}
-by using the \hydrobase{} variables directly, which removes the need
-to copy them back and removes extra grid functions from memory.
-We still use distinct velocity variables because we use a different
-velocity than is defined in \hydrobase.
+Thermodynamic fields such as density, pressure, and specific internal energy
+are used directly from \hydrobase{} and need no diagnostic copy. Native
+transport velocities differ from the Valencia velocities in \hydrobase{}.
+The \textbf{Convert\_to\_HydroBase\_every} parameter controls optional refresh
+of \texttt{HydroBase::vel} and \texttt{HydroBase::w\_lorentz} at initialization
+and analysis: zero disables these diagnostic calls, and a positive value
+refreshes on every Nth iteration. Set it to match diagnostics that consume
+those fields. When NRPyLeakageET is active, a separate unconditional refresh
+runs after the hydro flux RHS on every \texttt{MoL\_CalcRHS} invocation,
+including substages, independently of the diagnostic interval. This supplies
+current velocity for the leakage RHS in \texttt{MoL\_PostRHS}; luminosity
+analysis still needs an appropriate diagnostic refresh interval.
 
 Next, there are several parameters for debugging or other testing.
 The perturbing parameters give users the ability to affect either

@@ -1,6 +1,6 @@
 # Variables and Storage
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -55,7 +55,7 @@ GRHayLHD; TmunuBase owns stress-energy outputs. `ent_star` storage follows
 | Optional RHS | `ent_star_rhs`, `Ye_star_rhs` | no prolongation, no checkpoint | Conditional source/flux writers; MoL RHS |
 | Core flux temporary | `grmhd_flux_temps` | no prolongation, no checkpoint | Variant flux routines |
 | Optional flux | `ent_star_flux`, `Ye_star_flux` | no prolongation, no checkpoint | Conditional variant flux routines |
-| `failure_checker` | scalar diagnostic GF | no prolongation/checkpoint; one interpolation timelevel | Recovery writers; interpretation has open mismatch |
+| `failure_checker` | scalar diagnostic GF | no prolongation/checkpoint; one interpolation timelevel | Recovery writers; terminal marker overwrite resolved |
 
 `HydroBase::rho`, `press`, and `eps` indices are visibly passed to constrained-
 group registration APIs. Entropy adds `HydroBase::entropy`; tabulated modes add

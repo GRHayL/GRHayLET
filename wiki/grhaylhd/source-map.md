@@ -1,6 +1,6 @@
 # GRHayLHD Source Map
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 
 This is the sole canonical source-to-page edge table. Registry ingest state is
 owned separately and is not promoted merely by adding an edge; governance
@@ -35,7 +35,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_RegisterVars` | declared | Recheck registration phase and options. |
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_InitSymBound` | declared | Recheck symmetry setup phase. |
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_compute_Tmunu` | declared | Recheck optional stress-energy phase. |
-| `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Keep cadence precondition issue visible. |
+| `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Recheck unconditional RHS refresh independently of diagnostic cadence. |
 | `grhaylhd-common-c` | `grhaylhd.architecture.schedule-lifecycle` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Reconcile cadence and declared/body field sets. |
 | `grhaylhd-ccl` | `grhaylhd.evolution.eos-entropy-variants` | parameter | `ccl:GRHayLHD/param.ccl#parameter=evolve_entropy` | declared | Preserve unresolved local test entropy choice. |
 | `grhaylhd-ccl` | `grhaylhd.evolution.eos-entropy-variants` | parameter | `ccl:GRHayLHD/param.ccl#parameter=evolve_entropy` | unresolved | Keep authored-input omissions distinct from external selection. |
@@ -60,7 +60,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-variant-c` | `grhaylhd.evolution.conservative-recovery` | visible-call-order | `c:GRHayLHD/src/HybridEntropy/conservs_to_prims.c#symbol=GRHayLHD_hybrid_entropy_conservs_to_prims` | visible-implementation | Recheck HybridEntropy optional state and final writes. |
 | `grhaylhd-variant-c` | `grhaylhd.evolution.conservative-recovery` | visible-call-order | `c:GRHayLHD/src/Tabulated/conservs_to_prims.c#symbol=GRHayLHD_tabulated_conservs_to_prims` | visible-implementation | Recheck Tabulated retries and absence of explicit Font1D. |
 | `grhaylhd-variant-c` | `grhaylhd.evolution.conservative-recovery` | visible-call-order | `c:GRHayLHD/src/TabulatedEntropy/conservs_to_prims.c#symbol=GRHayLHD_tabulated_entropy_conservs_to_prims` | visible-implementation | Recheck combined optional state and final writes. |
-| `grhaylhd-ccl` | `grhaylhd.evolution.conservative-recovery` | cactus-interface | `ccl:GRHayLHD/interface.ccl#group=failure_checker` | declared | Keep intended legend separate from visible overwrite. |
+| `grhaylhd-ccl` | `grhaylhd.evolution.conservative-recovery` | cactus-interface | `ccl:GRHayLHD/interface.ccl#group=failure_checker` | declared | Recheck terminal atmosphere marker preservation and the matching legend. |
 | `grhaylhd-ccl` | `grhaylhd.evolution.rhs-fluxes-and-sources` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_evaluate_fluxes_rhs` | declared | Preserve source-before-flux wording as declared. |
 | `grhaylhd-common-header` | `grhaylhd.evolution.rhs-fluxes-and-sources` | visible-formula | `macro:GRHayLHD/src/GRHayLHD.h#name=COMPUTE_DERIV` | visible-implementation | Claim order only from explicit local label. |
 | `grhaylhd-common-header` | `grhaylhd.evolution.rhs-fluxes-and-sources` | visible-formula | `macro:GRHayLHD/src/GRHayLHD.h#name=COMPUTE_FCVAL` | visible-implementation | Keep interpolation claim to four points and formula. |
@@ -99,9 +99,9 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-formula | `c:GRHayLHD/src/convert_HydroBase_to_GRHayLHD.c#symbol=convert_HydroBase_to_GRHayLHD` | visible-implementation | Recheck forward formula against interface convention. |
 | `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-formula | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Recheck inverse formula, cadence, and Lorentz-factor writes. |
 | `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_HydroBase_to_GRHayLHD` | declared | Recheck initial forward conversion ordering. |
-| `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=CCTK_ANALYSIS` | declared | Preserve positive analysis guard distinction. |
-| `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Keep cadence precondition issue visible. |
-| `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | unresolved | Reconcile leakage declaration with metric reads and Lorentz-factor write. |
+| `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase_for_diagnostics?context=CCTK_ANALYSIS` | declared | Preserve positive analysis guard distinction. |
+| `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Recheck unconditional RHS refresh independently of diagnostic cadence. |
+| `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Recheck reconciled leakage metric reads and Lorentz-factor write. |
 | `grhaylhd-common-c` | `grhaylhd.integration.grhaylib-contract` | visible-dataflow | `c:GRHayLHD/src/MoL_registration.c#symbol=GRHayLHD_RegisterVars` | visible-implementation | Recheck shared handle branches. |
 | `grhaylhd-variant-c` | `grhaylhd.integration.grhaylib-contract` | visible-call-order | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` | visible-implementation | Recheck recovery delegation and explicit fallback. |
 | `grhaylhd-variant-c` | `grhaylhd.integration.grhaylib-contract` | external-behavior | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` | out-of-scope | Keep GRHayLib internals delegated despite visible local calls. |
@@ -164,7 +164,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-oracles` | `grhaylhd.validation.coverage-gaps` | numeric-observation | `oracle:GRHayLHD/test/Balsara0/rho.x.asc#file` | coverage-gap | Add owned internal and optional state observations. |
 | `grhaylhd-oracles` | `grhaylhd.validation.coverage-gaps` | numeric-observation | `oracle:GRHayLHD/test/TOV/hydrobase-rho.x.asc#file` | coverage-gap | Add owned Tmunu, recovery, and lifecycle observations. |
 | `grhaylhd-ccl` | `grhaylhd.validation.coverage-gaps` | parameter | `ccl:GRHayLHD/param.ccl#parameter=Matter_BC` | coverage-gap | Add distinct copy, outflow, and frozen evidence. |
-| `grhaylhd-ccl` | `grhaylhd.validation.coverage-gaps` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | coverage-gap | Establish cadence/leakage precondition evidence. |
+| `grhaylhd-ccl` | `grhaylhd.validation.coverage-gaps` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | coverage-gap | Verify declared unconditional substage refresh in a configured Cactus run. |
 | `grhaylhd-ccl` | `grhaylhd.validation.coverage-gaps` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_compute_Tmunu` | coverage-gap | Add Tmunu lifecycle and component evidence. |
 | `grhaylhd-common-header` | `grhaylhd.validation.coverage-gaps` | visible-formula | `macro:GRHayLHD/src/GRHayLHD.h#name=one_plus_pert` | coverage-gap | Obtain focused serial/parallel RNG evidence. |
 | `grhaylhd-test-declarations` | `grhaylhd.validation.coverage-gaps` | test-declaration | `test:GRHayLHD/test/test.ccl#case=Balsara0` | coverage-gap | Add resolution series and scientific measures. |

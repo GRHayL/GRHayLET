@@ -1,6 +1,6 @@
 # EOS and Entropy Variants
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -26,8 +26,8 @@ suffix.
 
 | Applicability | Local dispatch / source family | Conditional storage and MoL registration | Primitive, evolved, RHS, and flux state | Seven scheduled operation symbols | Recovery fallback | Local test status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Hybrid/Simple | `EOS_type` Hybrid or Simple; entropy false; `Hybrid` | Core storage; calls evolved-group API for core/RHS and constrained-group API for `rho`, `press`, `eps` | Base thermodynamics and velocity; five core conservatives/RHS/flux | Prefix `hybrid_`: `prims_to_conservs`, `conservs_to_prims`, `evaluate_sources_rhs`, `evaluate_fluxes_rhs`, `outer_boundaries`, `perturb_primitives`, `perturb_conservatives` | Visible explicit `ghl_hybrid_Font1D` after weighted retries | Balsara0 sets Simple; TOV sets Hybrid; entropy selection unresolved locally |
-| Hybrid/Simple+Entropy | Same EOS choices; entropy true; `HybridEntropy` | Add `ent_star[3]`, RHS, flux; calls APIs with entropy evolved/RHS and HydroBase entropy indices | Add entropy primitive, evolved, RHS, flux, reconstruction, and advection state | Prefix `hybrid_entropy_` with same seven exact suffixes | Visible explicit `ghl_hybrid_Font1D` after weighted retries | No authored test explicitly selects entropy locally |
+| Hybrid/Simple | `EOS_type` Hybrid or Simple; entropy false; `Hybrid` | Core storage; calls evolved-group API for core/RHS and constrained-group API for `rho`, `press`, `eps` | Base thermodynamics and velocity; five core conservatives/RHS/flux | Prefix `hybrid_`: `prims_to_conservs`, `conservs_to_prims`, `evaluate_sources_rhs`, `evaluate_fluxes_rhs`, `outer_boundaries`, `perturb_primitives`, `perturb_conservatives` | Hybrid-only explicit `ghl_hybrid_Font1D` after weighted retries; Simple resets to atmosphere | Balsara0 sets Simple; TOV sets Hybrid; entropy selection unresolved locally |
+| Hybrid/Simple+Entropy | Same EOS choices; entropy true; `HybridEntropy` | Add `ent_star[3]`, RHS, flux; calls APIs with entropy evolved/RHS and HydroBase entropy indices | Add entropy primitive, evolved, RHS, flux, reconstruction, and advection state | Prefix `hybrid_entropy_` with same seven exact suffixes | Hybrid-only explicit `ghl_hybrid_Font1D` after weighted retries; Simple resets to atmosphere | No authored test explicitly selects entropy locally |
 | Tabulated | `EOS_type` Tabulated; entropy false; `Tabulated` | Add `Ye_star[3]`, RHS, flux; calls APIs with electron-fraction evolved/RHS and `Y_e`/temperature indices | Add `Y_e`, temperature, `Ye_star`, RHS, flux, reconstruction, and advection state | Prefix `tabulated_` with same seven exact suffixes | No equivalent explicit Font1D call visible | No authored test explicitly selects Tabulated locally |
 | Tabulated+Entropy | Tabulated; entropy true; `TabulatedEntropy` | Adds both optional storage sets and both optional group-index call sets | Adds entropy and electron-fraction primitive/evolved/RHS/flux/reconstruction/advection state | Prefix `tabulated_entropy_` with same seven exact suffixes | No equivalent explicit Font1D call visible | No authored test explicitly selects this combination locally |
 

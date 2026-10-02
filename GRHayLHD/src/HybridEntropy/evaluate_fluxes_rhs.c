@@ -1,11 +1,11 @@
 #include "GRHayLHD.h"
 
-static inline CCTK_REAL get_Gamma_eff(
-      const CCTK_REAL rho_in,
-      const CCTK_REAL press_in) {
-  CCTK_REAL K, Gamma;
+static inline double get_Gamma_eff(
+      const double rho_in,
+      const double press_in) {
+  double K, Gamma;
   ghl_hybrid_get_K_and_Gamma(ghl_eos, rho_in, &K, &Gamma);
-  const CCTK_REAL P_cold = K*pow(rho_in, Gamma);
+  const double P_cold = K*pow(rho_in, Gamma);
   return ghl_eos->Gamma_th + (Gamma - ghl_eos->Gamma_th)*P_cold/press_in;
 }
 
@@ -25,15 +25,15 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        CCTK_REAL *cmin, CCTK_REAL *cmax);
+        double *cmin, double *cmax);
 
   void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        const CCTK_REAL cmin,
-        const CCTK_REAL cmax,
+        const double cmin,
+        const double cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
@@ -80,10 +80,10 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_face);
 
-          CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
-          CCTK_REAL vx_stencil[6], vy_stencil[6], vz_stencil[6];
-          CCTK_REAL ent_stencil[6];
-          ghl_primitive_quantities prims_r, prims_l;
+          double rho_stencil[6], press_stencil[6], v_flux[6];
+          double vx_stencil[6], vy_stencil[6], vz_stencil[6];
+          double ent_stencil[6];
+          ghl_primitive_quantities prims_r = {0}, prims_l = {0};
 
           for(int ind=0; ind<6; ind++) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -97,10 +97,10 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
             ent_stencil[ind]   = entropy[stencil];
           }
 
-          CCTK_REAL ftilde[2];
+          double ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
-          const CCTK_REAL Gamma = get_Gamma_eff(rho[index], press[index]);
+          const double Gamma = get_Gamma_eff(rho[index], press[index]);
           ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, Gamma, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
 
           ghl_ppm_reconstruction(ftilde, press_stencil, &prims_r.press, &prims_l.press);
@@ -119,8 +119,8 @@ void GRHayLHD_hybrid_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
           error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
           ghl_abort_if_error(error);
 
-          CCTK_REAL cmin, cmax;
-          ghl_conservative_quantities cons_fluxes;
+          double cmin, cmax;
+          ghl_conservative_quantities cons_fluxes = {0};
           calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 

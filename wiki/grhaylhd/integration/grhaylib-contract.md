@@ -1,6 +1,6 @@
 # GRHayLib Contract
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -24,7 +24,7 @@ not established locally.
 | Applicability | Visible library boundary |
 | --- | --- |
 | Common | Metric/auxiliary setup, primitive limits, conservative conversion, multi-method recovery, PPM, characteristic speeds, sources, error handling, and stress-energy helpers. |
-| Hybrid/Simple | Hybrid HLLE calls, hybrid EOS helper, and explicit `ghl_hybrid_Font1D` recovery fallback. |
+| Hybrid/Simple | Hybrid HLLE calls, hybrid EOS helper, and an explicit `ghl_hybrid_Font1D` recovery fallback only for Hybrid EOS. |
 | Hybrid/Simple+Entropy | Hybrid-entropy HLLE calls and entropy-bearing primitive/conservative paths. |
 | Tabulated | Tabulated bounds/EOS calls, tabulated HLLE calls, and electron-fraction paths. |
 | Tabulated+Entropy | Tabulated-entropy HLLE calls plus both electron-fraction and entropy paths. |
@@ -34,7 +34,7 @@ not established locally.
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
 | `INT-GHL-01` | Local registration reads `ghl_params->evolve_entropy` and `ghl_eos->eos_type`. | visible-implementation | MoL registration branches | `c:GRHayLHD/src/MoL_registration.c#symbol=GRHayLHD_RegisterVars` |
-| `INT-GHL-02` | Hybrid recovery visibly delegates primary recovery to `ghl_con2prim_multi_method` and has an explicit Font1D fallback. | visible-implementation | Hybrid recovery function | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` |
+| `INT-GHL-02` | Hybrid recovery visibly delegates primary recovery to `ghl_con2prim_multi_method` and has an explicit Font1D fallback only for Hybrid EOS. | visible-implementation | Hybrid recovery function | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` |
 | `INT-GHL-03` | Tabulated-entropy flux code visibly delegates reconstruction, EOS bounds, directional speeds, and HLLE fluxes. | visible-implementation | TabulatedEntropy flux function | `c:GRHayLHD/src/TabulatedEntropy/evaluate_fluxes_rhs.c#symbol=GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs` |
 | `INT-GHL-04` | Stress-energy path visibly calls metric, auxiliary, and Tmunu helpers. | visible-implementation | Tmunu function | `c:GRHayLHD/src/compute_Tmunu.c#symbol=GRHayLHD_compute_Tmunu` |
 | `INT-GHL-05` | README states support including all Con2Prim routines. | declared | Purpose section | `doc:GRHayLHD/README#section=1. Purpose` |

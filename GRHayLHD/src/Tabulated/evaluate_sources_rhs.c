@@ -38,7 +38,7 @@ void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               kyy[index], kyz[index], kzz[index],
               &curv);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
         prims.rho         = rho[index];
         prims.press       = press[index];
@@ -79,7 +79,7 @@ void GRHayLHD_tabulated_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               gyy, gyz, gzz,
               &ADM_metric_derivs_z);
 
-        ghl_conservative_quantities cons_source;
+        ghl_conservative_quantities cons_source = {0};
         ghl_calculate_source_terms(
               ghl_eos, &prims, &ADM_metric,
               &ADM_metric_derivs_x,

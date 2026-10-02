@@ -38,10 +38,16 @@ void GRHayLHD_compute_metric_derivs(
   const CCTK_REAL d_gyz = dxi*COMPUTE_DERIV(gyz[indm2], gyz[indm1], gyz[indp1], gyz[indp2]);
   const CCTK_REAL d_gzz = dxi*COMPUTE_DERIV(gzz[indm2], gzz[indm1], gzz[indp1], gzz[indp2]);
 
-  ghl_initialize_metric(
-        d_lapse,
-        d_betax, d_betay, d_betaz,
-        d_gxx, d_gxy, d_gxz,
-        d_gyy, d_gyz, d_gzz,
-        metric_derivs);
+  // Derivative tensors are not physical metrics: never invert them.
+  *metric_derivs = (ghl_metric_quantities){0};
+  metric_derivs->lapse = d_lapse;
+  metric_derivs->betaU[0] = d_betax;
+  metric_derivs->betaU[1] = d_betay;
+  metric_derivs->betaU[2] = d_betaz;
+  metric_derivs->gammaDD[0][0] = d_gxx;
+  metric_derivs->gammaDD[0][1] = metric_derivs->gammaDD[1][0] = d_gxy;
+  metric_derivs->gammaDD[0][2] = metric_derivs->gammaDD[2][0] = d_gxz;
+  metric_derivs->gammaDD[1][1] = d_gyy;
+  metric_derivs->gammaDD[1][2] = metric_derivs->gammaDD[2][1] = d_gyz;
+  metric_derivs->gammaDD[2][2] = d_gzz;
 }

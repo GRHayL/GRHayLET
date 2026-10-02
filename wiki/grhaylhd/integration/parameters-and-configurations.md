@@ -1,6 +1,6 @@
 # Parameters and Configurations
 
-> Page status: reviewed · Last reviewed: 07-18-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -53,7 +53,7 @@ no external default semantics are inferred.
 
 | Parameter | Local declaration, domain, default | Steerability | Schedule guards and visible C consumers | Mode interaction | Assignments across five parfiles / caveat |
 | --- | --- | --- | --- | --- | --- |
-| `Convert_to_HydroBase_every` | `INT`; `0:*`; default `0` | Not marked | Guards reverse conversion at initial and analysis phases; reverse converter uses it as modulo divisor; leakage call is outside positive guard | Common | No explicit assignment; local default disables guarded contexts, but leakage precondition remains [GRH-0006](../contradictions.md#grh-0006). |
+| `Convert_to_HydroBase_every` | `INT`; `0:*`; default `0` | Not marked | Guards diagnostic conversion at initial and analysis phases; diagnostic wrapper checks zero before modulo; leakage conversion runs independently | Common | No explicit assignment; local default disables diagnostic contexts; leakage cadence defect is resolved at [GRH-0006](../contradictions.md#grh-0006). |
 | `update_Tmunu` | `CCTK_BOOLEAN`; default `yes` | `ALWAYS` | Guards `AddToTmunu` schedule and Tmunu constrained registration | Common | Authored and companion Balsara0 set `no`; other three omit it. Steering lifecycle is [GRH-0007](../contradictions.md#grh-0007). |
 | `Symmetry` | `KEYWORD`; permitted `none`; default `none` | Not marked | Read by symmetry initialization, all recovery symmetry branches, and all outer-boundary routines | Common | No explicit assignment. Equatorial source branches are not locally selectable; see [GRH-0001](../contradictions.md#grh-0001). |
 | `Matter_BC` | `KEYWORD`; `copy`, `outflow`, `frozen`; default `outflow` | Not marked | Read by all four outer-boundary routines; outer-boundary group itself is not parameter-guarded | Common | Example, authored Balsara0, and Balsara0 companion set `copy`; TOV files omit it. |

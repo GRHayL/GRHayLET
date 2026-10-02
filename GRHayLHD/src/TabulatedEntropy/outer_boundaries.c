@@ -1,13 +1,9 @@
 /*******************************************************
- * Outer boundaries are handled as follows:
- * (-1) Update RHS quantities, leave RHS quantities zero on all outer ghostzones
- *      (including outer AMR refinement, processor, and outer boundaries)
- * ( 0) Let MoL update all evolution variables
- * ( 1) Apply outer boundary conditions (BCs) on A_{\mu}
- * ( 2) Compute B^i from A_i everywhere, synchronize B^i
- * ( 3) Call con2prim to get primitives on interior pts
- * ( 4) Apply outer BCs on {P,rho,vx,vy,vz}.
- * ( 5) (optional) set conservatives on outer boundary.
+ * HydroBase_Con2Prim recovers primitives before this routine.
+ * Copy primitive fields at physical outer boundaries, and
+ * clip inward velocities for the outflow choice. Enforce
+ * primitive limits and recompute boundary conservatives.
+ * Frozen boundaries return without changing the fields.
  *******************************************************/
 
 #include "GRHayLHD.h"
@@ -49,7 +45,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
@@ -73,7 +69,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
@@ -99,7 +95,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
@@ -123,7 +119,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
@@ -149,7 +145,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
@@ -173,7 +169,7 @@ void GRHayLHD_tabulated_entropy_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
@@ -212,7 +208,7 @@ void GRHayLHD_tabulated_entropy_enforce_primitive_limits_and_compute_conservs(co
         ghl_params, ghl_eos, &ADM_metric, prims, &speed_limited);
   ghl_abort_if_error(error);
 
-  ghl_conservative_quantities cons;
+  ghl_conservative_quantities cons = {0};
   ghl_compute_conservs(&ADM_metric, &metric_aux, prims, &cons);
 
   rho[index]         = prims->rho;

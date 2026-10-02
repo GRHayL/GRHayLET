@@ -1,6 +1,6 @@
 # ADM, MoL, and Tmunu Contracts
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -80,7 +80,8 @@ effect remains unverified under [GRH-0002](../contradictions.md#grh-0002).
 
 When `update_Tmunu` condition is met, CCL schedules function in `AddToTmunu`
 and declares reads of ADM metric/lapse/shift, HydroBase `rho`/`press`/`eps`,
-native velocity, and `u0`. Function initializes metric and auxiliary objects,
+native velocity, `u0`, and all three stress-energy groups that the function
+updates additively. Function initializes metric and auxiliary objects,
 loads those primitive fields, explicitly assigns all `prims.BU` components
 zero, and calls `ghl_compute_TDNmunu`.
 
