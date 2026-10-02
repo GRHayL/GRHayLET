@@ -13,8 +13,11 @@ void IllinoisGRMHD_backward_compatible_initialize(CCTK_ARGUMENTS) {
           "Error: neos %d > 1. Original IllinoisGRMHD did not properly implement piecewise polytrope,\n"
           "so this must be updated to use the modern version of the thorn for reliable behavior.", neos);
 
-  ghl_params = (ghl_parameters *)malloc(sizeof(ghl_parameters));
-  ghl_eos = (ghl_eos_parameters *)malloc(sizeof(ghl_eos_parameters));
+  ghl_params = (ghl_parameters *)calloc(1, sizeof(ghl_parameters));
+  ghl_eos = (ghl_eos_parameters *)calloc(1, sizeof(ghl_eos_parameters));
+
+  if(!ghl_params || !ghl_eos)
+    CCTK_ERROR("Unable to allocate backward-compatible GRHayL state.");
 
   const ghl_con2prim_id_t main = ghl_con2prim_id_Noble2D;
   const ghl_con2prim_id_t backups[3] = {ghl_con2prim_id_Font1D, ghl_con2prim_id_None, ghl_con2prim_id_None};
@@ -43,9 +46,10 @@ void IllinoisGRMHD_backward_compatible_initialize(CCTK_ARGUMENTS) {
   const double Gamma_ppoly_in[1] = {gamma_th};
 
   ghl_con2prim_multi_method = ghl_con2prim_hybrid_multi_method;
-  ghl_initialize_hybrid_eos_functions_and_params(
+  const ghl_error_codes_t error = ghl_initialize_hybrid_eos_functions_and_params(
         rho_b_atm, rho_b_atm, rho_b_max,
         neos, rho_ppoly_in,
         Gamma_ppoly_in, K_poly,
         gamma_th, ghl_eos);
+  ghl_abort_if_error(error);
 }

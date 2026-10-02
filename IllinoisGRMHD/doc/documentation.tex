@@ -156,14 +156,36 @@ Finally, note that the magnetic field quantities have been rescaled by
 $\left(4\pi\right)^{-1/2}$, as this simplifies many equations in \grhayl.
 This definition is consistent with the magnetic field defined by \hydrobase{}
 and GRHydro (which the old \igm{} did not respect). To maintain support for
-old initial data thorns, we by default assume that the \hydrobase{} $B^i$,
-$A_i$ use the old definition and rescale them when copying into the \igm{}
-variables. The parameter rescale\_magnetics controls this behavior. If
-the thorns using the old definition (i.e. thorns in wvuthorns and
-wvuthorns\_diagnostics) are updated to use the new definition, this parameter
-will be switch such that the default behaves as expected for these thorns.
-Such a change will be detailed in the Einstein Toolkit release notes prior
-to the release introducing the change.
+old initial data thorns, rescale\_magnetics defaults to yes and divides
+imported \hydrobase{} $A_i$ by $\sqrt{4\pi}$. Set it to no for initial
+potentials that already use the normalized convention. Exported
+\hydrobase{} $B^i$ always uses the canonical normalized convention, regardless
+of this import setting. Legacy diagnostics must convert that output explicitly.
+
+Diagnostic export uses Convert\_to\_HydroBase\_every: zero disables it and
+positive values select divisible iterations. Mandatory conversion for leakage
+RHS consumers and compatibility initialization updates every scheduled call.
+
+\subsection{Supported entropy and recovery contracts}
+Tabulated entropy evolution is rejected at startup until the shared \grhayl{}
+packing, flux, recovery, and atmosphere contract uses a density-weighted
+specific entropy current. Use evolve\_entropy=no for tabulated EOS runs.
+Hybrid entropy evolution requires one cold polytropic segment and equal cold
+and thermal Gamma. General hybrid EOS runs must use evolve\_entropy=no.
+The Hybrid/Simple recovery proxy $P/\rho^{\Gamma-1}$ is stored in
+IllinoisGRMHD::hybrid\_entropy. Physical specific entropy units and normalization
+are unavailable in this mode, so HydroBase::entropy is explicitly set to NaN.
+Consumers must not interpret the proxy as physical entropy.
+
+With calc\_primitive\_guess=no, recovery seeds come from current grid
+primitives; $u^0$ is recomputed, including on restart. Inactive quantity fields
+are initialized deterministically. Simple EOS uses direct Gamma-law epsilon,
+enthalpy, and sound-speed formulas, and never invokes the Hybrid-only Font1D
+emergency fallback. Exhausted supported recovery resets to atmosphere.
+
+Outflow boundaries enforce coordinate velocity signs and the Lorentz bound
+jointly, including edges and corners. An infeasible combination stops with a
+clear error before publishing boundary conservatives.
 
 In addition to these changes, \glib{} offers new parameter options for
 controlling the simulation, such as a wider range of conservative-to-primitive

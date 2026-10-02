@@ -19,7 +19,6 @@ void IllinoisGRMHD_hybrid_entropy_perturb_primitives(CCTK_ARGUMENTS) {
         vx[index]      *= one_plus_pert(random_pert);
         vy[index]      *= one_plus_pert(random_pert);
         vz[index]      *= one_plus_pert(random_pert);
-        entropy[index] *= one_plus_pert(random_pert);
 
         phitilde[index] *= one_plus_pert(random_pert);
         Ax[index]       *= one_plus_pert(random_pert);

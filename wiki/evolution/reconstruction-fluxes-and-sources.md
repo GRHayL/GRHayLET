@@ -1,6 +1,6 @@
 # Reconstruction, Fluxes, and Sources
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -84,6 +84,24 @@ directional hydro stages. Details belong to
 
 This page makes no untested claim about convergence, thread safety, numerical
 stability, or external GRHayL algorithms.
+
+### Defined derivative carriers and checked face thermodynamics
+
+`IllinoisGRMHD_compute_metric_derivs` initializes a raw derivative carrier with
+lapse, shift, and symmetric covariant spatial-metric derivatives. It never
+passes that tensor to physical-metric inversion. Both tabulated face kernels
+check each pressure-to-thermal inverse return status before characteristic
+speed/flux calls and abort through the existing error policy on failure.
+Hybrid entropy reconstruction reads the thorn proxy; the compiled tabulated
+entropy kernel remains guarded out at startup.
+
+Claim evidence:
+- Claim: Derivative preparation avoids physical-metric inversion and both table face inversions check errors before flux evaluation.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/compute_metric_derivs.c`, `IllinoisGRMHD_compute_metric_derivs`; registered `IllinoisGRMHD/src/Tabulated/calculate_fluxes_rhs.c`, `IllinoisGRMHD_tabulated_calculate_flux_dir_rhs`; registered `IllinoisGRMHD/src/TabulatedEntropy/calculate_fluxes_rhs.c`, `IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs`
+- Corroboration: none available for the local status-check policy; the two registered face kernels independently implement the same check, and the derivative helper contains the raw assignments
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

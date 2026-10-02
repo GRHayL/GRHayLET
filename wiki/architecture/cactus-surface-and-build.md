@@ -1,6 +1,6 @@
 # Cactus Surface and Build
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Architecture](index.md)
 
 ## Summary
@@ -37,6 +37,8 @@ All groups are CCTK real grid functions. Declaration names and metadata are:
   `InterpNumTimelevels=1`, no prolongation; `u0` also disables checkpointing.
 - `grmhd_conservatives` (`rho_star`, `tau`, three `Stilde` components),
   `ent_star`, and `Ye_star`: three timelevels, ENO prolongation.
+- scalar `hybrid_entropy`: `InterpNumTimelevels=1`, no prolongation or
+  checkpoint; storage is conditional on entropy evolution with non-tabulated EOS.
 - scalar `Ax`, `Ay`, `Az`, `phitilde`: three timelevels with `STAGGER011`,
   `STAGGER101`, `STAGGER110`, and `STAGGER111` prolongation tags respectively.
 - `grmhd_B_stagger` (`Bx_stagger`, `By_stagger`, `Bz_stagger`) and
@@ -66,7 +68,8 @@ magnetic placement belongs to [Staggered State and Magnetic Reconstruction](../m
 ### Build Inputs
 
 Common `src/make.code.defn` selects `Hybrid`, `HybridEntropy`, `Tabulated`, and
-`TabulatedEntropy` as `SUBDIRS`. Its 18 `SRCS` entries are `A_flux_rhs.c`,
+`TabulatedEntropy` as `SUBDIRS`. Its 20 `SRCS` entries are `check_eos_support.c`,
+`enforce_outflow.c`, `A_flux_rhs.c`,
 `A_i_outer_boundaries.c`, `compute_B_and_Bstagger_from_A.c`,
 `compute_metric_derivs.c`, `compute_Tmunu.c`, both `convert_*HydroBase*.c`
 files, `evaluate_phitilde_and_A_gauge_rhs.c`, `InitSymBound.c`,
@@ -84,7 +87,7 @@ Claim evidence:
 - Deciding authority: registered `IllinoisGRMHD/src/make.code.defn`, `SUBDIRS` and `SRCS`; four registered variant `make.code.defn` files, `SRCS`
 - Corroboration: registered source aggregates contain every named file; no build was run
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-applicable; distributed=not-applicable; error_path=not-run; options=all five make.code.defn files; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-applicable; distributed=not-applicable; error_path=not-run; options=all five make.code.defn files; date=10-02-2026`
 
 ### Local Header Surface
 
@@ -92,8 +95,20 @@ Claim evidence:
 It defines reconstruction indices, a perturbation macro, interpolation and
 derivative coefficients/macros, and prototypes for metric face interpolation,
 metric derivatives, staggered symmetry ghost filling, PPM reconstruction loop,
-and A-flux RHS. These declarations establish local helper interfaces, not CCTK-
+A-flux RHS, and joint outflow/Lorentz enforcement.
+`IllinoisGRMHD_enforce_outflow` takes GRHayL parameters and metric, three
+coordinate-face signs, and an in/out primitive carrier; its boolean result
+reports whether a velocity satisfying all active face constraints and the
+Lorentz limit was found. These declarations establish local helper interfaces, not CCTK-
 generated symbol availability or external implementation semantics.
+
+Claim evidence:
+- Claim: The interface declares a noncheckpointed hybrid_entropy scalar, the common manifest includes both new helpers, and the header exposes joint outflow enforcement; these are static declarations, not successful Cactus setup.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/interface.ccl`, `hybrid_entropy`; registered `IllinoisGRMHD/src/make.code.defn`, `SRCS`; registered `IllinoisGRMHD/src/IllinoisGRMHD.h`, `IllinoisGRMHD_enforce_outflow`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, conditional `hybrid_entropy` storage; registered `IllinoisGRMHD/src/enforce_outflow.c`, `IllinoisGRMHD_enforce_outflow`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=interface, common manifest, local prototype; date=10-02-2026`
 
 ## Sources
 
@@ -109,6 +124,7 @@ generated symbol availability or external implementation semantics.
   — variant `SRCS`.
 - [`IllinoisGRMHD.h`](../../IllinoisGRMHD/src/IllinoisGRMHD.h) — macros, enum,
   includes, and helper prototypes.
+- `IllinoisGRMHD/src/enforce_outflow.c` — `IllinoisGRMHD_enforce_outflow`.
 
 ## See Also
 

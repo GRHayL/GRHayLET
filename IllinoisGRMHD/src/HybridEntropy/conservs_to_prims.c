@@ -61,20 +61,30 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
               gyy[index], gyz[index], gzz[index],
               &ADM_metric);
 
+        if(ADM_metric.sqrt_detgamma > ghl_params->psi6threshold)
+          pointcount_inhoriz++;
+
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
-        // The code has only ever been tested using the default GRHayL guess,
-        // so using the previous timelevel as an initial guess would need to
-        // be implemented here.
-        ghl_primitive_quantities prims;
+        // Supply current grid primitives when GRHayL guess construction is disabled.
+        ghl_primitive_quantities prims = {0};
+        if(!ghl_params->calc_prim_guess) {
+          prims.rho = rho[index];
+          prims.press = press[index];
+          prims.eps = eps[index];
+          prims.vU[0] = vx[index];
+          prims.vU[1] = vy[index];
+          prims.vU[2] = vz[index];
+          prims.entropy = ghl_hybrid_compute_entropy_function(ghl_eos, prims.rho, prims.press);
+        }
         prims.BU[0] = Bx_center[index];
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
 
         // Read in conservative variables from gridfunctions
-        ghl_conservative_quantities cons, cons_undens;
+        ghl_conservative_quantities cons = {0}, cons_undens = {0};
         cons.rho     = rho_star[index];
         cons.tau     = tau[index];
         cons.SD[0]   = Stildex[index];
@@ -82,7 +92,16 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         cons.SD[2]   = Stildez[index];
         cons.entropy = ent_star[index];
 
+        // u0 is a noncheckpointed auxiliary; reconstruct it for restart seeds.
+        bool seed_limited = false;
         ghl_error_codes_t error;
+        if(!ghl_params->calc_prim_guess) {
+          error = ghl_enforce_primitive_limits_and_compute_u0(
+              ghl_params, ghl_eos, &ADM_metric, &prims, &seed_limited);
+          ghl_abort_if_error(error);
+        }
+        const ghl_primitive_quantities prims_seed = prims;
+
 
         /************* Main conservative-to-primitive logic ************/
         if(cons.rho>0.0) {
@@ -116,7 +135,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
           cons.SD[2]   = Stildez[index];
           cons.entropy = ent_star[index];
 
-          ghl_conservative_quantities cons_neigh_avg, cons_avg;
+          ghl_conservative_quantities cons_neigh_avg = {0}, cons_avg = {0};
           cons_neigh_avg.rho     = 0.0;
           cons_neigh_avg.tau     = 0.0;
           cons_neigh_avg.SD[0]   = 0.0;
@@ -152,31 +171,30 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
             }
           }
 
+          // No neighbors: skip averaging and use the final fallback policy.
+          if(n_avg > 0) {
+            cons_neigh_avg.rho /= n_avg;
+            cons_neigh_avg.tau /= n_avg;
+            cons_neigh_avg.SD[0] /= n_avg;
+            cons_neigh_avg.SD[1] /= n_avg;
+            cons_neigh_avg.SD[2] /= n_avg;
+            cons_neigh_avg.entropy /= n_avg;
+          }
           int avg_weight = 1;
-          while(error && avg_weight < 5) {
-            // last point doesn't add central point and has 1 less point
-            // being averaged.
-            n_avg += (avg_weight!=4);
-
+          while(error && n_avg > 0 && avg_weight < 5) {
             const CCTK_REAL wfac = avg_weight/4.0;
             const CCTK_REAL cfac = 1.0 - wfac;
-            cons_avg.rho     = wfac*cons_neigh_avg.rho     + cfac*cons.rho;
-            cons_avg.tau     = wfac*cons_neigh_avg.tau     + cfac*cons.tau;
-            cons_avg.SD[0]   = wfac*cons_neigh_avg.SD[0]   + cfac*cons.SD[0];
-            cons_avg.SD[1]   = wfac*cons_neigh_avg.SD[1]   + cfac*cons.SD[1];
-            cons_avg.SD[2]   = wfac*cons_neigh_avg.SD[2]   + cfac*cons.SD[2];
+            cons_avg.rho = wfac*cons_neigh_avg.rho + cfac*cons.rho;
+            cons_avg.tau = wfac*cons_neigh_avg.tau + cfac*cons.tau;
+            cons_avg.SD[0] = wfac*cons_neigh_avg.SD[0] + cfac*cons.SD[0];
+            cons_avg.SD[1] = wfac*cons_neigh_avg.SD[1] + cfac*cons.SD[1];
+            cons_avg.SD[2] = wfac*cons_neigh_avg.SD[2] + cfac*cons.SD[2];
             cons_avg.entropy = wfac*cons_neigh_avg.entropy + cfac*cons.entropy;
-
-            cons_avg.rho     /= n_avg;
-            cons_avg.tau     /= n_avg;
-            cons_avg.SD[0]   /= n_avg;
-            cons_avg.SD[1]   /= n_avg;
-            cons_avg.SD[2]   /= n_avg;
-            cons_avg.entropy /= n_avg;
 
             ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
 
             /************* Conservative-to-primitive recovery ************/
+            prims = prims_seed;
             error = ghl_con2prim_multi_method(
                   ghl_params, ghl_eos, &ADM_metric, &metric_aux,
                   &cons_undens, &prims, &diagnostics);
@@ -187,36 +205,38 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
               error = ghl_error_c2p_singular;
           }
           if(error) {
-            // We are still failing after exhausting the averaging options.
-            // Next, we try Font1D.
-            pointcount_Font++;
+            if(ghl_eos->eos_type == ghl_eos_hybrid) {
+              // We are still failing after exhausting the averaging options.
+              // Next, we try Font1D.
+              pointcount_Font++;
 
-            ghl_apply_conservative_limits(
-                ghl_params, ghl_eos, &ADM_metric,
-                &prims, &cons, &diagnostics);
+              ghl_apply_conservative_limits(
+                  ghl_params, ghl_eos, &ADM_metric,
+                  &prims, &cons, &diagnostics);
 
-            ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
+              ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons, &cons_undens);
 
-            error = ghl_hybrid_Font1D(
-                  ghl_params, ghl_eos, &ADM_metric, &metric_aux,
-                  &cons_undens, &prims, &diagnostics);
+              prims = prims_seed;
+              error = ghl_hybrid_Font1D(
+                    ghl_params, ghl_eos, &ADM_metric, &metric_aux,
+                    &cons_undens, &prims, &diagnostics);
 
-            if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
-                     prims.entropy) )
-              error = ghl_error_c2p_singular;
+              if(isnan(prims.rho*prims.press*prims.eps*prims.vU[0]*prims.vU[1]*prims.vU[2]*
+                       prims.entropy) )
+                error = ghl_error_c2p_singular;
 
+            } // Font is unsupported for Simple EOS.
             if(error) {
               // We are still failing after exhausting the averaging options.
               // We'll surrender and resort to atmospheric reset...
 
-              failure_checker[index] += 100;
+              local_failure_checker += 100;
 
               ghl_set_prims_to_constant_atm(ghl_eos, &prims);
 
               failures++;
               if(ADM_metric.sqrt_detgamma > ghl_params->psi6threshold) {
                 failures_inhoriz++;
-                pointcount_inhoriz++;
               }
             } // atmospheric backup
           } // Font1D backup
@@ -238,7 +258,8 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         vx[index]      = prims.vU[0];
         vy[index]      = prims.vU[1];
         vz[index]      = prims.vU[2];
-        entropy[index] = prims.entropy;
+        hybrid_entropy[index] = prims.entropy;
+        entropy[index] = NAN; // Physical entropy units/normalization are unavailable.
 
         if(diagnostics.speed_limited) {
           local_failure_checker += 10;
@@ -293,7 +314,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.rho     = rho[index];
         prims.press   = press[index];
         prims.eps     = eps[index];
@@ -304,9 +325,9 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
         prims.BU[0]   = Bx_center[index];
         prims.BU[1]   = By_center[index];
         prims.BU[2]   = Bz_center[index];
-        prims.entropy = entropy[index];
+        prims.entropy = hybrid_entropy[index];
 
-        ghl_conservative_quantities cons, cons_orig;
+        ghl_conservative_quantities cons = {0}, cons_orig = {0};
         cons_orig.rho     = rho_star[index];
         cons_orig.tau     = tau[index];
         cons_orig.SD[0]   = Stildex[index];
@@ -345,7 +366,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
     Failure checker decoder:
        1: atmosphere reset when rho_star < 0
       10: Limiting velocity u~ after C2P/Font Fix or v in ghl_enforce_primitive_limits_and_compute_u0
-     100: Both C2P and Font Fix failed
+     100: All supported recovery methods failed; atmosphere reset
       1k: backups used
      10k: tau~ was reset in ghl_apply_conservative_limits
     100k: S~ was reset in ghl_apply_conservative_limits
@@ -361,7 +382,7 @@ void IllinoisGRMHD_hybrid_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
 
     CCTK_VINFO(
         "C2P: Iter. # %d, Lev: %d NumPts= %d | Backups: %d %d %d | Fixes: VL= %d rho*= %d\n"
-        "                 Averaged pts = %d Font1D %d | Failures: %d InHoriz= %d / %d | %.2f iters/gridpt\n"
+        "                 Averaged pts = %d Font1D %d | Failures: %d sqrt_detgamma>psi6threshold= %d / %d | %.2f iters/gridpt\n"
         "   Error, Sum: rho %.3e, %.3e | tau %.3e, %.3e | entropy %.3e, %.3e\n"
         "               Sx %.3e, %.3e | Sy %.3e, %.3e | Sz %.3e, %.3e\n",
         cctk_iteration, (int)GetRefinementLevel(cctkGH), pointcount,

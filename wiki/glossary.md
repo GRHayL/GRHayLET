@@ -1,6 +1,6 @@
 # IllinoisGRMHD Glossary
 
-> Canonical recurring routing terms and one owner each. · Status: confirmed · Last reconciled: 07-17-2026
+> Canonical recurring routing terms and one owner each. · Status: confirmed · Last reconciled: 10-02-2026
 
 ## Terms
 
@@ -21,7 +21,8 @@
 | Con2Prim | Conservative-to-primitive recovery path. | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) |
 | hybrid/Simple EOS | Selectors routed to Hybrid-family source handoffs. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
 | tabulated EOS | Selector routed to Tabulated-family source handoffs. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
-| entropy evolution | `evolve_entropy` branch adding entropy state and source-family handoffs. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
+| entropy evolution | `evolve_entropy` selects a supported Hybrid/Simple proxy mode; tabulated entropy is rejected at startup. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
+| hybrid_entropy | Thorn-owned Hybrid/Simple recovery proxy; separate from unavailable physical HydroBase entropy. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
 | electron fraction | Tabulated-family `Y_e`/`Ye_star` state. | [State and EOS Modes](evolution/state-and-eos-modes.md) |
 | PPM | Reconstruction path and ghost-zone constraint used locally. | [Reconstruction, Fluxes, and Sources](evolution/reconstruction-fluxes-and-sources.md) |
 | HLLE/HLL | Local external-call boundaries for hydro and induction fluxes. | [Reconstruction, Fluxes, and Sources](evolution/reconstruction-fluxes-and-sources.md) |
@@ -32,7 +33,7 @@
 | densitized B | Face-centered curl result before determinant division. | [Staggered State and Magnetic Reconstruction](magnetics/staggered-state-and-magnetic-reconstruction.md) |
 | Lorenz gauge | Gauge RHS handoff using configured damping input. | [Induction and Lorenz-Gauge RHS](magnetics/induction-and-lorenz-gauge-rhs.md) |
 | atmosphere reset | Recovery terminal/nonpositive-density fallback behavior. | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) |
-| failure_checker | Per-point recovery repair encoding with active hundreds-marker conflict. | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) |
+| failure_checker | Per-point recovery repair encoding; terminal atmosphere reset retains +100. | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) |
 | test oracle | Checked-in generated comparison evidence, not current pass proof. | [Test Harness and Oracles](validation/test-harness-and-oracles.md) |
 | Balsara | Five visible one-dimensional case configurations. | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) |
 | magnetized TOV | Visible stellar case files and naming gap. | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) |

@@ -194,13 +194,13 @@ IOUtil::recover                 = "autoprobe"
 IOUtil::recover_dir             = $parfile
 
 IOBasic::outInfo_every = 2
-IOBasic::outInfo_vars  = "Carpet::physical_time_per_hour IllinoisGRMHD::rho_b ML_BSSN::ML_Ham"
+IOBasic::outInfo_vars  = "Carpet::physical_time_per_hour HydroBase::rho ML_BSSN::ML_Ham"
 
 IOScalar::outScalar_every    = 2
 CarpetIOScalar::outScalar_reductions = "maximum"
 IOScalar::one_file_per_group = no
 IOScalar::outScalar_vars     = "
- IllinoisGRMHD::rho_b
+ HydroBase::rho
 "
 
 CarpetIOASCII::out0D_every            = -1
@@ -214,7 +214,7 @@ IOASCII::output_symmetry_points = no
 IOASCII::out3D_ghosts           = no
 IOASCII::out3D_outer_ghosts     = no
 IOASCII::out1D_vars         = "
- IllinoisGRMHD::grmhd_primitives_allbutBi
+ HydroBase::rho HydroBase::press HydroBase::eps IllinoisGRMHD::grmhd_velocities
  IllinoisGRMHD::grmhd_B_center
  TmunuBase::stress_energy_tensor
 "

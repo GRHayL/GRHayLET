@@ -147,7 +147,7 @@ void IllinoisGRMHD_hybrid_calculate_flux_dir_rhs(
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
         CCTK_REAL B1_stencil[6], B2_stencil[6];
-        ghl_primitive_quantities prims_r, prims_l;
+        ghl_primitive_quantities prims_r = {0}, prims_l = {0};
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -186,7 +186,7 @@ void IllinoisGRMHD_hybrid_calculate_flux_dir_rhs(
         error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
         ghl_abort_if_error(error);
 
-        ghl_conservative_quantities cons_fluxes;
+        ghl_conservative_quantities cons_fluxes = {0};
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
         calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin[index], cmax[index], &cons_fluxes);
 

@@ -6,6 +6,10 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+bool IllinoisGRMHD_enforce_outflow(
+      const ghl_parameters *params, const ghl_metric_quantities *metric,
+      const int sign[3], ghl_primitive_quantities *prims);
+
 enum recon_indices{
       BX_STAGGER, BY_STAGGER, BZ_STAGGER,
       VXR, VYR, VZR, VXL,VYL, VZL, MAXNUMVARS};

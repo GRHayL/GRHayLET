@@ -4,19 +4,8 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_IllinoisGRMHD_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
 
-  // if/else for backward compatibility
-  if(CCTK_IsThornActive("Convert_to_HydroBase")) {
-    int partype;
-    void const *const parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
-    const int old_Convert_to_HydroBase_every = *(CCTK_INT const *)parptr;
-    if(old_Convert_to_HydroBase_every==0) return;
-    if(cctk_iteration%old_Convert_to_HydroBase_every!=0) return;
-  } else {
-    // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-    if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
-  }
-
-  const CCTK_REAL mag_factor = rescale_magnetics ? sqrt(4.0*M_PI) : 1;
+  // HydroBase Bvec uses the canonical normalized magnetic field.
+  const CCTK_REAL mag_factor = 1.0;
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
@@ -37,7 +26,7 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
         // n_a = {-\alpha,0,0,0}, and U^a is the purely spatial part, which
         // is defined in HydroBase as the vel[] vector gridfunction.
         // Then u^a n_a = - \alpha u^0 = G n^a n_a = -G, and
-        // of course \alpha u^0 = 1/sqrt(1+γ^ij u_i u_j) = \Gamma,
+        // of course \alpha u^0 = sqrt(1+γ^ij u_i u_j) = \Gamma,
         // the standard Lorentz factor.
 
         // Note that n^i = - \beta^i / \alpha, so
@@ -58,7 +47,7 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
         vel[index4D1] = utU[1]*lapseL_inv;
         vel[index4D2] = utU[2]*lapseL_inv;
 
-        // \alpha u^0 = 1/sqrt(1+γ^ij u_i u_j) = \Gamma = w_lorentz
+        // \alpha u^0 = sqrt(1+γ^ij u_i u_j) = \Gamma = w_lorentz
         // First compute u^0:
         // Derivation of first equation:
         // \gamma_{ij} (v^i + \beta^i)(v^j + \beta^j)/(\alpha)^2
@@ -99,4 +88,22 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
       }
     }
   }
+}
+
+void IllinoisGRMHD_convert_HydroBase_diagnostics(CCTK_ARGUMENTS) {
+  DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_convert_HydroBase_diagnostics;
+  DECLARE_CCTK_PARAMETERS;
+  // if/else for backward compatibility
+  if(CCTK_IsThornActive("Convert_to_HydroBase")) {
+    int partype;
+    void const *const parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
+    const int old_Convert_to_HydroBase_every = *(CCTK_INT const *)parptr;
+    if(old_Convert_to_HydroBase_every==0) return;
+    if(cctk_iteration%old_Convert_to_HydroBase_every!=0) return;
+  } else {
+    // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
+    if(Convert_to_HydroBase_every <= 0 || cctk_iteration%Convert_to_HydroBase_every!=0) return;
+  }
+
+  convert_IllinoisGRMHD_to_HydroBase(CCTK_PASS_CTOC);
 }

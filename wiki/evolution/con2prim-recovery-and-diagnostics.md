@@ -1,116 +1,73 @@
 # Con2Prim Recovery and Diagnostics
 
-> Status: contested · Last reconciled: 07-18-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
 
-Con2Prim uses primary inversion, weighted neighbor retries, then a
-family-specific terminal fallback. Hybrid families try Font1D before resetting
-to atmosphere; tabulated families reset directly. Active issue
-[`CONTR-0002`](../contradictions.md#contr-0002):
-the terminal `+100` update is overwritten by the final assignment, so current
-code does not retain the documented hundreds marker.
-
-Claim status: contested; contradiction: CONTR-0002.
-Backlink: [`CONTR-0002` register entry](../contradictions.md#contr-0002).
+Recovery uses configured primary/backup inversion, convex blends with a fixed
+neighbor mean, then a supported terminal fallback. Hybrid EOS permits Font1D;
+Simple and tabulated EOS reset to atmosphere after exhausted supported retries.
+Terminal resets add 100 to the local diagnostic before its final publication.
 
 Claim evidence:
-
-- Claim: All four local variants overwrite the earlier terminal `failure_checker += 100` with a final assignment that omits 100; no runtime value was observed.
-- Role: descriptive behavior
-- Deciding authority: registered exact sources `illinoisgrmhd-hybrid-con2prim`, `illinoisgrmhd-hybrid-entropy-con2prim`, `illinoisgrmhd-tabulated-con2prim`, and `illinoisgrmhd-tabulated-entropy-con2prim`; terminal branches and final `failure_checker[index]` assignments
-- Corroboration: same functions' decoder comments state the intended hundreds marker; Tabulated functions also lack a local Font1D call
+- Claim: The four local recovery bodies preserve constant neighbor blends, supply current-state seeds when automatic guessing is disabled, and retain the terminal-reset marker; this does not establish external solver success.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/*/conservs_to_prims.c, recovery ladders and failure_checker writes`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=Hybrid,HybridEntropy,Tabulated,TabulatedEntropy; date=07-18-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Detail
 
 ### Recovery ladder shared by all families
 
-Each of the four `*_conservs_to_prims` functions initializes per-point GRHayL
-diagnostics and metric data, loads centered B and family conservatives, and
-uses the library's default guess; source comments explicitly say a prior-
-timelevel guess is not implemented.
+Every primitive/conservative carrier starts with deterministic zero placeholders.
+When `calc_primitive_guess` is disabled in GRHayL's parameter object, callers load
+current rho, pressure, epsilon, velocities, and active family fields, enforce
+primitive limits, and reconstruct `u0`. They do not rely on the noncheckpointed
+`u0` grid value after restart. B is always read from the centered grid fields;
+tabulated temperature is also seeded from the grid. Each neighboring retry
+restores the seed before entering the external multi-method solver.
 
-1. For positive `rho_star`, conservatives are passed with `sqrt_detgamma` to
-   `ghl_undensitize_conservatives`, and its result is passed to
-   `ghl_con2prim_multi_method`. Hybrid families first call
-   `ghl_apply_conservative_limits`; tabulated families do not make that local
-   call on the primary path.
-2. A NaN product across every expected output field converts an otherwise
-   returned result into `ghl_error_c2p_singular`. Entropy and tabulated fields
-   are included only in families that carry them.
-3. For nonpositive `rho_star`, the point is set to constant atmosphere,
-   `local_failure_checker` gains 1, the rho-reset counter increments, and the
-   retry ladder is skipped.
-4. On inversion error, code sums the available neighbors in the bounded
-   3-by-3-by-3 neighborhood, excluding the point itself. For original neighbor
-   count `N`, neighbor sum `S`, center value `C`, and attempt `w=1..4`, each
-   retried conservative is `((w/4)S + (1-w/4)C)/D_w`, with
-   `D_w=(N+1,N+2,N+3,N+3)`. Thus current fourth retry is `S/(N+3)`, not a
-   normalized full-neighbor average. Entropy and/or `Y_e` participate where
-   evolved.
-5. If retries still fail, Hybrid and HybridEntropy reload/limit the original
-   conservatives, undensitize, and call `ghl_hybrid_Font1D`. Tabulated and
-   TabulatedEntropy have no local Font1D call and proceed directly to a
-   constant-atmosphere reset.
-6. Terminal fallback increments failure counters and, when
-   `sqrt_detgamma > ghl_params->psi6threshold`, the two locally named horizon
-   counters. It then follows the common final primitive limiting and write
-   path.
+1. Positive `rho_star` is undensitized and passed to the configured multi-method
+   solver; Hybrid/Simple first apply conservative limits.
+2. A NaN product over active outputs marks the returned state singular.
+3. Nonpositive density selects constant atmosphere and adds the ones marker.
+4. On error, the bounded 3-by-3-by-3 neighborhood excludes the central point.
+   For fixed neighbor count N, sum S, center C, and attempt w=1..4, each
+   conservative blend is `(w/4)*(S/N) + (1-w/4)*C`. Empty neighborhoods skip
+   averaging and proceed to the final policy. Active entropy/Ye participate.
+5. Only `ghl_eos_hybrid` permits the local Font1D fallback. Simple and tabulated
+   EOS have no local emergency Font attempt. Remaining failure resets atmosphere.
+6. Final primitive enforcement and a separate conservative recomputation publish
+   the repaired state. The latter loop preserves deterministic neighbor reads.
 
-After the ladder, every variant calls
-`ghl_enforce_primitive_limits_and_compute_u0`; a speed-limited result adds 10
-to the local repair value. Entropy families write entropy, tabulated families
-write `Y_e` and temperature, and the combined family writes all three.
-All variants then run the separate conservative recomputation described in
-[Primitive-Conservative Conversion](primitive-conservative-conversion.md).
+The compiled TabulatedEntropy body remains present, but the startup guard rejects
+its runtime selection. Hybrid entropy supports only one cold segment with equal
+cold/thermal Gamma; the proxy is `hybrid_entropy`, and physical HydroBase entropy
+is marked unavailable. See [State and EOS Modes](state-and-eos-modes.md).
 
-### Counters and verbose output
+### Counters and repair encoding
 
-When `verbose` equals `yes`, reductions report grid size, three GRHayL backup
-counters, speed/rho fixes, averaged points, terminal failures, locally named
-horizon counts, average inversion iterations, and relative/summed
-conservative changes. Hybrid output additionally reports Font1D attempt count;
-entropy/tabulated output adds entropy and/or `Y_e` change diagnostics. These
-are current-call reductions. `interface.ccl` warns that `failure_checker` is
-overwritten at every RK substep.
+Each call counts every point satisfying `sqrt_detgamma > psi6threshold` in the
+selected population, independently of recovery success. Only terminal failures
+increment its failure numerator. The label states this threshold criterion;
+it does not claim independent apparent-horizon detection.
 
-No local code establishes what each external multi-method attempt does, which
-methods a configuration supports, or the semantics of GRHayL internals beyond
-returned diagnostics consumed here.
-
-### Actual `failure_checker` encoding
-
-The decoder comment in every variant states:
-
-| Place | Commented meaning | Executed final assignment |
+| Place | Meaning | Final contribution |
 | --- | --- | --- |
-| ones | atmosphere reset when `rho_star < 0` | code tests `cons.rho <= 0`, then `local_failure_checker += 1` |
-| tens | velocity limiting | `local_failure_checker += 10` |
-| hundreds | C2P and Font failure | **not retained** |
-| thousands | backups used | `1000 * diagnostics.backup[0]` |
+| ones | nonpositive-density atmosphere reset | local +1 |
+| tens | final primitive velocity limiting | local +10 |
+| hundreds | exhausted supported recovery, atmosphere reset | local +100 |
+| thousands | first backup flag | `1000 * diagnostics.backup[0]` |
 | ten-thousands | tau reset | `10000 * diagnostics.tau_fix` |
 | hundred-thousands | momentum reset | `100000 * diagnostics.Stilde_fix` |
 
-On terminal failure, all four functions execute
-`failure_checker[index] += 100`. Later in the same point iteration they
-unconditionally execute:
-
-```text
-failure_checker[index] = local_failure_checker
-                       + 1000*diagnostics.backup[0]
-                       + 10000*diagnostics.tau_fix
-                       + 100000*diagnostics.Stilde_fix;
-```
-
-Terminal failure never adds 100 to `local_failure_checker`; the earlier update
-is discarded. Tabulated variants also use direct atmosphere fallback, so the
-decoder's “Font Fix” wording does not describe their local path. Until
-`CONTR-0002` is resolved by source reconciliation plus a targeted forced-
-fallback run, this page remains contested and must not promise a hundreds
-digit.
+`failure_checker` is overwritten at every RK substep. Verbose reductions also
+report all three backup flags, averaging/Font attempts, inversion iterations,
+and differences between original and recomputed conservatives. These local
+counters do not establish behavior inside the external solvers.
 
 ## Sources
 
@@ -133,5 +90,4 @@ digit.
 
 - Parent: [Evolution](index.md)
 - Depends on: [Primitive-Conservative Conversion](primitive-conservative-conversion.md)
-- See also: [`CONTR-0002`](../contradictions.md#contr-0002)
 - See also: [Matter Boundaries and Perturbations](matter-boundaries-and-perturbations.md)

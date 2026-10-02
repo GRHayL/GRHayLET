@@ -1,6 +1,6 @@
 # Parameters and Runtime Controls
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Summary
@@ -30,9 +30,9 @@ uses “boolean” for standard CCL boolean values rather than inventing entries
 
 | Parameter | Type | Legal values/range | Default | Steerability | Local role |
 | --- | --- | --- | --- | --- | --- |
-| `Convert_to_HydroBase_every` | `INT` | `0:*` | `0` | `RECOVER` | Zero disables locally cadence-gated schedule sites; positive N converts on iterations divisible by N. |
+| `Convert_to_HydroBase_every` | `INT` | `0:*` | `0` | `RECOVER` | Zero disables diagnostic export; positive N exports on divisible iterations. Mandatory consumers update independently. |
 | `update_Tmunu` | `CCTK_BOOLEAN` | boolean | `yes` | `RECOVER` | Gates `AddToTmunu` routine and MoL constrained-group registration. |
-| `rescale_magnetics` | `CCTK_BOOLEAN` | boolean | `yes` | not declared | Selects inverse/same `(4*pi)^(1/2)` factors at HydroBase ingress/egress. |
+| `rescale_magnetics` | `CCTK_BOOLEAN` | boolean | `yes` | not declared | Selects legacy Avec division by `sqrt(4*pi)` on ingress; Bvec egress is always canonical. |
 | `Symmetry` | `KEYWORD` | `none` | `none` | not declared | Only public keyword is `none`; description says equatorial support is in progress. |
 | `Sym_Bz` | `REAL` | `-1.0:1.0` | `1.0` | not declared | Supplies z parity factors in magnetic/symmetry code. Description asks for `+1` or `-1`, while syntactic range spans interval. |
 | `Matter_BC` | `KEYWORD` | `copy`, `outflow`, `frozen` | `outflow` | not declared | Selects matter boundary behavior. |
@@ -40,7 +40,7 @@ uses “boolean” for standard CCL boolean values rather than inventing entries
 | `verbose` | `KEYWORD` | `no`, `yes`, `essential`, `essential+iteration output` | `yes` | `ALWAYS` | Current recovery files test only `yes`; latter two keywords are declared deprecated. |
 | `random_seed` | `INT` | `0:99999999` | `0` | `ALWAYS` | Seeds `srand()` in perturbation routines. |
 | `random_pert` | `REAL` | `*:*` | `0` | `ALWAYS` | Multiplicative perturbation magnitude. |
-| `perturb_initial_data` | `CCTK_BOOLEAN` | boolean | `no` | not declared | Gates primitive perturbation after HydroBase ingress and before Prim2Con. |
+| `perturb_initial_data` | `CCTK_BOOLEAN` | boolean | `no` | not declared | Gates synchronized primitive/potential perturbation after ingress and before the magnetic curl. |
 | `perturb_every_con2prim` | `CCTK_BOOLEAN` | boolean | `no` | `ALWAYS` | Gates conservative perturbation before every scheduled Con2Prim. |
 
 Frozen matter and EM modes must be selected together; `IllinoisGRMHD_InitSymBound`
@@ -48,9 +48,10 @@ errors if exactly one is `frozen`. Detailed algorithms belong to
 [Matter Boundaries and Perturbations](../evolution/matter-boundaries-and-perturbations.md)
 and [Electromagnetic Boundaries and Symmetry](../magnetics/electromagnetic-boundaries-and-symmetry.md).
 
-`Convert_to_HydroBase_every=0` removes two locally guarded conversion schedule
-sites. Active NRPyLeakageET site has different gate, while conversion routine
-still performs cadence modulo; see
+`Convert_to_HydroBase_every=0` disables diagnostic export. The mandatory
+converter has no cadence arithmetic; NRPyLeakageET and compatibility
+initialization always refresh consumer fields. The diagnostic wrapper guards
+zero before modulo; see
 [HydroBase, GRHayLib, and Tmunu](hydrobase-grhaylib-and-tmunu.md).
 
 ### Deprecated IllinoisGRMHD controls
@@ -97,6 +98,14 @@ not GRHayLib's public parameter contract. Case files explicitly set only
   [Matter Boundaries and Perturbations](../evolution/matter-boundaries-and-perturbations.md).
 - EM boundary and symmetry behavior:
   [Electromagnetic Boundaries and Symmetry](../magnetics/electromagnetic-boundaries-and-symmetry.md).
+
+Claim evidence:
+- Claim: Cadence applies to diagnostic export, legacy magnetic rescaling applies only to import, and mandatory exports refresh independently.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c, converter and diagnostic wrapper`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

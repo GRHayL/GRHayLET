@@ -1,6 +1,6 @@
 # Migration and Backward Compatibility
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Summary
@@ -69,8 +69,9 @@ Current `param.ccl` still accepts all of these.
 ThornGuide says GRHayL-based quantities use old magnetic quantities rescaled
 by `(4*pi)^(-1/2)`. To support old initial-data thorns, it says default assumes
 HydroBase B and A use old definition. Current `rescale_magnetics=yes` implements
-that ingress factor and inverse egress factor. Setting `no` makes both factors
-one. These are local conversion facts and documented migration intent; no
+that Avec ingress factor only. Setting `no` makes ingress factor one.
+Egress always publishes canonical normalized Bvec, independently of this
+compatibility switch. These are local conversion facts and documented migration intent; no
 claim is made about definitions inside external thorns.
 
 ### Compatibility retained in current tree
@@ -91,7 +92,8 @@ All compatibility scheduling is under
 - HydroBase egress is declared at initial conversion and `CCTK_ANALYSIS`;
 - non-entropy Hybrid evolution functions are declared in variant groups.
 
-Initializer allocates GRHayL parameter/EOS structures, rejects `neos>1`, and
+Initializer checks allocation of zero-initialized GRHayL parameter/EOS
+structures, rejects `neos>1`, checks EOS initialization status, and
 sets a fixed compatibility configuration including Noble2D primary and Font1D
 first backup, no entropy or temperature evolution, and hybrid EOS setup from
 deprecated parameters. These are visible call inputs, not claims about GRHayL
@@ -99,8 +101,8 @@ algorithms.
 
 Data copier assigns HydroBase `rho/press`, centered B, and `phitilde` into
 deprecated `rho_b/P`, `Bx/By/Bz`, and `psi6phi`. Conversion routine separately
-checks whether old `Convert_to_HydroBase` thorn is active and, if so, reads its
-cadence dynamically.
+uses the old-thorn cadence lookup only in its diagnostic wrapper;
+mandatory compatibility initialization is cadence-independent.
 
 Neither `configuration.ccl` nor current source list establishes availability
 of old thorns. Schedule gate only describes behavior if active.
@@ -113,6 +115,14 @@ scheduling; they do not prove what any released toolkit includes, supports,
 or will remove. `CONTR-0001` remains stale documentation conflict until a
 maintainer/release decision and source/documentation reconciliation resolves
 it.
+
+Claim evidence:
+- Claim: The retained compatibility initializer checks allocation and EOS status before use; import compatibility does not alter canonical B output.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/backward_compatible_initialize.c, IllinoisGRMHD_backward_compatible_initialize`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

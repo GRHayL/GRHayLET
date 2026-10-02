@@ -1,6 +1,6 @@
 # Balsara and TOV Cases
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Validation](index.md)
 
 ## Summary
@@ -75,7 +75,7 @@ that external parameter.
 | Iterations | `cctk_itlast=4` | `cctk_itlast=2` |
 | TmunuBase | storage and RHS enabled, one timelevel | same |
 | Illinois-owned overrides | none explicit | none explicit |
-| Scalar output | deprecated `IllinoisGRMHD::rho_b`; `maximum` reduction every 2 | HydroBase `rho` and centered B; `maximum minimum` every 2 |
+| Scalar output | current HydroBase `rho`; `maximum` reduction every 2 | HydroBase `rho` and centered B; `maximum minimum` every 2 |
 | Oracle files | none under `par/` | min/max for `rho`, `Bx_center`, `By_center`, `Bz_center` |
 
 `test.ccl` says `TEST TOV`; files/directories say `magnetizedTOV`. Mapping is
@@ -94,6 +94,20 @@ execution is established.
 
 `test.ccl` global comparison tolerance is `1e-11` absolute and relative, but
 only a recorded run/comparison could show whether any case currently meets it.
+
+### Modern TOV output storage
+
+The modern example requests HydroBase rho/press/eps and current IllinoisGRMHD
+velocities. It does not need deprecated primitive storage supplied only by
+`ID_converter_ILGRMHD`. The existing regression parfile is unchanged.
+
+Claim evidence:
+- Claim: Modern magnetizedTOV output lists use current populated primitive groups rather than legacy density storage.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/par/magnetizedTOV.par, IO output lists`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 
