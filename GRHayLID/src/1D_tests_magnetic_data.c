@@ -1,12 +1,15 @@
 #include "GRHayLID.h"
 
-// Note that we assume staggered vector potential
+// Cartesian vector potential, with optional component-specific half-cell shifts.
 void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_GRHayLID_1D_tests_magnetic_data;
   DECLARE_CCTK_PARAMETERS;
 
-  if((!CCTK_EQUALS(initial_Avec, "GRHayLID")) && (!CCTK_EQUALS(initial_Bvec, "GRHayLID")))
-    CCTK_VERROR("To use GRHayLID 1D initial magnetic data, please add either HydroBase::initial_Avec=\"GRHayLID\" or HydroBase::initial_Bvec=\"GRHayLID\" to the parfile.");
+  if(!CCTK_EQUALS(initial_Avec, "GRHayLID") || !CCTK_EQUALS(initial_Bvec, "GRHayLID"))
+    CCTK_ERROR("GRHayLID magnetic initialization requires both initial_Avec and initial_Bvec=GRHayLID");
+  GRHayLID_require_storage(cctkGH, "HydroBase::Avec");
+  GRHayLID_require_storage(cctkGH, "HydroBase::Bvec");
+  GRHayLID_require_storage(cctkGH, "ADMBase::metric");
 
   double Bx_l, By_l, Bz_l;
   double Bx_r, By_r, Bz_r;
@@ -67,6 +70,7 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        GRHayLID_check_flat_metric(gxx[index], gxy[index], gxz[index], gyy[index], gyz[index], gzz[index]);
         const int ind4x = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
         const int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);
@@ -87,45 +91,31 @@ void GRHayLID_1D_tests_magnetic_data(CCTK_ARGUMENTS) {
           Bvec[ind4y] = By_r;
           Bvec[ind4z] = Bz_r;
         }
-        const double x_stag = x[index];
-        const double y_stag = y[index];
-        const double z_stag = z[index];
-
-        step = x_stag;
-        if(CCTK_EQUALS(shock_direction, "y")) {
-          step = y_stag;
-        } else if(CCTK_EQUALS(shock_direction, "z")) {
-          step = z_stag;
-        }
-
-        if(step <= discontinuity_position) {
-          if(CCTK_EQUALS(shock_direction, "x")) {
-            Avec[ind4x] = By_l * z_stag - Bz_l * y_stag;
-            Avec[ind4y] = 0.0;
-            Avec[ind4z] = Bx_l * y_stag;
-          } else if(CCTK_EQUALS(shock_direction, "y")) {
-            Avec[ind4x] = By_l * z_stag;
-            Avec[ind4y] = Bz_l * x_stag - Bx_l * z_stag;
-            Avec[ind4z] = 0.0;
+        // A_x: (x,y+dy/2,z+dz/2), A_y: (x+dx/2,y,z+dz/2),
+        // A_z: (x+dx/2,y+dy/2,z). Bvec remains at the base coordinates.
+        const int axis = CCTK_EQUALS(shock_direction, "y") ? 1 :
+                         CCTK_EQUALS(shock_direction, "z") ? 2 : 0;
+        const double left[3] = {Bx_l, By_l, Bz_l};
+        const double right[3] = {Bx_r, By_r, Bz_r};
+        for(int component=0; component<3; component++) {
+          const double x_stag = x[index] + (stagger_A_fields && component != 0 ? 0.5*CCTK_DELTA_SPACE(0) : 0.0);
+          const double y_stag = y[index] + (stagger_A_fields && component != 1 ? 0.5*CCTK_DELTA_SPACE(1) : 0.0);
+          const double z_stag = z[index] + (stagger_A_fields && component != 2 ? 0.5*CCTK_DELTA_SPACE(2) : 0.0);
+          const double position[3] = {x_stag, y_stag, z_stag};
+          const double *field = position[axis] <= discontinuity_position ? left : right;
+          double value = 0.0;
+          if(axis == 0) {
+            if(component == 0) value = field[1]*z_stag - field[2]*y_stag;
+            if(component == 2) value = field[0]*y_stag;
+          } else if(axis == 1) {
+            if(component == 0) value = field[1]*z_stag;
+            if(component == 1) value = field[2]*x_stag - field[0]*z_stag;
           } else {
-            Avec[ind4x] = 0.0;
-            Avec[ind4y] = Bz_l * x_stag;
-            Avec[ind4z] = Bx_l * y_stag - By_l * x_stag;
+            if(component == 1) value = field[2]*x_stag;
+            if(component == 2) value = field[0]*y_stag - field[1]*x_stag;
           }
-        } else {
-          if(CCTK_EQUALS(shock_direction, "x")) {
-            Avec[ind4x] = By_r * z_stag - Bz_r * y_stag;
-            Avec[ind4y] = 0.0;
-            Avec[ind4z] = Bx_r * y_stag;
-          } else if(CCTK_EQUALS(shock_direction, "y")) {
-            Avec[ind4x] = By_r * z_stag;
-            Avec[ind4y] = Bz_r * x_stag - Bx_r * z_stag;
-            Avec[ind4z] = 0.0;
-          } else {
-            Avec[ind4x] = 0.0;
-            Avec[ind4y] = Bz_r * x_stag;
-            Avec[ind4z] = Bx_r * y_stag - By_r * x_stag;
-          }
+          const int destination = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,component);
+          Avec[destination] = value;
         }
       }
     }

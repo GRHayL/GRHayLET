@@ -1,98 +1,67 @@
-# IsotropicGas Initial Data
+# Isotropic Gas Initial Data
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Initial Data](index.md)
 
 ## Scope and Non-Scope
 
-This page records IsotropicGas precondition text, local parameter sentinels,
-the visible tabulated-EOS call, and pointwise HydroBase assignments. It does
-not establish error-macro termination, EOS-table behavior, returned values,
-successful scheduling, or physical and numerical validity.
+This page owns the local declarations and visible dataflow described below.
+Only GRHayLID sources are domain evidence. Framework execution, library
+semantics, production-table provenance, and numerical validation remain
+out of scope.
 
 ## Summary
 
-`GRHayLID_IsotropicGas` visibly checks for Tabulated `EOS_type` and
-`GRHayLID` selections for both `initial_Y_e` and `initial_temperature`. It
-then applies `CHECK_PARAMETER` to three local controls, makes one
-`ghl_tabulated_compute_P_eps_from_T` call, and writes uniform density,
-electron fraction, temperature, pressure, internal energy, and zero velocity
-throughout its point loop.
+IsotropicGas requires Tabulated EOS and both GRHayLID Ye/T selectors.
+The body checks active Ye/T/metric storage and finite effective-bounds input
+triples. EOS outputs use double temporaries, return codes and output finiteness
+are checked before the grid loop, and each point's metric is checked.
 
 ## Mode Applicability
 
-| Applicability | Visible initial-data behavior |
+| Applicability | Local surface |
 | --- | --- |
-| IsotropicGas | One uniform thermodynamic state, one delegated tabulated-EOS call, and zero velocity. |
+| IsotropicGas | Tabulated gas/sphere initialization with checked inputs and EOS results. |
 
 ## Claim-Evidence
 
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
-| `ID-ISO-01` | Function visibly performs three precondition comparisons, three sentinel checks, one tabulated-EOS call, and uniform pointwise writes. | visible-implementation | Function body | `c:GRHayLID/src/IsotropicGas.c#symbol=GRHayLID_IsotropicGas` |
-| `ID-ISO-02` | `IsotropicGas_rho` is a nonnegative real with forbidden `-1` sentinel and default `-1`. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=IsotropicGas_rho` |
-| `ID-ISO-03` | `IsotropicGas_Y_e` is a nonnegative real with forbidden `-1` sentinel and default `-1`. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=IsotropicGas_Y_e` |
-| `ID-ISO-04` | `IsotropicGas_temperature` is a nonnegative real with forbidden `-1` sentinel and default `-1`. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=IsotropicGas_temperature` |
-| `ID-ISO-05` | ThornGuide prints the EOS selection as lowercase `"tabulated"` and the electron-fraction and temperature selections as `"GRHayLID"`. | declared | IsotropicGas subsection | `doc:GRHayLID/doc/documentation.tex#section=IsotropicGas` |
+| `ISOTROPIC-GAS-01` | IsotropicGas checks selectors, storage, finite effective bounds, EOS return codes, and outputs. | visible-implementation | Named local source | `c:GRHayLID/src/IsotropicGas.c#symbol=GRHayLID_IsotropicGas` |
+| `ISOTROPIC-GAS-02` | ThornGuide describes the supported three-dimensional family and Tabulated selector. | declared | Named local source | `doc:GRHayLID/doc/documentation.tex#section=IsotropicGas` |
+| `ISOTROPIC-GAS-03` | Schedule description names three-dimensional data and declares metric reads and primitive writes. | declared | Named local source | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_IsotropicGas` |
 
 ## Details
 
-### Preconditions and sentinels
+Gas evaluates one primitive triple; sphere evaluates interior and exterior
+triples independently before entering the loop. Density and temperature must
+be strictly positive, all inputs finite, and each triple within the configured
+effective rho/Ye/T bounds. A failed lookup is diagnosed with its region and
+requested triple; neither output is published after a failed EOS status.
 
-Visible function order compares:
+The loop publishes the uniform requested triple and computed pressure/energy, with zero velocity.
 
-1. `EOS_type` against `Tabulated`, calling `CCTK_ERROR` when unequal.
-2. `initial_Y_e` against `GRHayLID`, calling `CCTK_ERROR` when unequal.
-3. `initial_temperature` against `GRHayLID`, calling `CCTK_ERROR` when
-   unequal.
-
-It then expands `CHECK_PARAMETER` for `IsotropicGas_rho`,
-`IsotropicGas_Y_e`, and `IsotropicGas_temperature`. Each parameter
-declaration admits nonnegative values, marks `-1` forbidden, and defaults to
-`-1`. The function visibly invokes the macro; resulting error behavior remains
-external.
-
-ThornGuide's IsotropicGas table prints `EOS_type` as `"tabulated"`; the body
-compares it with `"Tabulated"`. The HydroBase selections are spelled
-identically. Equivalence of the EOS spellings is external; see
-[GID-0014](../contradictions.md#gid-0014).
-
-### EOS call and uniform writes
-
-Before the loop, code calls `ghl_tabulated_compute_P_eps_from_T` once with
-`ghl_eos`, the three local parameter values, and addresses for local pressure
-and internal-energy outputs. No local return code is captured. The loop then
-assigns every point:
-
-- `Y_e`, `rho`, and `temperature` from the three parameters;
-- `press` and `eps` from the two output variables;
-- all three `vel` components to zero.
-
-Call semantics, table interpolation, bounds handling, units beyond parameter
-descriptions, and output validity belong to external GRHayLib behavior.
+Sentinel defaults still require explicit setup parameters. Header guards add
+runtime input checks beyond the CCL ranges. Library output meanings, coordinate
+r semantics, and physical table validity remain external. The revised guide
+uses the same Tabulated capitalization as the bodies; GID-0011 and GID-0014
+record the resolved schedule-description and guide discrepancies.
 
 ## Caveats
 
-- Three comparisons and calls are visible; whether they terminate execution is
-  not established locally.
-- One external EOS call is visible, but its returned pressure and internal
-  energy are not validated by checked-in local evidence.
-- Schedule description calls this three-dimensional setup a "1D test"; see
-  [GID-0011](../contradictions.md#gid-0011).
-- ThornGuide and the function use different EOS literal capitalization; see
-  [GID-0014](../contradictions.md#gid-0014).
-- Uniform writes do not prove a physically isotropic or valid state.
+Storage and schedule declarations do not prove allocation or execution.
+Local guards and calls do not establish external error or interpolation
+semantics. No checked-in GRHayLID test/parfile/oracle validates this path.
 
 ## Sources
 
-- [IsotropicGas implementation](../../../GRHayLID/src/IsotropicGas.c)
-- [Parameter declarations](../../../GRHayLID/param.ccl)
-- [ThornGuide source](../../../GRHayLID/doc/documentation.tex)
-- [Schedule declarations](../../../GRHayLID/schedule.ccl)
+- [IsotropicGas.c](../../../GRHayLID/src/IsotropicGas.c)
+- [documentation.tex](../../../GRHayLID/doc/documentation.tex)
+- [schedule.ccl](../../../GRHayLID/schedule.ccl)
 
 ## Related Pages
 
-- [ConstantDensitySphere Initial Data](constant-density-sphere.md)
+- [Other Tabulated Family](constant-density-sphere.md)
 - [GRHayLib Contract](../integration/grhaylib-contract.md)
 - [GID-0011](../contradictions.md#gid-0011)
 - [GID-0014](../contradictions.md#gid-0014)

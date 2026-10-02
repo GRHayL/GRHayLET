@@ -20,11 +20,65 @@ using the General Relativistic Hydrodynamic Library (GRHayL). This includes
 5) isotropic gas (tabulated EOS only)
 6) constant density sphere (tabulated EOS only)
 
-Initialization of the magnetic fields is optional and can be controlled at
-runtime.
+All native test setups require Cartesian coordinates and an identity spatial
+metric supplied by ADMBase before HydroBase_Initial. The initializer checks the
+metric at every point. Sphere interior velocities must be finite and strictly
+subluminal. GRHayLID and its GRHayLib interface require REAL_PRECISION=8.
 
-Additionally, the thorn can impose beta equilibrium on initial data for the
-tabulated EOS. It can also compute the entropy from the other quantities for
-any EOS. These features do not require that GRHayLID be used as the ID source
-and can be used with any ID thorn so long as GRHayLib is properly initialized
-and the ID schedules its routines in the expected HydroBase_Initial bin.
+Magnetic initialization is optional for HydroTest1D. When enabled, both
+HydroBase::initial_Avec and HydroBase::initial_Bvec must be "GRHayLID"; disabling
+it requires another owner or no GRHayLID magnetic selectors. Both A and B are
+written, with component-specific +1/2 transverse-cell offsets for A when
+stagger_A_fields=yes (the default). B remains at base coordinates. These Balsara
+coefficients are already normalized for GRHayL: when importing into
+IllinoisGRMHD, set IllinoisGRMHD::rescale_magnetics=no. The legacy converter
+convention and default are unchanged.
+
+HydroTest1D supports Simple and Hybrid. Hybrid energy uses the cold-plus-thermal
+helper and rejects benchmark pressures below the cold curve. The "sound wave"
+setup is a sinusoidal longitudinal velocity perturbation on rho=P=1, rather
+than a pure traveling acoustic eigenmode. Its finite amplitude must be in
+[0,1), and shock_direction selects x, y, or z.
+
+IsotropicGas and ConstantDensitySphere require Tabulated EOS and both
+HydroBase::initial_Y_e=HydroBase::initial_temperature="GRHayLID". Requested
+primitive triples must be finite and within effective EOS bounds. EOS errors
+are diagnosed before grid publication.
+
+The standalone operations also support another hydro producer, provided it
+initializes all required inputs in HydroBase_Initial. Selecting storage does
+not establish initialized data. A selector without an available GRHayLID
+producer is rejected by the parameter check.
+
+Beta equilibrium is controlled by impose_beta_equilibrium=yes and requires
+Tabulated EOS. It allocates Ye/temperature even when their selectors are none,
+and intentionally replaces those fields after HydroBase_Initial. It solves
+mu_e-mu_n+mu_p=0 at each actual density and beq_temperature, within effective
+Ye/T/rho bounds, with an absolute MeV residual tolerance controlled by
+beq_residual_tolerance (default 1e-8). Exact/tolerance-qualified node roots are
+accepted; a missing root or failed lookup is diagnosed. If several roots
+exist, the lowest-Ye root is chosen. Base chemical potentials are used instead
+of the potentially shifted munu dataset. This requires trustworthy table
+chemical-potential conventions; it does not certify table provenance. Points
+with rho<=1.01*rho_atm are reset to the complete EOS atmosphere, including rho,
+and are deliberately exempt from the beta-equilibrium requirement.
+
+Entropy is selected with HydroBase::initial_entropy="GRHayLID", independently
+of the hydro family, and runs after beta equilibrium and before primitive to
+conservative initialization. Tabulated entropy requires initialized finite
+rho/Ye/T. Without beta it clamps these inputs to effective EOS bounds and
+replaces rho, Ye, T, pressure, epsilon, and entropy consistently after a
+successful lookup. With beta enabled it preserves rho/Ye/T and rejects
+out-of-bounds states instead of clipping away equilibrium.
+
+For Simple/Hybrid, entropy is the GRHayL native proxy P/rho^(Gamma_piece-1),
+not HydroBase physical specific entropy in k_b/baryon. This route requires
+allow_native_entropy_proxy=yes as an explicit agreement that every entropy
+consumer expects that proxy. Generic physical-entropy consumers must not use
+this setting. Density must be positive and finite and pressure nonnegative
+and finite; zero-density or nonfinite inputs are rejected before evaluation.
+
+GRHayLID does not initialize HydroBase::w_lorentz. A consumer of that field must
+arrange its own metric-consistent producer and order it before the consumer.
+No configured Cactus build/runtime or production-table validation is included
+in this checkout; the declarations above do not establish those results.

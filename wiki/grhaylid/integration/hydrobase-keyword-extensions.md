@@ -1,119 +1,79 @@
 # HydroBase Keyword Extensions
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
 
-This page owns the six HydroBase keyword extensions declared by GRHayLID,
-their local selection sites, and HydroBase gridfunctions named in local
-schedule declarations. It does not establish HydroBase variable semantics,
-keyword acceptance, storage, or execution. `EOS_type` belongs to the
-[GRHayLib Contract](grhaylib-contract.md), not this page.
+This page owns the local declarations and visible dataflow described below.
+Only GRHayLID sources are domain evidence. Framework execution, library
+semantics, production-table provenance, and numerical validation remain
+out of scope.
 
 ## Summary
 
-Parameter CCL shares HydroBase and extends `initial_hydro`, `initial_Y_e`,
-`initial_temperature`, `initial_entropy`, `initial_Avec`, and `initial_Bvec`.
-`initial_hydro` gains three GRHayLID setup values; each other keyword gains
-`GRHayLID`. Schedule CCL consumes `initial_hydro` and `initial_entropy`
-directly. C bodies check the electron-fraction, temperature, and magnetic
-selections. Local schedules declare writes only to HydroBase state.
+Six HydroBase keywords are extended: initial_hydro gains HydroTest1D,
+IsotropicGas, and ConstantDensitySphere; initial_Y_e, initial_temperature,
+initial_entropy, initial_Avec, and initial_Bvec each gain GRHayLID.
+ParamCheck now validates their complete local producer matrix.
 
 ## Mode Applicability
 
-| Applicability | Keyword boundary |
+| Applicability | Local surface |
 | --- | --- |
-| Common | Six shared HydroBase keywords are extended; their declarations do not establish external acceptance or storage. |
-| HydroTest1D | `initial_hydro="HydroTest1D"` selects hydro setup; magnetic body checks either `initial_Avec` or `initial_Bvec` for `GRHayLID`. |
-| HydroTest1D+Magnetic | Magnetic schedule is additionally guarded by local `initialize_magnetic_quantities`; its body checks the two magnetic keyword values. |
-| IsotropicGas | `initial_hydro="IsotropicGas"`; body checks `initial_Y_e` and `initial_temperature`. |
-| ConstantDensitySphere | `initial_hydro="ConstantDensitySphere"`; body checks `initial_Y_e` and `initial_temperature`. |
-| BetaEquilibrium | Feature has no `initial_hydro` requirement; it operates on HydroBase density and declares four HydroBase writes. |
-| Entropy/Hybrid | `initial_entropy="GRHayLID"` participates in schedule dispatch; hybrid branch declares entropy output. |
-| Entropy/Tabulated | Same keyword participates; tabulated branch declares six HydroBase writes. |
+| Common | Six keyword extensions with parameter-check and body preconditions. |
+| BetaEquilibrium | Ye/T may be supplied by beta after an external hydro owner. |
+| HydroTest1D+Magnetic | Both GRHayLID selectors required. |
 
 ## Claim-Evidence
 
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
-| `INT-HB-01` | `initial_hydro` is extended with `HydroTest1D`, `IsotropicGas`, and `ConstantDensitySphere`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_hydro` |
-| `INT-HB-02` | `initial_Y_e` is extended with `GRHayLID`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_Y_e` |
-| `INT-HB-03` | `initial_temperature` is extended with `GRHayLID`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_temperature` |
-| `INT-HB-04` | `initial_entropy` is extended with `GRHayLID`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_entropy` |
-| `INT-HB-05` | `initial_Avec` is extended with `GRHayLID`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_Avec` |
-| `INT-HB-06` | `initial_Bvec` is extended with `GRHayLID`. | declared | HydroBase shared-keyword extension | `ccl:GRHayLID/param.ccl#parameter=initial_Bvec` |
-| `INT-HB-07` | Interface CCL declares the GRHayLID implementation and inheritance from GRHayLib, Grid, and HydroBase. | declared | Local interface declaration | `ccl:GRHayLID/interface.ccl#implementation=GRHayLID` |
-| `INT-HB-08` | ThornGuide describes the keyword controls and claims an entropy control that differs from local CCL. | declared | Parameters section | `doc:GRHayLID/doc/documentation.tex#section=Parameters` |
-| `INT-HB-09` | IsotropicGas visibly checks the electron-fraction and temperature keyword values before writing HydroBase fields. | visible-implementation | Local guard site | `c:GRHayLID/src/IsotropicGas.c#symbol=GRHayLID_IsotropicGas` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-01` | initial_hydro has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_hydro` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-02` | initial_Y_e has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_Y_e` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-03` | initial_temperature has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_temperature` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-04` | initial_entropy has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_entropy` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-05` | initial_Avec has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_Avec` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-06` | initial_Bvec has a local HydroBase extension. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_Bvec` |
+| `HYDROBASE-KEYWORD-EXTENSIONS-07` | ParamCheck diagnoses missing/incompatible local producers. | visible-implementation | Named local source | `c:GRHayLID/src/ParamCheck.c#symbol=GRHayLID_ParamCheck` |
 
 ## Details
 
-### Extension and consumption map
+| Selection | Required local producer / contract |
+| --- | --- |
+| HydroTest1D | Simple or Hybrid hydro body |
+| IsotropicGas / ConstantDensitySphere | Tabulated EOS; both Ye/T selectors GRHayLID |
+| GRHayLID Avec/Bvec | HydroTest1D, enabled magnetics, both selectors GRHayLID |
+| GRHayLID Ye/T | Gas, sphere, or enabled beta |
+| GRHayLID entropy | Non-none hydro producer; supported EOS and initialized inputs |
 
-| Extended keyword | Added values | Visible local consumer |
-| --- | --- | --- |
-| `initial_hydro` | `HydroTest1D`, `IsotropicGas`, `ConstantDensitySphere` | Top-level schedule dispatch; the `HydroTest1D` description names undeclared `test_1D_initial_data`, while the local selector is `initial_data_1D`; see [GID-0015](../contradictions.md#gid-0015) |
-| `initial_Y_e` | `GRHayLID` | `IsotropicGas.c` and `ConstantDensitySphere.c` preconditions |
-| `initial_temperature` | `GRHayLID` | `IsotropicGas.c` and `ConstantDensitySphere.c` preconditions |
-| `initial_entropy` | `GRHayLID` | Hybrid/Tabulated schedule dispatch |
-| `initial_Avec` | `GRHayLID` | Magnetic function either/or precondition |
-| `initial_Bvec` | `GRHayLID` | Magnetic function either/or precondition |
+Standalone beta intentionally replaces Ye/T after HydroBase_Initial and requests
+storage even if their selectors are none. Tabulated entropy without beta requires
+non-none Ye/T selectors; README requires their producers to initialize fields in
+HydroBase_Initial. Native entropy requires compatible-consumer opt-in. No local
+body initializes w_lorentz; a reader must establish another producer and order it.
 
-The magnetic precondition accepts either magnetic keyword, while the body
-unconditionally writes both arrays. This declaration/implementation hazard is
-tracked as [GID-0012](../contradictions.md#gid-0012). ThornGuide instead names
-a nonexistent local `compute_entropy` control; [GID-0001](../contradictions.md#gid-0001)
-records the mismatch with `initial_entropy` plus `EOS_type` dispatch.
-The `HydroTest1D` extension description instead directs users to
-`test_1D_initial_data`, while the restricted declaration names
-`initial_data_1D`; [GID-0015](../contradictions.md#gid-0015) records that
-literal name drift without inferring an external alias.
-
-### Declared HydroBase writes
-
-Across seven schedule blocks, local CCL names `rho`, `press`, `eps`, `vel`,
-`Y_e`, `temperature`, `entropy`, `Avec`, and `Bvec` as HydroBase writes.
-Beta equilibrium reads `rho`; Hybrid entropy reads `rho` and `press`;
-Tabulated entropy reads `rho`, `Y_e`, and `temperature`. These are declared
-accesses only. Interface CCL declares no local gridfunction group, so this
-page does not attribute storage ownership to GRHayLID.
-
-### Guard locations
-
-`initial_hydro` and `initial_entropy` are schedule conditions.
-`initial_Y_e` and `initial_temperature` are checked in each 3D setup body.
-`initial_Avec` and `initial_Bvec` are checked in the magnetic body, while the
-separate local boolean `initialize_magnetic_quantities` guards whether that
-body is scheduled. External error behavior and keyword validation are not
-inferred.
+Schedule reads/writes name shared HydroBase groups. Native tests additionally
+read ADMBase::metric. Keyword/storage declarations alone do not establish actual
+framework acceptance or initialized contents. GID-0001/0012/0015 preserve the
+resolved historical selector and control mismatches.
 
 ## Caveats
 
-- `EXTENDS KEYWORD` declares accepted text locally; Cactus/HydroBase handling
-  is external.
-- Schedule READS/WRITES do not establish allocation, storage ownership, or
-  execution.
-- Error messages and checks expose intent but do not prove termination.
-- The `HydroTest1D` description's parameter reference differs from the local
-  selector declaration; see [GID-0015](../contradictions.md#gid-0015).
-- `EOS_type` is a GRHayLib shared keyword and is intentionally documented on
-  another page.
+Storage and schedule declarations do not prove allocation or execution.
+Local guards and calls do not establish external error or interpolation
+semantics. No checked-in GRHayLID test/parfile/oracle validates this path.
 
 ## Sources
 
-- [Parameter and keyword declarations](../../../GRHayLID/param.ccl)
-- [Interface declaration](../../../GRHayLID/interface.ccl)
-- [Schedule declarations](../../../GRHayLID/schedule.ccl)
-- [ThornGuide parameters](../../../GRHayLID/doc/documentation.tex)
-- [IsotropicGas guard site](../../../GRHayLID/src/IsotropicGas.c)
+- [param.ccl](../../../GRHayLID/param.ccl)
+- [ParamCheck.c](../../../GRHayLID/src/ParamCheck.c)
 
 ## Related Pages
 
 - [GRHayLib Contract](grhaylib-contract.md)
-- [Parameters and Configurations](parameters-and-configurations.md)
-- [Entropy Computation](../initial-data/entropy-computation.md)
-- [One-D Magnetic Tests](../initial-data/one-d-tests-magnetic.md)
-- [GID-0001: entropy-control mismatch](../contradictions.md#gid-0001)
-- [GID-0012: magnetic selection/write hazard](../contradictions.md#gid-0012)
-- [GID-0015: HydroTest1D parameter-name mismatch](../contradictions.md#gid-0015)
+- [Parameters](parameters-and-configurations.md)
+- [Entropy](../initial-data/entropy-computation.md)
+- [GID-0001](../contradictions.md#gid-0001)
+- [GID-0012](../contradictions.md#gid-0012)
+- [GID-0015](../contradictions.md#gid-0015)
