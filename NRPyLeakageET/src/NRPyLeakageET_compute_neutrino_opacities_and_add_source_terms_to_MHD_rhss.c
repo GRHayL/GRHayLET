@@ -111,9 +111,6 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
             const CCTK_REAL betaxL       = betax[index];
             const CCTK_REAL betayL       = betay[index];
             const CCTK_REAL betazL       = betaz[index];
-            CCTK_REAL vxL                = alpL*vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0)] - betaxL;
-            CCTK_REAL vyL                = alpL*vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1)] - betayL;
-            CCTK_REAL vzL                = alpL*vel[CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2)] - betazL;
             const CCTK_REAL Y_eL         = Y_e[index];
             const CCTK_REAL temperatureL = temperature[index];
             ghl_neutrino_optical_depths tauL;
@@ -146,9 +143,9 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
               Vx *= scale; Vy *= scale; Vz *= scale;
               W = W_max;
             }
-            vxL = alpL*Vx - betaxL;
-            vyL = alpL*Vy - betayL;
-            vzL = alpL*Vz - betazL;
+            const CCTK_REAL vxL = alpL*Vx - betaxL;
+            const CCTK_REAL vyL = alpL*Vy - betayL;
+            const CCTK_REAL vzL = alpL*Vz - betazL;
 
             // Step 4.f: Compute u^{mu} using:
             //  - W = alpha u^{0}     => u^{0} = W / alpha

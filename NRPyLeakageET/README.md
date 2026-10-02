@@ -65,7 +65,10 @@ pairs. `maxInitRefLevel=0` means the finest active level. Bounds are clipped to
 available levels and reversed resolved intervals are rejected. POLR must include
 the finest active level: truncated windows are rejected because the composite
 Carpet reduction masks covered coarse points. A nonzero minimum can omit coarse
-solve levels; the result is restricted to coarser levels after convergence.
+solve levels; their material opacities are computed with zero initial depths and
+copied to all donor timelevels before the first sweep, so opacity prolongation
+has computed coarse data. They do not run POLR sweeps; the optical-depth result
+is restricted to coarser levels after convergence.
 
 The stopping value is the square root of the composite sum of six squared
 relative optical-depth changes on admitted material cells. `tauChangeThreshold`

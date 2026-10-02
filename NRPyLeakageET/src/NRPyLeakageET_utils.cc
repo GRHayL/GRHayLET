@@ -288,6 +288,22 @@ void NRPyLeakageET_Initialize(CCTK_ARGUMENTS) {
       CCTK_VINFO("Number of iterations to be performed on each refinement level: %d", max_iterations);
     }
 
+    // Skipped solve levels still donate opacity to refinement-boundary syncs.
+    // Compute their material opacity while depths are zero, before any POLR
+    // sweep or restriction. The opacity helper also writes previous depths;
+    // copying here seeds all donor timelevels without replacing solved depths.
+    for(int rl=0;rl<startRefLev;rl++) {
+      ENTER_LEVEL_MODE(cctkGH,rl) {
+        BEGIN_MAP_LOOP(cctkGH,CCTK_GF) {
+          BEGIN_COMPONENT_LOOP(cctkGH, CCTK_GF) {
+            NRPyLeakageET_compute_neutrino_opacities(CCTK_PASS_CTOC);
+            NRPyLeakageET_copy_opacities_and_optical_depths_to_previous_time_levels(CCTK_PASS_CTOC);
+          } END_COMPONENT_LOOP;
+        } END_MAP_LOOP;
+      } LEAVE_LEVEL_MODE;
+    }
+    if(startRefLev > 0) NotifyInitializedLeakageData(CCTK_PASS_CTOC);
+
     // Step 2: Now perform iterations of the path of least resistance algorithm
     int counter = 0;
     int RemainingIterations = max_iterations;
