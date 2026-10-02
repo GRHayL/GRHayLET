@@ -56,8 +56,10 @@ thorn. The core library inherits or adapts code from the
 original \igm{} thorn into a modular, infrastructure-agnostic
 library.
 
-The new and improved \igm{} provides support for hybrid and
-tabulated EOS, both with and without entropy. The core functions
+The new and improved \igm{} supports Hybrid and Tabulated EOS without
+entropy evolution, and entropy evolution for restricted Hybrid EOS and
+Simple EOS. See the ``Supported entropy and recovery contracts'' subsection
+for the entropy limitations. The core functions
 all come from \glib, ensuring that any improvements or updates
 to the library can be easily adopted by the thorn. The
 conservative-to-primitive solver is selected at runtime, allowing
