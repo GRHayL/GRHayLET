@@ -1,6 +1,6 @@
 # HydroBase, GRHayLib, and Tmunu Boundary
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Summary
@@ -77,35 +77,30 @@ when `rescale_magnetics=yes`, or by one otherwise.
 Locally declared call sites are:
 
 - initial conversion after `IllinoisGRMHD_conservs_to_prims`, present when
-  local `Convert_to_HydroBase_every` is nonzero;
+  local `Convert_to_HydroBase_every` is positive or leakage is active;
 - `CCTK_ANALYSIS`, with declared ordering before named diagnostics, also
-  present when local cadence is nonzero;
+  present when cadence is positive or leakage is active, before leakage luminosities;
 - after flux RHS evaluation when thorn `NRPyLeakageET` is active;
 - two equivalent initial/analysis sites inside retained
   `ID_converter_ILGRMHD` compatibility gate.
 
-If thorn `Convert_to_HydroBase` is active, the routine reads that thorn's
-cadence, returns when it is zero, and otherwise runs only on divisible
-iterations. When that thorn is inactive, it evaluates
-`cctk_iteration % IllinoisGRMHD::Convert_to_HydroBase_every` without first
-guarding zero.
-
-Leakage schedule declaration names only `HydroBase::vel` as written, although
-the routine also assigns `w_lorentz` and `Bvec`. This schedule site is not
-gated by IllinoisGRMHD cadence. Therefore, with NRPyLeakageET active,
-`Convert_to_HydroBase` inactive, and local cadence at its default zero, local
-code evaluates integer remainder by zero: undefined C behavior that may trap.
-A positive cadence or code-level zero guard is required. No NRPyLeakageET
-internals or observed run are inferred.
+With NRPyLeakageET active, the routine refreshes velocity, Lorentz factor,
+and centered magnetic fields at every scheduled call, independently of
+local or legacy diagnostic cadence. Otherwise it uses the legacy cadence
+when `Convert_to_HydroBase` is active and guards nonpositive cadence before
+modulo. All conversion declarations, including the leakage RHS hook, include
+spatial metric and centered magnetic reads plus `vel`, `w_lorentz`, and
+`Bvec` writes. These are local declarations and visible control flow;
+coupled stage freshness and leakage internals remain unverified here.
 
 Claim evidence:
 
-- Claim: The leakage-gated call can evaluate integer remainder by zero when `Convert_to_HydroBase` is inactive and local cadence is zero; this is a local undefined-behavior path, not an observed run result.
+- Claim: With leakage active, the converter bypasses local and legacy diagnostic cadence; otherwise it guards nonpositive cadence before integer remainder. This closes the inspected modulo-zero path without establishing coupled execution or stage freshness.
 - Role: descriptive behavior
-- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::convert_IllinoisGRMHD_to_HydroBase`, unguarded local-cadence remainder
-- Corroboration: `IllinoisGRMHD/param.ccl::Convert_to_HydroBase_every` default zero and `IllinoisGRMHD/schedule.ccl::NRPyLeakageET` call site
+- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::convert_IllinoisGRMHD_to_HydroBase`, leakage-active bypass and guarded cadence branch
+- Corroboration: `IllinoisGRMHD/param.ccl::Convert_to_HydroBase_every` default zero and `IllinoisGRMHD/schedule.ccl::NRPyLeakageET` RHS/analysis call sites
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=NRPyLeakageET active, Convert_to_HydroBase inactive, local cadence zero; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=nonpositive cadence guard inspected-not-run; options=leakage-active bypass and leakage-inactive local/legacy cadence; date=10-02-2026`
 
 ThornGuide recommends matching conversion cadence to diagnostics and says
 more frequent copying slows a simulation. This is attributed design advice,

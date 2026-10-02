@@ -75,8 +75,19 @@ void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS) {
             tau.nux [1]                  = tau_1_nux [index];
 
             // Step 3.b.ii: Compute opacities
-            NRPyLeakage_compute_neutrino_opacities(ghl_eos, rhoL, Y_eL, temperatureL, &tau, &kappa);
+            const ghl_error_codes_t status = NRPyLeakage_compute_neutrino_opacities(ghl_eos, rhoL, Y_eL, temperatureL, &tau, &kappa);
+            if(status != ghl_success) {
+              CCTK_VERROR("NRPyLeakage_compute_neutrino_opacities failed (status %d) at (%d,%d,%d), level %d: rho=%g Ye=%g T=%g",
+                          (int)status, i,j,k,GetRefinementLevel(cctkGH),rhoL,Y_eL,temperatureL);
+              continue;
+            }
+
           }
+        }
+
+        if(!NRPyLeakageET_opacities_finite(&kappa)) {
+          CCTK_VERROR("Nonfinite opacity at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+          continue;
         }
 
         // Step 4: Write to main memory

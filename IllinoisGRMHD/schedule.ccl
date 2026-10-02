@@ -86,7 +86,7 @@ schedule group IllinoisGRMHD_conservs_to_prims in IllinoisGRMHD_Prim2Con2Prim af
 {
 } "Compute primitive variables from conservatives"
 
-if(Convert_to_HydroBase_every) {
+if((Convert_to_HydroBase_every > 0) || CCTK_IsThornActive("NRPyLeakageET")) {
   schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_Prim2Con2Prim after IllinoisGRMHD_conservs_to_prims
   {
     LANG: C
@@ -199,9 +199,9 @@ if(CCTK_IsThornActive("NRPyLeakageET"))
   schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_fluxes_rhs
   {
     LANG: C
-    READS:  ADMBase::lapse, ADMBase::shift,
-            grmhd_velocities
-    WRITES: HydroBase::vel(everywhere)
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere), HydroBase::Bvec(everywhere)
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
 
@@ -217,8 +217,8 @@ schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS af
 # Set HydroBase variables for analysis
 #########################################################
 
-if(Convert_to_HydroBase_every) {
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+if((Convert_to_HydroBase_every > 0) || CCTK_IsThornActive("NRPyLeakageET")) {
+  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (NRPyLeakageET_compute_and_output_luminosities compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
@@ -598,7 +598,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
             HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (NRPyLeakageET_compute_and_output_luminosities compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL

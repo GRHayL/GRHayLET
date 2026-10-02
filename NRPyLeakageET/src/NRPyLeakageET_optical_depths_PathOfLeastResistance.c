@@ -92,8 +92,8 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
           else {
             // Step 2: Read in metric gfs from main memory
             const CCTK_REAL stencil_gxx[3] = {gxx[im1_j_k], gxx[i_j_k], gxx[ip1_j_k]};
-            const CCTK_REAL stencil_gyy[3] = {gyy[im1_j_k], gyy[i_j_k], gyy[ip1_j_k]};
-            const CCTK_REAL stencil_gzz[3] = {gzz[im1_j_k], gzz[i_j_k], gzz[ip1_j_k]};
+            const CCTK_REAL stencil_gyy[3] = {gyy[i_jm1_k], gyy[i_j_k], gyy[i_jp1_k]};
+            const CCTK_REAL stencil_gzz[3] = {gzz[i_j_km1], gzz[i_j_k], gzz[i_j_kp1]};
 
             // Step 3: Read in opacity gfs from main memory
             ghl_neutrino_opacities kappa_i_j_k;
@@ -122,12 +122,12 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
             // Step 5: Compute the new optical depths
             ghl_neutrino_optical_depths tau_i_j_k;
             NRPyLeakage_optical_depths_PathOfLeastResistance(dxx, stencil_gxx, stencil_gyy, stencil_gzz,
-                                                             &kappa_ip1_j_k, &kappa_im1_j_k,
-                                                             &kappa_i_jp1_k, &kappa_i_jm1_k,
-                                                             &kappa_i_j_kp1, &kappa_i_j_km1,
-                                                             &tau_ip1_j_k  , &tau_im1_j_k,
-                                                             &tau_i_jp1_k  , &tau_i_jm1_k,
-                                                             &tau_i_j_kp1  , &tau_i_j_km1,
+                                                             &kappa_im1_j_k, &kappa_ip1_j_k,
+                                                             &kappa_i_jm1_k, &kappa_i_jp1_k,
+                                                             &kappa_i_j_km1, &kappa_i_j_kp1,
+                                                             &tau_im1_j_k, &tau_ip1_j_k,
+                                                             &tau_i_jm1_k, &tau_i_jp1_k,
+                                                             &tau_i_j_km1, &tau_i_j_kp1,
                                                              &kappa_i_j_k  , &tau_i_j_k);
 
             // Step 6: Write to main memory

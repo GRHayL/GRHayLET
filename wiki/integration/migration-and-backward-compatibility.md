@@ -1,6 +1,6 @@
 # Migration and Backward Compatibility
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Summary
@@ -99,8 +99,18 @@ algorithms.
 
 Data copier assigns HydroBase `rho/press`, centered B, and `phitilde` into
 deprecated `rho_b/P`, `Bx/By/Bz`, and `psi6phi`. Conversion routine separately
-checks whether old `Convert_to_HydroBase` thorn is active and, if so, reads its
-cadence dynamically.
+bypasses diagnostic cadence when NRPyLeakageET is active. With leakage inactive,
+it checks whether old `Convert_to_HydroBase` thorn is active and, if so, reads its
+cadence dynamically, checking availability and nonpositive cadence before modulo.
+
+Claim evidence:
+
+- Claim: The converter bypasses diagnostic cadence with NRPyLeakageET active. With leakage inactive and the old Convert_to_HydroBase thorn active, it obtains the legacy cadence, checks parameter availability, and guards nonpositive values before modulo. This is a visible compatibility path, not proof that the legacy thorn is available or executes.
+- Role: descriptive behavior
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` leakage-inactive legacy parameter lookup
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `convert_IllinoisGRMHD_to_HydroBase` compatibility initial/analysis call sites
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=missing parameter and nonpositive cadence checks inspected-not-run; options=leakage-active bypass and leakage-inactive legacy-thorn branch; date=10-02-2026`
 
 Neither `configuration.ccl` nor current source list establishes availability
 of old thorns. Schedule gate only describes behavior if active.

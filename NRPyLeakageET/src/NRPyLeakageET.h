@@ -23,7 +23,15 @@ void NRPyLeakageET_copy_optical_depths_from_previous_time_level(CCTK_ARGUMENTS);
 
 void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS);
 void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS);
-void NRPyLeakageET_compute_neutrino_opacities_and_GRMHD_source_terms(CCTK_ARGUMENTS);
+void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(CCTK_ARGUMENTS);
+void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS);
+
+static inline int NRPyLeakageET_opacities_finite(const ghl_neutrino_opacities *kappa) {
+  for(int m=0;m<2;m++)
+    if(!robust_isfinite(kappa->nue[m]) || !robust_isfinite(kappa->anue[m]) || !robust_isfinite(kappa->nux[m]))
+      return 0;
+  return 1;
+}
 
 #ifdef __cplusplus
 } // extern "C"

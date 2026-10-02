@@ -61,10 +61,21 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
 
             // Step 3: Compute neutrino luminosities
             ghl_neutrino_luminosities lumL;
-            NRPyLeakage_compute_neutrino_luminosities(ghl_eos,
+            const ghl_error_codes_t status = NRPyLeakage_compute_neutrino_luminosities(ghl_eos,
                                                       alpL, gxxL, gxyL, gxzL, gyyL, gyzL, gzzL,
                                                       rhoL, Y_eL, temperatureL, wL,
                                                       &tauL, &lumL);
+            if(status != ghl_success) {
+              CCTK_VERROR("NRPyLeakage_compute_neutrino_luminosities failed (status %d) at (%d,%d,%d), level %d: rho=%g Ye=%g T=%g",
+                          (int)status, i,j,k,GetRefinementLevel(cctkGH),rhoL,Y_eL,temperatureL);
+              continue;
+            }
+
+
+            if(!robust_isfinite(lumL.nue) || !robust_isfinite(lumL.anue) || !robust_isfinite(lumL.nux)) {
+              CCTK_VERROR("Nonfinite luminosity at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+              continue;
+            }
 
             // Step 4: Write to main memory
             lum_nue [index] = lumL.nue;

@@ -1,6 +1,6 @@
 # HydroBase Velocity Conversion
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -15,9 +15,9 @@ successful scheduling, and numerical validity remain external.
 Forward conversion computes native velocity as
 `v_native^i = alpha U_HydroBase^i - beta^i`. Reverse conversion computes
 `U_HydroBase^i = (v_native^i + beta^i)/alpha` and writes `w_lorentz` from a
-local metric contraction. Initial and analysis reverse calls have a nonzero
-cadence guard; leakage scheduling does not, while converter performs modulo by
-that cadence.
+local metric contraction. With leakage active, reverse conversion runs at every
+scheduled call, including RHS and analysis, independently of diagnostic cadence.
+Other calls guard nonpositive cadence before modulo.
 
 ## Variant Applicability
 
@@ -36,9 +36,9 @@ that cadence.
 | `INT-VEL-01` | Forward converter visibly computes `alpha U^i - beta^i` for all three components. | visible-implementation | Forward converter | `c:GRHayLHD/src/convert_HydroBase_to_GRHayLHD.c#symbol=convert_HydroBase_to_GRHayLHD` |
 | `INT-VEL-02` | Reverse converter visibly computes `(v^i + beta^i)/alpha`, a metric-contraction Lorentz factor, and warning paths. | visible-implementation | Reverse converter | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` |
 | `INT-VEL-03` | Initial-data schedule declares HydroBase-to-native conversion before Prim2Con. | declared | Initial conversion schedule | `ccl:GRHayLHD/schedule.ccl#schedule=convert_HydroBase_to_GRHayLHD` |
-| `INT-VEL-04` | Analysis schedule declares reverse conversion only when cadence is nonzero. | declared | Analysis schedule context | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=CCTK_ANALYSIS` |
-| `INT-VEL-05` | Leakage schedule declares reverse conversion without the positive cadence guard used by other reverse contexts. | declared | Leakage schedule context | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` |
-| `INT-VEL-06` | Leakage declaration omits metric reads and `w_lorentz` write visible in the converter body. | unresolved | Declaration/body mismatch | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` |
+| `INT-VEL-04` | Analysis schedule declares reverse conversion when cadence is positive or leakage is active, before leakage luminosity analysis. | declared | Analysis schedule context | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=CCTK_ANALYSIS` |
+| `INT-VEL-05` | Leakage RHS schedule declares reverse conversion whenever leakage is active, independently of diagnostic cadence. | declared | Leakage schedule context | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` |
+| `INT-VEL-06` | Leakage declaration includes metric reads and the `w_lorentz` write. | declared | Leakage RHS schedule fields | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` |
 
 ## Details
 
@@ -70,29 +70,27 @@ code does not visibly clamp this path.
 ### Declared schedule contexts
 
 - `HydroBase_Prim2ConInitial` declares forward conversion before Prim2Con.
-- Same initial group optionally declares reverse conversion after Con2Prim
-  when `Convert_to_HydroBase_every` is nonzero.
-- `CCTK_ANALYSIS` declares reverse conversion under same nonzero guard, after
-  `ML_BSSN_evolCalcGroup` and before named diagnostics.
-- NRPyLeakageET-active RHS branch declares reverse conversion after flux RHS,
-  outside that positive cadence guard.
+- Same initial group declares reverse conversion after Con2Prim when cadence
+  is positive or NRPyLeakageET is active.
+- `CCTK_ANALYSIS` uses the same condition, after `ML_BSSN_evolCalcGroup`
+  and before leakage luminosity analysis and named diagnostics.
+- The NRPyLeakageET-active RHS branch declares reverse conversion after flux RHS.
 
-Reverse function returns unless `cctk_iteration % Convert_to_HydroBase_every`
-is zero. Its visible body writes both HydroBase velocity and `w_lorentz`;
-leakage schedule's declared `WRITES` set names only velocity. The body also
-reads all six spatial-metric fields, while leakage's declared `READS` names
-only lapse, shift, and native velocity. No runtime effect is inferred from
-these static declaration/body differences; see
-[GRH-0011](../contradictions.md#grh-0011).
+When leakage is active, the reverse function bypasses the optional diagnostic
+cadence gate. Otherwise it returns on nonpositive cadence before computing
+modulo, then runs on divisible iterations. All reverse schedule contexts
+include spatial metric reads and both velocity and Lorentz-factor writes.
+The converter body's metric accesses and Lorentz-factor assignment corroborate
+those declarations through visible implementation (`INT-VEL-02`).
+[GRH-0006](../contradictions.md#grh-0006) and
+[GRH-0011](../contradictions.md#grh-0011) record the resolved static mismatches.
 
 ## Caveats
 
 - Local formulas establish assignments, not equivalence to external
   HydroBase semantics or safe behavior for all metric/velocity values.
-- Leakage guard versus modulo precondition is open
-  [GRH-0006](../contradictions.md#grh-0006); no runtime crash is claimed.
-- Leakage declaration/body field-set mismatch is open
-  [GRH-0011](../contradictions.md#grh-0011).
+- The corrected cadence and metadata paths remain unverified in a coupled
+  framework execution; resolved static issues do not establish runtime success.
 - Schedule declarations establish intent only; they do not prove calls ran.
 
 ## Sources

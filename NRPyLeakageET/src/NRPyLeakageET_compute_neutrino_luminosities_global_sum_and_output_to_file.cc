@@ -3,6 +3,7 @@
 #include "cctk_Parameters.h"
 
 #include "carpet.hh"
+#include <string>
 #include "NRPyLeakageET.h"
 
 extern "C"
@@ -11,7 +12,7 @@ void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(C
   DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file;
   DECLARE_CCTK_PARAMETERS;
 
-  if( cctk_iteration%compute_luminosities_every ) return;
+  if(compute_luminosities_every <= 0 || cctk_iteration%compute_luminosities_every) return;
 
   if( verbosity_level > 1 ) CCTK_INFO("Computing luminosities on all refinement levels");
   // Step 1: Compute the neutrino luminosities
@@ -65,11 +66,10 @@ void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(C
 
   // Step 3: Now output the luminosities to file
   if( CCTK_MyProc(cctkGH) == 0 ) {
-    char filename[512];
-    sprintf(filename,"%s/%s",out_dir,luminosities_outfile);
-    if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename,cctk_iteration);
-    FILE *fp = fopen(filename,"a+");
-    if( !fp ) CCTK_VERROR("Could not open file %s",filename);
+    const std::string filename = std::string(out_dir) + "/" + luminosities_outfile;
+    if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename.c_str(),cctk_iteration);
+    FILE *fp = fopen(filename.c_str(),"a+");
+    if( !fp ) CCTK_VERROR("Could not open file %s",filename.c_str());
 
     if( cctk_iteration == 0 ) {
       fprintf(fp,"# NRPyLeakageET output: Neutrino luminosities integrated over entire grid\n");

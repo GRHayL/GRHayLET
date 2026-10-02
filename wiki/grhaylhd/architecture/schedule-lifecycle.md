@@ -1,6 +1,6 @@
 # Declared Schedule Lifecycle
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -50,7 +50,7 @@ source then flux RHS groups in `MoL_CalcRHS`, and optional HydroBase output at
    `convert_HydroBase_to_GRHayLHD`; optional primitive perturbation after that
    converter and before Prim2Con; Prim2Con after the converter; Con2Prim after
    Prim2Con; optional reverse conversion after Con2Prim when
-   `Convert_to_HydroBase_every` is nonzero.
+   cadence is positive or NRPyLeakageET is active.
 3. `HydroBase_Con2Prim` declares `GRHayLHD_Con2Prim`: empty sync schedule for
    core, `Ye_star`, and `ent_star`; optional conservative perturbation after
    sync and before recovery; recovery after sync; primitive outer boundaries
@@ -60,8 +60,9 @@ source then flux RHS groups in `MoL_CalcRHS`, and optional HydroBase output at
 5. `MoL_CalcRHS` declares `GRHayLHD_RHS`: source group first, flux group
    explicitly `after` sources, then an NRPyLeakageET-active conversion after
    fluxes.
-6. `CCTK_ANALYSIS` optionally schedules reverse conversion under nonzero
-   `Convert_to_HydroBase_every`, before named diagnostic groups and after
+6. `CCTK_ANALYSIS` schedules reverse conversion when
+   `Convert_to_HydroBase_every` is positive or leakage is active, before leakage
+   luminosities and named diagnostic groups and after
    `ML_BSSN_evolCalcGroup`, with `GLOBAL-EARLY,LOOP-LOCAL` options.
 
 ### Declared data movement
@@ -83,8 +84,8 @@ flux temporaries and accumulated RHS fields.
 
 Tmunu reads metric/gauge, base thermodynamics, native velocity, and `u0`, then
 declares writes to all three TmunuBase stress-energy groups. Reverse conversion
-at initial and analysis phases declares both HydroBase velocity and Lorentz
-factor writes; leakage conversion declares only HydroBase velocity writes.
+at initial, analysis, and leakage RHS phases declares both HydroBase velocity
+and Lorentz-factor writes, including spatial metric reads.
 
 ### Four-way dispatch
 
@@ -100,11 +101,10 @@ field differences are owned by the canonical EOS and entropy variant matrix.
   makes no observed-execution claim.
 - Generic Cactus schedule-bin ordering and MoL time-integration semantics are
   external and were not needed to inventory local declarations.
-- Leakage scheduling is gated only by thorn activity, while converter code
-  applies modulo `Convert_to_HydroBase_every`; see
-  [GRH-0006](../contradictions.md#grh-0006).
-- Leakage declaration omits body-visible metric reads and Lorentz-factor
-  write; see [GRH-0011](../contradictions.md#grh-0011).
+- Leakage scheduling is gated by thorn activity and the converter bypasses
+  optional cadence when leakage is active. Static precondition and access-set
+  mismatches are resolved in [GRH-0006](../contradictions.md#grh-0006) and
+  [GRH-0011](../contradictions.md#grh-0011); coupled execution remains unverified.
 - `update_Tmunu` steering versus setup-conditional registration is documented
   by Integration owner page; this page states only local schedule condition.
 

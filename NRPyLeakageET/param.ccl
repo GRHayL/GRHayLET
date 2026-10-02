@@ -4,27 +4,26 @@ shares: IO
 USES STRING out_dir
 
 restricted:
-CCTK_STRING initial_optical_depth "Type of initial optical depth" STEERABLE = ALWAYS
+CCTK_STRING initial_optical_depth "Type of initial optical depth"
 {
   "PathOfLeastResistance" :: "Adopts the 'path of least resistance' algorithm of Nielsen et al. (2014) (1403.3680)"
   "zero"                  :: "Initializes optical depths to zero"
 } "PathOfLeastResistance"
 
 restricted:
-CCTK_INT constants_key "Which values of physical constants to use. NRPy (0) is the most up to date." STEERABLE = ALWAYS
+CCTK_INT constants_key "Deprecated compatibility key: only fixed GRHayL NRPy constants (0) are supported."
 {
   0 :: "NRPy constants"
-  1 :: "HARM3D+NUC constants"
 } 0
 
 restricted:
-CCTK_INT minInitRefLevel "Minimum refinement level used for initialization. The optical depth on all levels smaller than this will be initialized using restrict operations or to zero." STEERABLE = ALWAYS
+CCTK_INT minInitRefLevel "Minimum refinement level used for initialization. The optical depth on all levels smaller than this will be initialized using restrict operations or to zero."
 {
   0:* :: "Minimum refinement level for optical depth initialization."
 } 0
 
 restricted:
-CCTK_INT maxInitRefLevel "Maximum refinement level used for initialization." STEERABLE = ALWAYS
+CCTK_INT maxInitRefLevel "Maximum initialization level; 0 means finest active level. Truncated POLR windows are rejected."
 {
   0:* :: "Maximum refinement level for optical depth initialization."
 } 0
@@ -38,13 +37,13 @@ CCTK_INT verbosity_level "Whether to print information to the user or not" STEER
 } 1
 
 restricted:
-CCTK_REAL tauChangeThreshold "Threshold to stop PathOfLeastResistance algorithm during initialization." STEERABLE = ALWAYS
+CCTK_REAL tauChangeThreshold "Positive threshold to stop PathOfLeastResistance algorithm during initialization."
 {
-  *:* :: "Anything goes"
+  (0:* :: "Positive convergence threshold"
 } 1e-8
 
 restricted:
-CCTK_REAL psi6_threshold "If psi^6 > psi6_threshold we assume to be insidee the horizon and do not leak." STEERABLE = ALWAYS
+CCTK_REAL psi6_threshold "Disable leakage above this coordinate-dependent psi^6 heuristic; it is not a horizon detector." STEERABLE = ALWAYS
 {
   *:* :: "Anything goes"
 } 1e100
@@ -68,7 +67,7 @@ CCTK_REAL rho_max_threshold "Only leak for rho < rho_max_threshold" STEERABLE = 
 } 1e100
 
 restricted:
-CCTK_STRING optical_depth_evolution_type "Type of optical depth evolution" STEERABLE = ALWAYS
+CCTK_STRING optical_depth_evolution_type "Type of optical depth evolution"
 {
   "PathOfLeastResistance" :: "Adopts the 'path of least resistance' algorithm of Nielsen et al. (2014) (1403.3680)"
   "static"                :: "Optical depth is kept fixed at its initial value"
@@ -121,9 +120,9 @@ CCTK_STRING GFstring_Stildez_rhs "Gridfunction for the z-component of the conser
 } "IllinoisGRMHD::Stildez_rhs"
 
 restricted:
-CCTK_INT compute_luminosities_every "How often should we compute the neutrino luminosities" STEERABLE = ALWAYS
+CCTK_INT compute_luminosities_every "How often should we compute the neutrino luminosities"
 {
-  *:* :: "Any value. Negative values disable it."
+  *:* :: "Startup cadence; zero or negative values disable luminosities."
 } -1
 
 restricted:
