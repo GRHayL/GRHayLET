@@ -36,4 +36,4 @@
 | failure_checker | Per-point recovery repair encoding; terminal atmosphere reset retains +100. | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) |
 | test oracle | Checked-in generated comparison evidence, not current pass proof. | [Test Harness and Oracles](validation/test-harness-and-oracles.md) |
 | Balsara | Five visible one-dimensional case configurations. | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) |
-| magnetized TOV | Visible stellar case files and naming gap. | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) |
+| magnetized TOV | Visible stellar case files without case-specific test settings. | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) |

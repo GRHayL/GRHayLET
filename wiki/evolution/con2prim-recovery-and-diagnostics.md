@@ -11,7 +11,7 @@ Simple and tabulated EOS reset to atmosphere after exhausted supported retries.
 Terminal resets add 100 to the local diagnostic before its final publication.
 
 Claim evidence:
-- Claim: The four local recovery bodies preserve constant neighbor blends, supply current-state seeds when automatic guessing is disabled, and retain the terminal-reset marker; this does not establish external solver success.
+- Claim: The four local recovery bodies preserve constant neighbor means and directly copy the full-neighbor candidate at weight four, supply current-state seeds when automatic guessing is disabled, and retain the terminal-reset marker; this does not establish external solver success.
 - Role: public/scientific contract
 - Deciding authority: registered `IllinoisGRMHD/src/*/conservs_to_prims.c, recovery ladders and failure_checker writes`
 - Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
@@ -36,7 +36,10 @@ restores the seed before entering the external multi-method solver.
 3. Nonpositive density selects constant atmosphere and adds the ones marker.
 4. On error, the bounded 3-by-3-by-3 neighborhood excludes the central point.
    For fixed neighbor count N, sum S, center C, and attempt w=1..4, each
-   conservative blend is `(w/4)*(S/N) + (1-w/4)*C`. Empty neighborhoods skip
+   conservative blend is `(w/4)*(S/N) + (1-w/4)*C`. For w=4 the neighbor
+   mean `S/N` is assigned directly, so a nonfinite center does not enter the
+   candidate. Finite results still require finite neighbor components; signed
+   zero can differ from the old arithmetic blend. Empty neighborhoods skip
    averaging and proceed to the final policy. Active entropy/Ye participate.
 5. Only `ghl_eos_hybrid` permits the local Font1D fallback. Simple and tabulated
    EOS have no local emergency Font attempt. Remaining failure resets atmosphere.

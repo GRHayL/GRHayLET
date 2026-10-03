@@ -1,5 +1,29 @@
 #include "IllinoisGRMHD.h"
 
+// Computes eps and T for a reconstructed face state whose rho, Y_e, and press are set.
+// If the reconstructed (rho, Y_e, P) cannot be inverted, fall back to the donor cell's state,
+// expected to be thermodynamically valid after recovery. Abort if its inversion fails too.
+static void IllinoisGRMHD_tabulated_face_eps_T(
+      ghl_primitive_quantities *restrict prims,
+      const CCTK_REAL rho_donor,
+      const CCTK_REAL Y_e_donor,
+      const CCTK_REAL press_donor,
+      const CCTK_REAL temperature_donor) {
+  ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims->rho, &prims->Y_e, &prims->press);
+  ghl_error_codes_t error = ghl_tabulated_compute_eps_T_from_P(
+        ghl_eos, prims->rho, prims->Y_e, prims->press, &prims->eps, &prims->temperature);
+  if(error) {
+    prims->rho         = rho_donor;
+    prims->Y_e         = Y_e_donor;
+    prims->press       = press_donor;
+    prims->temperature = temperature_donor;
+    ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims->rho, &prims->Y_e, &prims->press);
+    error = ghl_tabulated_compute_eps_T_from_P(
+          ghl_eos, prims->rho, prims->Y_e, prims->press, &prims->eps, &prims->temperature);
+  }
+  ghl_abort_if_error(error);
+}
+
 void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
       const cGH *restrict cctkGH,
       const int flux_dir,
@@ -106,13 +130,47 @@ void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, vy_data, &vyr, &vyl);
         ghl_ppm_reconstruction(ftilde, vz_data, &vzr, &vzl);
 
-        vel_r[0][index] = vxr;
-        vel_r[1][index] = vyr;
-        vel_r[2][index] = vzr;
+        // Apply the face speed limit here as well, so the velocities cached for the A_i
+        // (induction) reconstruction are admissible. The flux loop below limits its own
+        // copy again to compute u0 and may make roundoff-level velocity adjustments.
+        ghl_metric_quantities ADM_metric_face;
+        IllinoisGRMHD_interpolate_metric_to_face(
+              cctkGH, i, j, k,
+              flux_dir, alp,
+              betax, betay, betaz,
+              gxx, gxy, gxz,
+              gyy, gyz, gzz,
+              &ADM_metric_face);
 
-        vel_l[0][index] = vxl;
-        vel_l[1][index] = vyl;
-        vel_l[2][index] = vzl;
+        ghl_primitive_quantities prims_r = {0}, prims_l = {0};
+        prims_r.vU[0] = vxr;
+        prims_r.vU[1] = vyr;
+        prims_r.vU[2] = vzr;
+        prims_l.vU[0] = vxl;
+        prims_l.vU[1] = vyl;
+        prims_l.vU[2] = vzl;
+
+        // If the limiter reports an error here, keep the unlimited value. The flux loop
+        // below aborts on the same error wherever that point is used, as it did before.
+        bool speed_limited = false;
+        if(ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited) != ghl_success) {
+          prims_r.vU[0] = vxr;
+          prims_r.vU[1] = vyr;
+          prims_r.vU[2] = vzr;
+        }
+        if(ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited) != ghl_success) {
+          prims_l.vU[0] = vxl;
+          prims_l.vU[1] = vyl;
+          prims_l.vU[2] = vzl;
+        }
+
+        vel_r[0][index] = prims_r.vU[0];
+        vel_r[1][index] = prims_r.vU[1];
+        vel_r[2][index] = prims_r.vU[2];
+
+        vel_l[0][index] = prims_l.vU[0];
+        vel_l[1][index] = prims_l.vU[1];
+        vel_l[2][index] = prims_l.vU[2];
       }
     }
   }
@@ -182,16 +240,12 @@ void IllinoisGRMHD_tabulated_calculate_flux_dir_rhs(
         error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
         ghl_abort_if_error(error);
 
-        // We must now compute eps and T
-        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
-        error = ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
-                                           &prims_r.eps, &prims_r.temperature);
-        ghl_abort_if_error(error);
-
-        ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
-        error = ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
-                                           &prims_l.eps, &prims_l.temperature);
-        ghl_abort_if_error(error);
+        // We must now compute eps and T. At face i-1/2 the right state comes from cell i
+        // and the left state from cell i-1; those cells are the fallback donors.
+        IllinoisGRMHD_tabulated_face_eps_T(
+              &prims_r, rho[index], Y_e[index], press[index], temperature[index]);
+        IllinoisGRMHD_tabulated_face_eps_T(
+              &prims_l, rho[indm1], Y_e[indm1], press[indm1], temperature[indm1]);
 
         ghl_conservative_quantities cons_fluxes = {0};
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);

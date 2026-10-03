@@ -1,6 +1,6 @@
 # IllinoisGRMHD Global Catalog
 
-> Exact live-page routing inventory. · Status: confirmed · Last reconciled: 07-17-2026
+> Exact live-page routing inventory. · Status: confirmed · Last reconciled: 10-02-2026
 
 | Page | Type | One-line answer | Route | Tags | Aliases / Query terms | Status | Last reconciled |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -9,7 +9,7 @@
 | [Cactus Surface and Build](architecture/cactus-surface-and-build.md) | leaf | Owns declared CCL/build/header surfaces and evidence limits. | architecture | CCL, build | implements, inherits, aliases, timelevels, make.code.defn | confirmed | 10-02-2026 |
 | [IllinoisGRMHD Overview](architecture/overview.md) | leaf | Owns purpose, provenance, repository map, and attributed design intent. | architecture | overview, purpose | IllinoisGRMHD, GRMHD, authors, license, repository shape | confirmed | 07-17-2026 |
 | [Schedule Lifecycle](architecture/schedule-lifecycle.md) | leaf | Owns declared phase ordering, MoL registration, handoffs, and sync. | architecture | schedule, MoL | IllinoisGRMHD_RHS, IllinoisGRMHD_Con2Prim, AddToTmunu, sync | confirmed | 10-02-2026 |
-| [Global Catalog](catalog.md) | governance | Exact wiki inventory and query-discovery map. | governance | catalog, routing | global index, aliases, query terms | confirmed | 07-17-2026 |
+| [Global Catalog](catalog.md) | governance | Exact wiki inventory and query-discovery map. | governance | catalog, routing | global index, aliases, query terms | confirmed | 10-02-2026 |
 | [Contradictions](contradictions.md) | governance | Register for active stale/contested claims and resolution tests. | governance | contradictions | CONTR-0001, CONTR-0002, conflicts, gaps | confirmed | 10-02-2026 |
 | [Evolution](evolution/index.md) | router | Routes state, conversion/recovery, RHS, and matter edges. | evolution | router | EOS modes, Prim2Con, Con2Prim, PPM, Matter_BC | router | n/a |
 | [Con2Prim Recovery and Diagnostics](evolution/con2prim-recovery-and-diagnostics.md) | leaf | Owns recovery ladder, fallbacks, counters, and actual repair encoding. | evolution | recovery, diagnostics | IllinoisGRMHD_Con2Prim, failure_checker, Font1D, atmosphere reset | confirmed | 10-02-2026 |
@@ -25,10 +25,10 @@
 | [Lint Checks](lint/CHECKS.md) | governance | Exact deterministic checker coverage and manual review boundary. | governance | lint, maintenance | kb_lint.py, --all, hard failures, manual checks | confirmed | 07-19-2026 |
 | [Magnetics](magnetics/index.md) | router | Routes staggered state, induction/gauge RHS, and EM edges. | magnetics | router | Ax, Ay, Az, phitilde, B, EM_BC | router | n/a |
 | [Electromagnetic Boundaries and Symmetry](magnetics/electromagnetic-boundaries-and-symmetry.md) | leaf | Owns EM fills, Driver registrations, parity, and symmetry limits. | magnetics | boundaries, symmetry | EM_BC, Symmetry, equatorial, parity | confirmed | 07-17-2026 |
-| [Induction and Lorenz-Gauge RHS](magnetics/induction-and-lorenz-gauge-rhs.md) | leaf | Owns HLL A-flux, gauge gradients, and `phitilde` RHS. | magnetics | induction, gauge | A_flux_rhs, phitilde_rhs, Lorenz damping | confirmed | 07-18-2026 |
+| [Induction and Lorenz-Gauge RHS](magnetics/induction-and-lorenz-gauge-rhs.md) | leaf | Owns HLL A-flux, gauge gradients, and `phitilde` RHS. | magnetics | induction, gauge | A_flux_rhs, phitilde_rhs, Lorenz damping | confirmed | 10-02-2026 |
 | [Staggered State and Magnetic Reconstruction](magnetics/staggered-state-and-magnetic-reconstruction.md) | leaf | Owns A/B placement, curl, densitization, centering, and reconstruction. | magnetics | staggering, reconstruction | Ax, phitilde, Bx_stagger, densitized B, constrained transport | confirmed | 07-17-2026 |
 | [Source Map](source-map.md) | governance | Authority and reverse dependencies for every manifest ID. | governance | sources, drift | dependency coverage, changed-source lookup, known gaps | confirmed | 10-02-2026 |
 | [Validation](validation/index.md) | router | Routes harness/oracle facts and shipped case coverage. | validation | router | test.ccl, oracles, Balsara, TOV | router | n/a |
 | [Balsara and TOV Cases](validation/balsara-and-tov-cases.md) | leaf | Owns shipped configuration matrix and visible coverage limits. | validation | cases, coverage | Balsara1, Balsara4, magnetizedTOV, Simple, Hybrid | confirmed | 10-02-2026 |
-| [Test Harness and Oracles](validation/test-harness-and-oracles.md) | leaf | Owns test declarations, tolerances, file roles, and naming gaps. | validation | tests, oracles | TEST TOV, test oracle, ABSTOL, RELTOL, NPROCS | confirmed | 07-18-2026 |
+| [Test Harness and Oracles](validation/test-harness-and-oracles.md) | leaf | Owns test declarations, tolerances, file roles, and naming gaps. | validation | tests, oracles | test oracle, ABSTOL, RELTOL, NPROCS | confirmed | 10-02-2026 |
 | [Workflows](workflows.md) | governance | Root-first query, registration, reconciliation, and safe verification procedures. | governance | workflow, maintenance | source registration, drift, page changes, safe verification | confirmed | 07-17-2026 |

@@ -91,15 +91,17 @@ At `CCTK_WRAGH`, `IllinoisGRMHD_check_eos_support` follows modern or legacy
 GRHayL initialization. It rejects tabulated entropy evolution until the shared
 packing/flux/recovery/atmosphere contract is corrected. Hybrid entropy requires
 `neos=1` and `Gamma_th=Gamma_ppoly[0]`. Simple entropy uses the same internal
-proxy machinery. No claim is made that a rejected mode evolved successfully.
+proxy machinery. It also rejects `Palenzuela1D` and `Palenzuela1D_entropy`
+as the main or any backup recovery routine when `EOS_type` is `Simple`.
+No claim is made that a rejected mode evolved successfully.
 
 For Simple EOS, the installed callback computes epsilon, h, and sound speed
 directly from pressure/density and Gamma. Other EOS calls delegate to the
-original callback. The local implementation avoids auxiliary cold-curve
-subtraction without changing the external library sources.
+original callback. This avoids auxiliary cold-curve subtraction in the enthalpy and
+sound-speed evaluation only; it does not modify GRHayL recovery internals.
 
 Claim evidence:
-- Claim: Startup rejects unsupported entropy selections and installs direct Simple thermodynamics while preserving other EOS callbacks.
+- Claim: Startup rejects unsupported entropy selections and both Palenzuela variants in Simple main/backup recovery, and installs direct Simple thermodynamics while preserving other EOS callbacks.
 - Role: public/scientific contract
 - Deciding authority: registered `IllinoisGRMHD/src/check_eos_support.c, IllinoisGRMHD_check_eos_support and IllinoisGRMHD_compute_h_and_cs2`
 - Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`

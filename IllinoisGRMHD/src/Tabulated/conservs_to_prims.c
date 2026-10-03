@@ -172,14 +172,20 @@ void IllinoisGRMHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
           }
           int avg_weight = 1;
           while(error && n_avg > 0 && avg_weight < 5) {
-            const CCTK_REAL wfac = avg_weight/4.0;
-            const CCTK_REAL cfac = 1.0 - wfac;
-            cons_avg.rho = wfac*cons_neigh_avg.rho + cfac*cons.rho;
-            cons_avg.tau = wfac*cons_neigh_avg.tau + cfac*cons.tau;
-            cons_avg.SD[0] = wfac*cons_neigh_avg.SD[0] + cfac*cons.SD[0];
-            cons_avg.SD[1] = wfac*cons_neigh_avg.SD[1] + cfac*cons.SD[1];
-            cons_avg.SD[2] = wfac*cons_neigh_avg.SD[2] + cfac*cons.SD[2];
-            cons_avg.Y_e = wfac*cons_neigh_avg.Y_e + cfac*cons.Y_e;
+            if(avg_weight == 4) {
+              // Full-neighbor candidate: copy the neighbor average. Evaluating 0*original
+              // would turn a nonfinite original conservative into NaN.
+              cons_avg = cons_neigh_avg;
+            } else {
+              const CCTK_REAL wfac = avg_weight/4.0;
+              const CCTK_REAL cfac = 1.0 - wfac;
+              cons_avg.rho = wfac*cons_neigh_avg.rho + cfac*cons.rho;
+              cons_avg.tau = wfac*cons_neigh_avg.tau + cfac*cons.tau;
+              cons_avg.SD[0] = wfac*cons_neigh_avg.SD[0] + cfac*cons.SD[0];
+              cons_avg.SD[1] = wfac*cons_neigh_avg.SD[1] + cfac*cons.SD[1];
+              cons_avg.SD[2] = wfac*cons_neigh_avg.SD[2] + cfac*cons.SD[2];
+              cons_avg.Y_e = wfac*cons_neigh_avg.Y_e + cfac*cons.Y_e;
+            }
 
             ghl_undensitize_conservatives(ADM_metric.sqrt_detgamma, &cons_avg, &cons_undens);
 

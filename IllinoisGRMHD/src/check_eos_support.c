@@ -31,6 +31,18 @@ void IllinoisGRMHD_check_eos_support(CCTK_ARGUMENTS) {
       CCTK_ERROR("Hybrid entropy evolution requires neos=1 and Gamma_th=Gamma_ppoly_in[0]. Use evolve_entropy=no for a general hybrid EOS.");
   }
 
+  // GRHayL's Palenzuela energy and entropy recoveries impose auxiliary K=1 cold
+  // floors on epsilon and pressure, respectively, although Simple EOS has no such floor.
+  if(ghl_eos->eos_type == ghl_eos_simple) {
+    bool uses_palenzuela = (ghl_params->main_routine == ghl_con2prim_id_Palenzuela1D
+                        || ghl_params->main_routine == ghl_con2prim_id_Palenzuela1D_entropy);
+    for(int i=0; i<3; i++)
+      uses_palenzuela |= (ghl_params->backup_routine[i] == ghl_con2prim_id_Palenzuela1D
+                       || ghl_params->backup_routine[i] == ghl_con2prim_id_Palenzuela1D_entropy);
+    if(uses_palenzuela)
+      CCTK_ERROR("Palenzuela1D and Palenzuela1D_entropy recovery are unsupported with EOS_type=Simple: GRHayL imposes auxiliary K=1 cold floors on epsilon or pressure. Use Noble2D or Noble1D.");
+  }
+
   // GRHayL uses this callback in source, wave-speed, and flux calculations.
   // Preserve other EOS callbacks; install once after modern or legacy startup.
   if(ghl_compute_h_and_cs2 != IllinoisGRMHD_compute_h_and_cs2) {

@@ -79,10 +79,22 @@ this file even when a field is unused by the active family.
 If `perturb_initial_data` is true, the selected family primitive perturbation
 is declared after HydroBase ingress and before A-to-B reconstruction,
 which then precedes Prim2Con. Every primitive perturbation occurrence
-synchronizes Ax, Ay, Az, and phitilde before the curl. Each full-grid loop
-calls `srand(random_seed)` once and multiplies each selected value by
-`one_plus_pert(random_pert)`, defined locally as
-`1 + random_pert * rand() / RAND_MAX`.
+synchronizes Ax, Ay, Az, and phitilde before the curl. Each full-grid loop multiplies each selected value by
+`IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, slot)`,
+defined in `IllinoisGRMHD.h` as `1 + random_pert * u`, where `u` in [0,1)
+is a counter-based hash of `random_seed`, the global grid index
+`cctk_lbnd[d] + local_index[d]`, and the variable slot. For the same tuple on
+a fixed global grid, the factor does not depend on OpenMP scheduling or the
+process-local offset. Refinement-level/map identity is not encoded; this is
+not a full-evolution reproducibility guarantee.
+
+Claim evidence:
+- Claim: Perturbation factors are computed from seed/global-index/slot tuples, independently of OpenMP draw order on a fixed global grid; evolution reproducibility is not established.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/IllinoisGRMHD.h`, IllinoisGRMHD_mix64 and IllinoisGRMHD_one_plus_pert; `IllinoisGRMHD/src/*/perturb_primitives.c` and `IllinoisGRMHD/src/*/perturb_conservatives.c`, index and slot arguments
+- Corroboration: registered `IllinoisGRMHD/param.ccl`, random_seed and random_pert declarations
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 All primitive variants perturb rho, pressure, three velocities, `phitilde`,
 and `Ax/Ay/Az`; HybridEntropy derives its proxy later from the perturbed
@@ -128,7 +140,7 @@ Claim evidence:
   `illinoisgrmhd-hybrid-entropy`, `illinoisgrmhd-tabulated`, and
   `illinoisgrmhd-tabulated-entropy` — four `*_hydro_outer_boundaries`, four
   `*_perturb_primitives`, and four `*_perturb_conservatives` functions.
-- `IllinoisGRMHD/src/IllinoisGRMHD.h` — `one_plus_pert` macro.
+- `IllinoisGRMHD/src/IllinoisGRMHD.h` — `IllinoisGRMHD_one_plus_pert` function.
 - `IllinoisGRMHD/src/InitSymBound.c` —
   `IllinoisGRMHD_InitSymBound` frozen pairing and PPM ghost-zone checks.
 - `IllinoisGRMHD/src/specify_driver_BCs.c` —

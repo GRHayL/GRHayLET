@@ -7,8 +7,8 @@
 
 Six example configurations are visible: five named Balsara 1D initial-data
 cases and one magnetized TOV case. Test wrappers exist for all six; active
-`test.ccl` rows and oracle directories cover Balsara1, 2, 3, 5 plus a
-TOV-named declaration with `magnetizedTOV` files. This is configured/file
+`test.ccl` rows and oracle directories cover Balsara1, 2, 3, and 5.
+`magnetizedTOV` has files/oracles but no case-specific declaration. This is configured/file
 coverage only, not executed validation.
 
 Claim evidence:
@@ -78,9 +78,8 @@ that external parameter.
 | Scalar output | current HydroBase `rho`; `maximum` reduction every 2 | HydroBase `rho` and centered B; `maximum minimum` every 2 |
 | Oracle files | none under `par/` | min/max for `rho`, `Bx_center`, `By_center`, `Bz_center` |
 
-`test.ccl` says `TEST TOV`; files/directories say `magnetizedTOV`. Mapping is
-not knowable from this tree, so matrix reports naming gap without claiming
-pass or failure.
+`test.ccl` has no block for `magnetizedTOV`; the case uses the thorn-wide
+tolerances and has no test-specific `NPROCS`. No harness run is inferred.
 
 ### Selector and coverage limits
 
@@ -114,7 +113,7 @@ Claim evidence:
 - [`IllinoisGRMHD/par/`](../../IllinoisGRMHD/par/) — six shipped example
   parameter files; stable fixture roles Balsara1–5 and `magnetizedTOV`.
 - [`IllinoisGRMHD/test/test.ccl`](../../IllinoisGRMHD/test/test.ccl) — active
-  Balsara/TOV declarations, tolerances, process counts, and Balsara4 rationale.
+  Balsara declarations, tolerances, process counts, and Balsara4 rationale.
 - [`IllinoisGRMHD/test/Balsara1.par`](../../IllinoisGRMHD/test/Balsara1.par),
   [`Balsara2.par`](../../IllinoisGRMHD/test/Balsara2.par),
   [`Balsara3.par`](../../IllinoisGRMHD/test/Balsara3.par),

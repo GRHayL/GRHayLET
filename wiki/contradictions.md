@@ -60,8 +60,6 @@ production-table/numerical validation.
 
 ## Known Gaps, Not Contradictions
 
-- `TEST TOV` in `test/test.ccl` and `test/magnetizedTOV` coexist, but local files
-  do not define Cactus test-discovery mapping. No pass/failure inference.
 - Balsara4 has example and top-level test parfiles, while its test block is
   commented and no per-case oracle directory is visible. This is a coverage
   gap.

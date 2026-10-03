@@ -8,17 +8,19 @@ void IllinoisGRMHD_hybrid_perturb_conservatives(CCTK_ARGUMENTS) {
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
-  srand(random_seed); // Use srand() as rand() is thread-safe.
 #pragma omp parallel for
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
         const int index=CCTK_GFINDEX3D(cctkGH,i,j,k);
-        rho_star[index] *= one_plus_pert(random_pert);
-        tau[index]      *= one_plus_pert(random_pert);
-        Stildex[index]  *= one_plus_pert(random_pert);
-        Stildey[index]  *= one_plus_pert(random_pert);
-        Stildez[index]  *= one_plus_pert(random_pert);
+        const int gi = cctk_lbnd[0] + i;
+        const int gj = cctk_lbnd[1] + j;
+        const int gk = cctk_lbnd[2] + k;
+        rho_star[index] *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 0);
+        tau[index]      *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 1);
+        Stildex[index]  *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 2);
+        Stildey[index]  *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 3);
+        Stildez[index]  *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 4);
       }
     }
   }

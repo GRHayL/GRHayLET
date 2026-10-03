@@ -38,7 +38,7 @@ uses “boolean” for standard CCL boolean values rather than inventing entries
 | `Matter_BC` | `KEYWORD` | `copy`, `outflow`, `frozen` | `outflow` | not declared | Selects matter boundary behavior. |
 | `EM_BC` | `KEYWORD` | `copy`, `frozen` | `copy` | not declared | Selects electromagnetic boundary behavior. |
 | `verbose` | `KEYWORD` | `no`, `yes`, `essential`, `essential+iteration output` | `yes` | `ALWAYS` | Current recovery files test only `yes`; latter two keywords are declared deprecated. |
-| `random_seed` | `INT` | `0:99999999` | `0` | `ALWAYS` | Seeds `srand()` in perturbation routines. |
+| `random_seed` | `INT` | `0:99999999` | `0` | `ALWAYS` | Seeds the counter-based perturbation generator. |
 | `random_pert` | `REAL` | `*:*` | `0` | `ALWAYS` | Multiplicative perturbation magnitude. |
 | `perturb_initial_data` | `CCTK_BOOLEAN` | boolean | `no` | not declared | Gates synchronized primitive/potential perturbation after ingress and before the magnetic curl. |
 | `perturb_every_con2prim` | `CCTK_BOOLEAN` | boolean | `no` | `ALWAYS` | Gates conservative perturbation before every scheduled Con2Prim. |

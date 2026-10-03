@@ -92,7 +92,7 @@ Claim evidence:
 ### Local Header Surface
 
 `IllinoisGRMHD.h` includes Cactus argument/parameter headers and `GRHayLib.h`.
-It defines reconstruction indices, a perturbation macro, interpolation and
+It defines reconstruction indices, counter-based perturbation functions, interpolation and
 derivative coefficients/macros, and prototypes for metric face interpolation,
 metric derivatives, staggered symmetry ghost filling, PPM reconstruction loop,
 A-flux RHS, and joint outflow/Lorentz enforcement.
