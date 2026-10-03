@@ -34,6 +34,13 @@ static void set_optical_depths_struct_from_gfs(
   tau->nux [1] = tau_1_nux [index];
 }
 
+static inline int NRPyLeakageET_diagonal_stencil_valid(const CCTK_REAL *stencil) {
+  for(int s=0;s<3;s++)
+    if(!robust_isfinite(stencil[s]) || !(stencil[s] > 0.0))
+      return 0;
+  return 1;
+}
+
 void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
 
   DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_optical_depths_PathOfLeastResistance;
@@ -42,6 +49,9 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
   if(!NRPyLeakageET_ProcessOwnsData()) return;
 
   const CCTK_REAL dxx[3] = {CCTK_DELTA_SPACE(0), CCTK_DELTA_SPACE(1), CCTK_DELTA_SPACE(2)};
+  for(int a=0;a<3;a++)
+    if(!robust_isfinite(dxx[a]) || dxx[a] == 0.0)
+      CCTK_VERROR("Invalid grid spacing %g in direction %d on level %d",dxx[a],a,GetRefinementLevel(cctkGH));
 
 #pragma omp parallel for
   for(int k=cctk_nghostzones[2];k<cctk_lsh[2]-cctk_nghostzones[2];k++) {
@@ -74,8 +84,11 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
           const CCTK_REAL gyyL  = gyy[i_j_k];
           const CCTK_REAL gyzL  = gyz[i_j_k];
           const CCTK_REAL gzzL  = gzz[i_j_k];
-          const CCTK_REAL gdet  = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                     - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          CCTK_REAL gdet;
+          if(!NRPyLeakageET_spatial_metric_valid(gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,&gdet)) {
+            CCTK_VERROR("Invalid spatial metric at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+            continue;
+          }
           const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
           const CCTK_REAL psiL  = exp(phiL);
           const CCTK_REAL psi2L = psiL *psiL;
@@ -94,6 +107,12 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
             const CCTK_REAL stencil_gxx[3] = {gxx[im1_j_k], gxx[i_j_k], gxx[ip1_j_k]};
             const CCTK_REAL stencil_gyy[3] = {gyy[i_jm1_k], gyy[i_j_k], gyy[i_jp1_k]};
             const CCTK_REAL stencil_gzz[3] = {gzz[i_j_km1], gzz[i_j_k], gzz[i_j_kp1]};
+            if(!NRPyLeakageET_diagonal_stencil_valid(stencil_gxx) ||
+               !NRPyLeakageET_diagonal_stencil_valid(stencil_gyy) ||
+               !NRPyLeakageET_diagonal_stencil_valid(stencil_gzz)) {
+              CCTK_VERROR("Invalid diagonal spatial metric in the POLR stencil at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+              continue;
+            }
 
             // Step 3: Read in opacity gfs from main memory
             ghl_neutrino_opacities kappa_i_j_k;
@@ -129,6 +148,10 @@ void NRPyLeakageET_optical_depths_PathOfLeastResistance(CCTK_ARGUMENTS) {
                                                              &tau_i_jm1_k, &tau_i_jp1_k,
                                                              &tau_i_j_km1, &tau_i_j_kp1,
                                                              &kappa_i_j_k  , &tau_i_j_k);
+            if(!NRPyLeakageET_opacities_finite(&tau_i_j_k)) {
+              CCTK_VERROR("Nonfinite optical depth from POLR at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+              continue;
+            }
 
             // Step 6: Write to main memory
             tau_0_nue [i_j_k] = tau_i_j_k.nue [0];

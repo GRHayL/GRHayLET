@@ -33,6 +33,23 @@ static inline int NRPyLeakageET_opacities_finite(const ghl_neutrino_opacities *k
   return 1;
 }
 
+// Returns 1 and stores det(gamma_ij) in *gdet_out if gamma_ij is finite and
+// positive definite (the same conditions as the metric check in the leakage RHS
+// wrapper); otherwise returns 0.
+static inline int NRPyLeakageET_spatial_metric_valid(
+      const CCTK_REAL gxx, const CCTK_REAL gxy, const CCTK_REAL gxz,
+      const CCTK_REAL gyy, const CCTK_REAL gyz, const CCTK_REAL gzz,
+      CCTK_REAL *gdet_out) {
+  const CCTK_REAL gdet = gxx * gyy * gzz + gxy * gyz * gxz + gxz * gxy * gyz
+                       - gxz * gyy * gxz - gxy * gxy * gzz - gxx * gyz * gyz;
+  if(!robust_isfinite(gxx) || !robust_isfinite(gxy) || !robust_isfinite(gxz) ||
+     !robust_isfinite(gyy) || !robust_isfinite(gyz) || !robust_isfinite(gzz) ||
+     !robust_isfinite(gdet) || gxx <= 0 || gxx*gyy - gxy*gxy <= 0 || gdet <= 0)
+    return 0;
+  *gdet_out = gdet;
+  return 1;
+}
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -47,9 +47,30 @@ are not silently adopted. Successful calls must also return finite outputs;
 source increments and proposed accumulated RHS values are checked individually
 before that cell is written. This policy does not roll back other cells before
 termination. It requires the current status-returning GRHayL API and its
-`robust_isfinite` classifier; on binary64 this preserves classification under
-fast-math. Other floating representations follow the classifier's documented
+`robust_isfinite` classifier; on binary64 the classifier preserves
+classification of nonfinite values under fast-math, but the surrounding rate
+arithmetic does not tolerate it (see the floating-point build requirements
+below). Other floating representations follow the classifier's documented
 portable limitations.
+
+Floating-point build requirements. Rate evaluation requires IEEE exceptional-value
+semantics and gradual underflow. Do not build with `-ffast-math`, `-Ofast`,
+`-ffinite-math-only`, `-funsafe-math-optimizations`, `-fassociative-math`,
+`-freciprocal-math`, `-fno-signed-zeros`, `-fno-trapping-math`, Intel `-ftz`, or
+an Intel fast floating-point model. For Intel LLVM, keep `-fp-model=precise
+-no-ftz`, including when linking the executable that contains `main`. GRHayL's
+standalone `configure` enforces this; the Cactus build of GRHayLib does not
+check these flags, so the Cactus option list must satisfy them.
+
+Entropy-controlled recovery. NRPyLeakageET adds its sources only to `Ye_star`,
+`tau`, and `S_tilde_i`; it adds nothing to the evolved entropy. A Con2Prim
+routine that recovers the temperature from the entropy (`Palenzuela1D_entropy`
+when `evolve_temperature=yes`, or `Newman1D_entropy`) can therefore discard the
+leakage energy loss in every cell where it runs. When `ghl_params` is available
+at `CCTK_BASEGRID`, an entropy-controlled primary routine is rejected at startup.
+A reachable entropy-controlled backup routine is accepted with a warning: it
+runs only in cells where all earlier routines failed, and in those cells the
+leakage cooling of that step can be lost.
 
 ## Initialization, boundaries, and recovery
 

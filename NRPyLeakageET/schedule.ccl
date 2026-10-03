@@ -63,6 +63,12 @@ schedule NRPyLeakageET_InitSym at BASEGRID after Lapse_InitSymBound
   LANG : C
 } "Schedule symmetries"
 
+schedule NRPyLeakageET_CheckRecoveryRoutines at CCTK_BASEGRID
+{
+  LANG    : C
+  OPTIONS : GLOBAL
+} "Reject an entropy-controlled primary Con2Prim routine, which receives no leakage source"
+
 schedule group NRPyLeakageET_MoL in MoL_PostRHS
 {
 } "Compute neutrino opacities, optical depths, and add source terms to the MHD RHSs"

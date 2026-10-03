@@ -152,6 +152,39 @@ static void ApplyLeakageSymmetries(CCTK_ARGUMENTS) {
     CCTK_ERROR("Could not validate leakage initialization ghosts and symmetry zones");
 }
 
+static int NRPyLeakageET_routine_uses_entropy(const ghl_con2prim_id_t routine) {
+  return (routine == ghl_con2prim_id_Palenzuela1D_entropy && ghl_params->evolve_temp)
+      || routine == ghl_con2prim_id_Newman1D_entropy;
+}
+
+extern "C"
+void NRPyLeakageET_CheckRecoveryRoutines(CCTK_ARGUMENTS) {
+  // GRHayLib (or the legacy IllinoisGRMHD initializer) creates ghl_params at
+  // CCTK_WRAGH, before this function runs at CCTK_BASEGRID. Skip the check if
+  // a custom host has not created it by then.
+  if(ghl_params == NULL) return;
+
+  // The selected routines cannot change within a run, so check once per process.
+  static int checked = 0;
+  if(checked) return;
+  checked = 1;
+
+  // Every process must abort here, so there is no process-rank test before this.
+  if(NRPyLeakageET_routine_uses_entropy(ghl_params->main_routine))
+    CCTK_VERROR("NRPyLeakageET adds no leakage source to the entropy, but the primary Con2Prim routine %s recovers the temperature from the entropy, so leakage cooling would be discarded. Select an energy-based primary routine such as Palenzuela1D or Newman1D.",
+                ghl_get_con2prim_routine_name(ghl_params->main_routine));
+
+  // Print the backup warning once per run, not once per MPI process.
+  if(CCTK_MyProc(cctkGH) != 0) return;
+
+  for(int n=0;n<3;n++) {
+    if(ghl_params->backup_routine[n] == ghl_con2prim_id_None) break;
+    if(NRPyLeakageET_routine_uses_entropy(ghl_params->backup_routine[n]))
+      CCTK_VWARN(CCTK_WARN_ALERT, "Backup Con2Prim routine %d (%s) recovers the temperature from the entropy, which receives no leakage source. In cells where it runs, the leakage cooling of that step can be discarded.",
+                 n, ghl_get_con2prim_routine_name(ghl_params->backup_routine[n]));
+  }
+}
+
 extern "C"
 void NRPyLeakageET_RegisterVars(CCTK_ARGUMENTS) {
   const char *groups[2] = {"NRPyLeakageET::NRPyLeakageET_opacities",
