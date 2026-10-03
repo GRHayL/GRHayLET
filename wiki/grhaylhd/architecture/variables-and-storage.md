@@ -73,12 +73,12 @@ EOS condition adds `Ye_star[3]`, its RHS, and flux. `evolve_entropy` adds
 objects `ghl_eos` and `ghl_params`; equivalence between CCL conditions and
 external object initialization is not proved locally.
 
-### Interface mismatches
+### Resolved interface mismatches
 
-`InitSymBound.c` asks for `GRHayLHD::Stilde_z` in a dormant equatorial branch,
-while interface state spells the variable `Stildez`. Three recovery variants
-also contain `grhd_conservatives` where interface declares
-`grmhd_conservatives`. These strings are recorded without a runtime claim.
+`InitSymBound.c` now asks for `GRHayLHD::Stildez` in its dormant equatorial
+branch, matching interface state. All four recovery variants now request
+`grmhd_conservatives`, matching the declared group. These spelling corrections
+do not enable equatorial symmetry or establish a runtime result.
 
 ## Caveats
 
@@ -86,8 +86,9 @@ also contain `grhd_conservatives` where interface declares
   not allocation or registration success.
 - Generated Cactus argument macros and external group semantics are not local
   evidence.
-- See [GRH-0003](../contradictions.md#grh-0003) for momentum spelling and
-  [GRH-0002](../contradictions.md#grh-0002) for conservative-group spelling,
+- See resolved [GRH-0003](../contradictions.md#grh-0003) for historical momentum
+  spelling and [GRH-0002](../contradictions.md#grh-0002) for historical
+  conservative-group spelling,
   and [GRH-0004](../contradictions.md#grh-0004) for diagnostic overwrite
   context.
 

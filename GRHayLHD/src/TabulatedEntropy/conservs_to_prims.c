@@ -16,7 +16,7 @@ void GRHayLHD_tabulated_entropy_conservs_to_prims(CCTK_ARGUMENTS) {
   if(CCTK_EQUALS(Symmetry, "equatorial")) {
     // SET SYMMETRY GHOSTZONES ON ALL CONSERVATIVE VARIABLES!
     int ierr = 0;
-    ierr += CartSymGN(cctkGH, "GRHayLHD::grhd_conservatives");
+    ierr += CartSymGN(cctkGH, "GRHayLHD::grmhd_conservatives");
     ierr += CartSymGN(cctkGH, "GRHayLHD::Ye_star");
     ierr += CartSymGN(cctkGH, "GRHayLHD::ent_star");
     // FIXME: UGLY. Filling metric ghostzones is needed for, e.g., Cowling runs.

@@ -101,12 +101,12 @@ preserves that contribution. Static resolutions are recorded at
 [GRH-0014](../contradictions.md#grh-0014); this does not establish a current
 Cactus runtime diagnostic result.
 
-### Dormant symmetry-name mismatch
+### Resolved dormant symmetry-name mismatch
 
-Hybrid uses `GRHayLHD::grmhd_conservatives` in its equatorial block. The other
-three variants visibly request `GRHayLHD::grhd_conservatives`, which differs
-from interface declaration. Only `Symmetry=none` is locally selectable, so
-this remains dormant mismatch rather than supported symmetry behavior.
+All four variants now visibly request `GRHayLHD::grmhd_conservatives` in their
+equatorial blocks, matching the interface declaration. Only `Symmetry=none`
+is locally selectable; correcting the group spelling does not establish
+supported equatorial symmetry behavior.
 
 ## Caveats
 
@@ -115,7 +115,7 @@ this remains dormant mismatch rather than supported symmetry behavior.
 - Absence of explicit Font1D in tabulated files does not exclude fallback
   inside external multi-method implementation.
 - Comments calling second loop deterministic do not prove thread safety.
-- Group-name mismatch: [GRH-0002](../contradictions.md#grh-0002).
+- Resolved group-name mismatch: [GRH-0002](../contradictions.md#grh-0002).
 - Resolved failure-code overwrite: [GRH-0004](../contradictions.md#grh-0004).
 - Resolved code-100 legend: [GRH-0014](../contradictions.md#grh-0014).
 
