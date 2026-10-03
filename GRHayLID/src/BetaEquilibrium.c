@@ -39,7 +39,9 @@ static double GRHayLID_beta_root(const double density, const double temp, const 
           b = mid;
         }
       }
-      CCTK_VERROR("Beta root did not meet residual tolerance %g MeV at rho=%g, T=%g", tolerance, density, temp);
+      const double f_b = GRHayLID_beta_residual(density, b, temp);
+      CCTK_VERROR("Beta root did not meet residual tolerance %g MeV at rho=%g, T=%g: bisection stalled on Ye in [%.17g, %.17g] with residuals %g and %g MeV; check EOS interpolation continuity and the required residual tolerance",
+                  tolerance, density, temp, a, b, f_lower, f_b);
     }
     lower = upper;
     f_lower = f_upper;

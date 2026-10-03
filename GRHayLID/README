@@ -56,8 +56,12 @@ and intentionally replaces those fields after HydroBase_Initial. It solves
 mu_e-mu_n+mu_p=0 at each actual density and beq_temperature, within effective
 Ye/T/rho bounds, with an absolute MeV residual tolerance controlled by
 beq_residual_tolerance (default 1e-8). Exact/tolerance-qualified node roots are
-accepted; a missing root or failed lookup is diagnosed. If several roots
-exist, the lowest-Ye root is chosen. Base chemical potentials are used instead
+accepted; a missing root or failed lookup is diagnosed. The search scans
+Ye intervals in increasing order and accepts tolerance-qualified endpoints
+or a bisection result. Near-node lookup discontinuities can cause an abort.
+Increasing beq_residual_tolerance may permit a return, but relaxes the
+equilibrium residual requirement and must meet the application's accuracy
+requirements. Base chemical potentials are used instead
 of the potentially shifted munu dataset. This requires trustworthy table
 chemical-potential conventions; it does not certify table provenance. Points
 with rho<=1.01*rho_atm are reset to the complete EOS atmosphere, including rho,
