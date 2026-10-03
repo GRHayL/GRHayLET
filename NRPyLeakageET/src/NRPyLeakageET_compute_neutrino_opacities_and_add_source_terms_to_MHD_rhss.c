@@ -80,15 +80,8 @@ void NRPyLeakageET_compute_neutrino_opacities_and_add_source_terms_to_MHD_rhss(C
           CCTK_REAL gyyL        = gyy[index];
           CCTK_REAL gyzL        = gyz[index];
           CCTK_REAL gzzL        = gzz[index];
-          const CCTK_REAL gdet  = (gxxL * gyyL * gzzL
-                                     + gxyL * gyzL * gxzL
-                                     + gxzL * gxyL * gyzL
-                                     - gxzL * gyyL * gxzL
-                                     - gxyL * gxyL * gzzL
-                                     - gxxL * gyzL * gyzL);
-          if(!robust_isfinite(gxxL) || !robust_isfinite(gxyL) || !robust_isfinite(gxzL) ||
-             !robust_isfinite(gyyL) || !robust_isfinite(gyzL) || !robust_isfinite(gzzL) ||
-             !robust_isfinite(gdet) || gxxL <= 0 || gxxL*gyyL-gxyL*gxyL <= 0 || gdet <= 0) {
+          CCTK_REAL gdet;
+          if(!NRPyLeakageET_spatial_metric_valid(gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,&gdet)) {
             CCTK_VERROR("Invalid spatial metric at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
             continue;
           }

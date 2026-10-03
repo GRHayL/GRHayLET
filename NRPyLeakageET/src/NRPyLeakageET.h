@@ -34,8 +34,9 @@ static inline int NRPyLeakageET_opacities_finite(const ghl_neutrino_opacities *k
 }
 
 // Returns 1 and stores det(gamma_ij) in *gdet_out if gamma_ij is finite and
-// positive definite (the same conditions as the metric check in the leakage RHS
-// wrapper); otherwise returns 0.
+// positive definite (checked on the computed leading principal minors);
+// otherwise returns 0 and leaves *gdet_out untouched. Callers own their
+// diagnostic and control flow.
 static inline int NRPyLeakageET_spatial_metric_valid(
       const CCTK_REAL gxx, const CCTK_REAL gxy, const CCTK_REAL gxz,
       const CCTK_REAL gyy, const CCTK_REAL gyz, const CCTK_REAL gzz,
