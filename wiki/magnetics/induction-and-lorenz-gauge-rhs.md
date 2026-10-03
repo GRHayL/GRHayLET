@@ -1,6 +1,6 @@
 # Induction and Lorenz-Gauge RHS
 
-> Status: confirmed · Last reconciled: 07-18-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Magnetics](index.md)
 
 ## Summary
@@ -26,7 +26,21 @@ Claim evidence:
 
 Every family `*_evaluate_fluxes_rhs` has the same magnetic call structure.
 After each directional hydro reconstruction it uses the shared reconstruction
-helper for transverse staggered B and already reconstructed velocities:
+helper for transverse staggered B and already reconstructed velocities
+`vxr/vyr/vzr/vxl/vyl/vzl`. Successful first-loop calls cache speed-limited
+face velocities; failed calls retain the original values. The transverse
+reconstruction does not limit its output velocities, so edge admissibility
+is not guaranteed.
+
+Claim evidence:
+- Claim: Cached velocity inputs reflect successful face limiter calls or restored originals on error; the transverse reconstruction and A-flux assembly add no velocity limiting.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/Hybrid/calculate_fluxes_rhs.c`, `IllinoisGRMHD/src/HybridEntropy/calculate_fluxes_rhs.c`, `IllinoisGRMHD/src/Tabulated/calculate_fluxes_rhs.c`, and `IllinoisGRMHD/src/TabulatedEntropy/calculate_fluxes_rhs.c`, cache writes; registered `IllinoisGRMHD/src/reconstruction_loop.c`, IllinoisGRMHD_reconstruction_loop
+- Corroboration: registered `IllinoisGRMHD/src/A_flux_rhs.c`, IllinoisGRMHD_A_flux_rhs
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
+
+The caller order is:
 
 - after x and y hydro work, call A-flux direction 2 for `Az_rhs`;
 - after y and z hydro work, call A-flux direction 0 for `Ax_rhs`;

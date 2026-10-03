@@ -20,6 +20,8 @@ CCTK_REAL u0 type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoin
 
 #########################################################
 
+CCTK_REAL hybrid_entropy type = GF TAGS='InterpNumTimelevels=1 prolongation="none" checkpoint="no"' "Hybrid/Simple recovery proxy P/rho^(Gamma-1), not physical specific entropy"
+
 # Evolved variables
 CCTK_REAL grmhd_conservatives type = GF Timelevels=3 TAGS='prolongation="ENO"'
 {

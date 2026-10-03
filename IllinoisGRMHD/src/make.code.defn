@@ -4,7 +4,9 @@
 SUBDIRS = Hybrid HybridEntropy Tabulated TabulatedEntropy
 
 # Source files in this directory
-SRCS = A_flux_rhs.c                         \
+SRCS = check_eos_support.c               \
+       enforce_outflow.c                 \
+       A_flux_rhs.c                         \
        A_i_outer_boundaries.c               \
        compute_B_and_Bstagger_from_A.c      \
        compute_metric_derivs.c              \

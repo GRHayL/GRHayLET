@@ -8,24 +8,26 @@ void IllinoisGRMHD_tabulated_perturb_primitives(CCTK_ARGUMENTS) {
   const int jmax = cctk_lsh[1];
   const int kmax = cctk_lsh[2];
 
-  srand(random_seed); // Use srand() as rand() is thread-safe.
 #pragma omp parallel for
   for(int k=0; k<kmax; k++) {
     for(int j=0; j<jmax; j++) {
       for(int i=0; i<imax; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH, i, j, k);
-        rho[index]         *= one_plus_pert(random_pert);
-        press[index]       *= one_plus_pert(random_pert);
-        vx[index]          *= one_plus_pert(random_pert);
-        vy[index]          *= one_plus_pert(random_pert);
-        vz[index]          *= one_plus_pert(random_pert);
-        Y_e[index]         *= one_plus_pert(random_pert);
-        temperature[index] *= one_plus_pert(random_pert);
+        const int gi = cctk_lbnd[0] + i;
+        const int gj = cctk_lbnd[1] + j;
+        const int gk = cctk_lbnd[2] + k;
+        rho[index]         *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 0);
+        press[index]       *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 1);
+        vx[index]          *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 2);
+        vy[index]          *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 3);
+        vz[index]          *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 4);
+        Y_e[index]         *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 5);
+        temperature[index] *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 6);
 
-        phitilde[index] *= one_plus_pert(random_pert);
-        Ax[index]       *= one_plus_pert(random_pert);
-        Ay[index]       *= one_plus_pert(random_pert);
-        Az[index]       *= one_plus_pert(random_pert);
+        phitilde[index] *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 7);
+        Ax[index]       *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 8);
+        Ay[index]       *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 9);
+        Az[index]       *= IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, 10);
       }
     }
   }

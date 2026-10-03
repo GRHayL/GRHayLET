@@ -1,109 +1,81 @@
 # GRHayLib Contract
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
 
-This page inventories the GRHayLib shared selection, header boundary, handle
-fields, and API-call families visibly used by GRHayLID. It does not establish
-GRHayLib initialization, ABI compatibility, handle contents, EOS-table
-discovery, algorithms, error semantics, or numerical results.
+This page owns the local declarations and visible dataflow described below.
+Only GRHayLID sources are domain evidence. Framework execution, library
+semantics, production-table provenance, and numerical validation remain
+out of scope.
 
 ## Summary
 
-Parameter CCL shares GRHayLib and uses its `EOS_type` keyword. The local header
-includes `GRHayLib.h`; interface CCL also declares that include. The claim
-table anchors representative handle reads and `ghl_*` calls in beta-equilibrium
-and tabulated-entropy functions; no complete per-unit usage count is asserted.
-Local build configuration declares HDF5 as a requirement. All called-library
-behavior remains external.
+Local CCL shares EOS_type from GRHayLib, includes GRHayLib.h, and requires
+HDF5. The header rejects non-eight-byte Cactus real configurations. All
+output-pointer EOS calls now use double temporaries. Beta uses interpolated
+base potentials at each actual rho/T rather than the cached-root APIs.
 
 ## Mode Applicability
 
-| Applicability | Visible GRHayLib boundary |
+| Applicability | Local surface |
 | --- | --- |
-| Common | Shared `EOS_type`, `GRHayLib.h`, `ghl_eos`, error-code names, and declared HDF5 requirement. |
-| HydroTest1D | Reads `Gamma_ppoly` and calls a Hybrid polytropic-index helper. |
-| IsotropicGas | Calls a Tabulated pressure/energy-from-temperature helper once before grid writes. |
-| ConstantDensitySphere | Calls that helper for interior and exterior state. |
-| BetaEquilibrium | Reads EOS kind, table bounds, atmosphere fields, and calls beta-equilibrium/Tabulated/error helpers. |
-| Entropy/Hybrid | Calls a Hybrid entropy helper. |
-| Entropy/Tabulated | Calls Tabulated bounds and pressure/energy/entropy helpers. |
+| Common | External initialized ghl_eos and EOS dispatch remain prerequisites. |
+| HydroTest1D | Simple metadata or Hybrid cold/energy helpers. |
+| BetaEquilibrium | Base-potential and pressure/energy APIs. |
+| Entropy/Hybrid | Native entropy helper. |
+| Entropy/Tabulated | Bounds and pressure/energy/entropy helpers. |
 
 ## Claim-Evidence
 
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
-| `INT-GHL-01` | Parameter CCL shares GRHayLib and uses the shared `EOS_type` keyword without declaring its domain or default locally. | declared | Shared-keyword declaration | `ccl:GRHayLID/param.ccl#parameter=EOS_type` |
-| `INT-GHL-02` | Local header visibly includes `GRHayLib.h`. | visible-implementation | Include directive | `macro:GRHayLID/src/GRHayLID.h#include=GRHayLib.h` |
-| `INT-GHL-03` | Build configuration declares HDF5 as a requirement. | declared | Local configuration input | `ccl:GRHayLID/configuration.ccl#requirement=HDF5` |
-| `INT-GHL-04` | Beta-equilibrium implementation visibly reads `ghl_eos` fields and calls several `ghl_*` APIs with local error-code checks. | visible-implementation | Beta-equilibrium function | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_BetaEquilibrium` |
-| `INT-GHL-05` | Semantics of the BetaEquilibrium calls, handle fields, and error helpers are delegated and unverified locally. | out-of-scope | External boundary at local function | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_BetaEquilibrium` |
-| `INT-GHL-06` | Tabulated entropy implementation visibly invokes bounds and pressure/energy/entropy call families. | visible-implementation | Tabulated entropy function | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_tabulated` |
-| `INT-GHL-07` | Semantics and mutation guarantees of those Tabulated calls are delegated and unverified locally. | out-of-scope | External boundary at local function | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_tabulated` |
+| `GRHAYLIB-CONTRACT-01` | EOS_type is used from GRHayLib rather than declared locally. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=EOS_type` |
+| `GRHAYLIB-CONTRACT-02` | Header includes GRHayLib.h and enforces CCTK_REAL_PRECISION_8. | visible-implementation | Named local source | `macro:GRHayLID/src/GRHayLID.h#include=GRHayLib.h` |
+| `GRHAYLIB-CONTRACT-03` | HDF5 is a build requirement. | declared | Named local source | `ccl:GRHayLID/configuration.ccl#requirement=HDF5` |
+| `GRHAYLIB-CONTRACT-04` | Beta calls the base-potential API and checks its status/finiteness. | visible-implementation | Named local source | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_residual` |
+| `GRHAYLIB-CONTRACT-05` | Tabulated entropy uses double temporaries and checks the returned status. | visible-implementation | Named local source | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_tabulated` |
+| `GRHAYLIB-CONTRACT-06` | External EOS handle metadata, initialization, ABI, and table semantics are unverified locally. | out-of-scope | Named local source | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_BetaEquilibrium` |
 
 ## Details
 
-### Selection and include boundary
-
-`param.ccl` uses rather than redeclares `EOS_type`. Local schedules compare it
-with `Hybrid` and `Tabulated`; setup bodies also compare it with `Tabulated`.
-The domain, default, normalization, and relation to `ghl_eos->eos_type` are not
-owned locally. `src/GRHayLID.h` includes `GRHayLib.h`, while interface CCL
-declares `USES INCLUDE: GRHayLib.h`; neither declaration proves include
-discovery or successful compilation.
-
-### Visible handle fields
-
-Local code reads these fields and no semantics beyond the reads are inferred:
-
-- `Gamma_ppoly` in one-dimensional hydro setup;
-- `eos_type`, `table_T_min`, and `table_T_max` in beta equilibrium; and
-- `rho_atm`, `press_atm`, `eps_atm`, `Y_e_atm`, and `T_atm` in its atmosphere
-  branch.
-
-### Visible call families
-
-| Family | Local names |
+| Local API family | Visible names |
 | --- | --- |
-| Hybrid lookup/entropy | `ghl_hybrid_find_polytropic_index`, `ghl_hybrid_compute_entropy_function` |
-| Tabulated pressure/energy/entropy | `ghl_tabulated_compute_P_eps_from_T`, `ghl_tabulated_compute_P_eps_S_from_T` |
-| Tabulated bounds and beta equilibrium | `ghl_tabulated_enforce_bounds_rho_Ye_T`, `ghl_tabulated_compute_Ye_of_rho_beq_constant_T`, `ghl_tabulated_compute_Ye_from_rho` |
-| Errors | `ghl_abort_if_error`, `ghl_error_codes_t`, `ghl_success` |
+| Hybrid cold/energy | ghl_hybrid_compute_P_cold_and_eps_cold; ghl_hybrid_compute_epsilon |
+| Native entropy | ghl_hybrid_compute_entropy_function |
+| Tabulated thermodynamics | ghl_tabulated_compute_P_eps_from_T; ghl_tabulated_compute_P_eps_S_from_T |
+| Base chemical potentials | ghl_tabulated_compute_P_eps_muhat_mue_mup_mun_from_T |
+| Effective bounds | ghl_tabulated_enforce_bounds_rho_Ye_T |
 
-Names prove only visible local calls or comparisons. Return contracts,
-mutation rules, supported values, table contents, formulas, and accuracy are
-not present in this source tree.
+Local code checks statuses against ghl_success and stages all EOS output
+pointers through doubles. The explicit precision requirement also bounds the
+GRHayLib parameter-array interface; it does not establish a complete Cactus
+build. No pointer cast is used as a representation bridge.
 
-### HDF5 boundary
-
-`configuration.ccl` consists of `requires HDF5` and lacks a trailing newline.
-The declaration is still locatable. It proves a checked-in build requirement,
-not HDF5 discovery, linkage, table availability, or a successful build.
+The local beta solver reads effective rho/Ye/T bounds, atmosphere metadata,
+N_Ye, and table_Y_e. It no longer calls the cached-root builder or its density
+interpolator and does not modify shared beta cache arrays. The selected library
+must initialize the required function pointers, table nodes, and bounds.
+Physical provenance and correctness of base potentials are external obligations.
 
 ## Caveats
 
-- C symbol/field names do not establish library implementation or ABI.
-- `CCTK_ERROR`, `CCTK_VERROR`, and `ghl_abort_if_error` termination semantics
-  are external.
-- A build requirement does not establish dependency availability.
-- No external GRHayLib or HDF5 source is admitted as GRHayLID domain evidence.
+Storage and schedule declarations do not prove allocation or execution.
+Local guards and calls do not establish external error or interpolation
+semantics. No checked-in GRHayLID test/parfile/oracle validates this path.
 
 ## Sources
 
-- [Shared parameter declaration](../../../GRHayLID/param.ccl)
-- [Local common header](../../../GRHayLID/src/GRHayLID.h)
-- [Build requirement](../../../GRHayLID/configuration.ccl)
-- [One-dimensional hydro calls](../../../GRHayLID/src/1D_tests_hydro_data.c)
-- [IsotropicGas calls](../../../GRHayLID/src/IsotropicGas.c)
-- [ConstantDensitySphere calls](../../../GRHayLID/src/ConstantDensitySphere.c)
-- [Beta-equilibrium calls](../../../GRHayLID/src/BetaEquilibrium.c)
-- [Entropy calls](../../../GRHayLID/src/ComputeEntropy.c)
+- [param.ccl](../../../GRHayLID/param.ccl)
+- [GRHayLID.h](../../../GRHayLID/src/GRHayLID.h)
+- [configuration.ccl](../../../GRHayLID/configuration.ccl)
+- [BetaEquilibrium.c](../../../GRHayLID/src/BetaEquilibrium.c)
+- [ComputeEntropy.c](../../../GRHayLID/src/ComputeEntropy.c)
 
 ## Related Pages
 
-- [HydroBase Keyword Extensions](hydrobase-keyword-extensions.md)
-- [Parameters and Configurations](parameters-and-configurations.md)
-- [Beta Equilibrium](../initial-data/beta-equilibrium.md)
-- [Entropy Computation](../initial-data/entropy-computation.md)
+- [Keyword Extensions](hydrobase-keyword-extensions.md)
+- [Parameters](parameters-and-configurations.md)
+- [Beta](../initial-data/beta-equilibrium.md)
+- [Entropy](../initial-data/entropy-computation.md)

@@ -1,6 +1,6 @@
 # Test Harness and Oracles
 
-> Status: confirmed · Last reconciled: 07-18-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Validation](index.md)
 
 ## Summary
@@ -30,7 +30,6 @@ Thorn-wide tolerances are `ABSTOL 1e-11` and `RELTOL 1e-11`.
 
 | Declaration | State | Process setting |
 | --- | --- | --- |
-| `TEST TOV` | active | no test-specific `NPROCS` |
 | `TEST Balsara1` | active | `NPROCS 1` |
 | `TEST Balsara2` | active | `NPROCS 1` |
 | `TEST Balsara3` | active | `NPROCS 1` |
@@ -75,11 +74,17 @@ regenerate or overwrite them.
 
 - Balsara4 has example and top-level test `.par` files, but its `TEST` block
   is commented and no `test/Balsara4/` oracle directory is visible.
-- `test.ccl` declares `TEST TOV`, while visible top-level file and fixture
-  directory are named `magnetizedTOV`. This tree does not define Cactus test
-  discovery/name mapping, so this is naming uncertainty—not a claimed harness
-  failure or contradiction. Resolution needs authorized harness enumeration
-  in configured Cactus environment.
+- `test.ccl` has no block for `magnetizedTOV`; that case uses the thorn-wide
+  `ABSTOL 1e-11` / `RELTOL 1e-11` and has no test-specific `NPROCS`.
+  This declaration does not establish harness discovery or execution.
+
+Claim evidence:
+- Claim: No magnetizedTOV-specific tolerance or NPROCS block is declared; no harness execution is inferred.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/test/test.ccl`, thorn-wide tolerances and TEST rows
+- Corroboration: registered `IllinoisGRMHD/test/magnetizedTOV.par`, checked-in case name
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 - No checked-in command log, environment record, revision-specific result, or
   current build output is in scope. Thus no relation is labeled “Validated by.”
 

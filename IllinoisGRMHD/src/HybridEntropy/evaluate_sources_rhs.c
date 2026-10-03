@@ -42,7 +42,7 @@ void IllinoisGRMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               kyy[index], kyz[index], kzz[index],
               &curv);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.rho   = rho[index];
         prims.press = press[index];
         prims.vU[0] = vx[index];
@@ -51,7 +51,7 @@ void IllinoisGRMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
         prims.BU[0] = Bx_center[index];
         prims.BU[1] = By_center[index];
         prims.BU[2] = Bz_center[index];
-        prims.entropy = entropy[index];
+        prims.entropy = hybrid_entropy[index];
 
         bool speed_limited = false;
         ghl_error_codes_t error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric, &prims, &speed_limited);
@@ -84,7 +84,7 @@ void IllinoisGRMHD_hybrid_entropy_evaluate_sources_rhs(CCTK_ARGUMENTS) {
               gyy, gyz, gzz,
               &ADM_metric_derivs_z);
 
-        ghl_conservative_quantities cons_source;
+        ghl_conservative_quantities cons_source = {0};
         ghl_calculate_source_terms(
               ghl_eos, &prims, &ADM_metric,
               &ADM_metric_derivs_x,

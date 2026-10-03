@@ -30,6 +30,8 @@ void IllinoisGRMHD_InitSymBound(CCTK_ARGUMENTS)
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Ay");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::Az");
     SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::phitilde");
+    if(ghl_params->evolve_entropy && ghl_eos->eos_type != ghl_eos_tabulated)
+      SetCartSymVN(cctkGH, sym, "IllinoisGRMHD::hybrid_entropy");
     if(ghl_params->evolve_entropy)
       SetCartSymGN(cctkGH, sym, "IllinoisGRMHD::ent_star");
     if(ghl_eos->eos_type == ghl_eos_tabulated)

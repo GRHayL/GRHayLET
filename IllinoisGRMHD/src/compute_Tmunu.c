@@ -24,7 +24,7 @@ void IllinoisGRMHD_compute_Tmunu(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.rho   = rho[index];
         prims.press = press[index];
         prims.eps   = eps[index];

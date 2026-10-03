@@ -1,6 +1,6 @@
 # GRHayLID Source Registry
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 
 Each row owns one exact repository path or one non-overlapping pattern.
 Expansion is from repository root; Family is grouping metadata only.

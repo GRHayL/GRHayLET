@@ -58,7 +58,7 @@ conversion routine: `interface.ccl` supplies semantic declaration
 quantity to copy. Centered and staggered B are built later from A by
 `IllinoisGRMHD_compute_B_and_Bstagger_from_A`.
 
-HydroBase density, pressure, internal energy, entropy, electron fraction, and
+HydroBase density, pressure, internal energy, tabulated entropy, electron fraction, and
 temperature are used directly by scheduled evolution variants; this ingress
 routine does not duplicate them.
 
@@ -70,41 +70,67 @@ routine does not duplicate them.
 vel_HydroBase^i = (v_Illinois^i + shift^i) / lapse
 ```
 
-It computes `w_lorentz` from ADM spatial metric and converted velocity. It
-also writes centered B to `HydroBase::Bvec`, multiplying by `(4*pi)^(1/2)`
-when `rescale_magnetics=yes`, or by one otherwise.
+It computes `w_lorentz` from ADM metric and converted velocity and copies
+canonical normalized centered B to `HydroBase::Bvec`. The import compatibility
+switch does not multiply exported B by `sqrt(4*pi)`.
 
-Locally declared call sites are:
+The mandatory converter performs no cadence arithmetic. Leakage RHS and legacy
+initialization call it directly. `IllinoisGRMHD_convert_HydroBase_diagnostics`
+handles analysis cadence, including the retained old-thorn parameter lookup,
+and guards nonpositive cadence and an unreadable old-thorn parameter before
+modulo. With `NRPyLeakageET` active it bypasses cadence and converts at every
+analysis call. Modern initial conversion remains conditional on a positive
+local cadence or active leakage. Modern guarded occurrences are excluded when
+the legacy initializer owns the corresponding call, avoiding duplicate
+scheduling.
 
 - initial conversion after `IllinoisGRMHD_conservs_to_prims`, present when
   local `Convert_to_HydroBase_every` is positive or leakage is active;
-- `CCTK_ANALYSIS`, with declared ordering before named diagnostics, also
-  present when cadence is positive or leakage is active, before leakage luminosities;
+- `CCTK_ANALYSIS` through the diagnostic wrapper, with declared ordering before
+  leakage luminosities and the named diagnostics, present under the same
+  condition;
 - after flux RHS evaluation when thorn `NRPyLeakageET` is active;
-- two equivalent initial/analysis sites inside retained
-  `ID_converter_ILGRMHD` compatibility gate.
+- two sites inside retained `ID_converter_ILGRMHD` compatibility gate: initial
+  conversion calls the mandatory converter and analysis calls the wrapper,
+  ordered before leakage luminosities.
 
-With NRPyLeakageET active, the routine refreshes velocity, Lorentz factor,
-and centered magnetic fields at every scheduled call, independently of
-local or legacy diagnostic cadence. Otherwise it uses the legacy cadence
-when `Convert_to_HydroBase` is active and guards nonpositive cadence before
-modulo. All conversion declarations, including the leakage RHS hook, include
-spatial metric and centered magnetic reads plus `vel`, `w_lorentz`, and
-`Bvec` writes. These are local declarations and visible control flow;
-coupled stage freshness and leakage internals remain unverified here.
+Every converter occurrence declares metric, lapse, shift, velocity, and B reads
+and velocity, Lorentz-factor, and Bvec writes. Tmunu's additive destination arrays
+are also declared as reads at its own occurrence. These declarations do not
+prove communication/validity behavior in any driver. Coupled stage freshness
+and leakage internals remain unverified here.
 
 Claim evidence:
+- Claim: Mandatory and diagnostic conversion are separate, canonical B export is independent of legacy import, and schedule access includes actual fields.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c, both entry points`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
-- Claim: With leakage active, the converter bypasses local and legacy diagnostic cadence; otherwise it guards nonpositive cadence before integer remainder. This closes the inspected modulo-zero path without establishing coupled execution or stage freshness.
+Claim evidence:
+- Claim: With leakage active, the diagnostic wrapper bypasses local and legacy diagnostic cadence; otherwise it guards an unreadable legacy parameter and nonpositive cadence before integer remainder. This closes the inspected modulo-zero path without establishing coupled execution or stage freshness.
 - Role: descriptive behavior
-- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::convert_IllinoisGRMHD_to_HydroBase`, leakage-active bypass and guarded cadence branch
+- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::IllinoisGRMHD_convert_HydroBase_diagnostics`, leakage-active bypass and guarded cadence branch
 - Corroboration: `IllinoisGRMHD/param.ccl::Convert_to_HydroBase_every` default zero and `IllinoisGRMHD/schedule.ccl::NRPyLeakageET` RHS/analysis call sites
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
 - Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=nonpositive cadence guard inspected-not-run; options=leakage-active bypass and leakage-inactive local/legacy cadence; date=10-02-2026`
 
-ThornGuide recommends matching conversion cadence to diagnostics and says
-more frequent copying slows a simulation. This is attributed design advice,
-not a performance measurement made by this KB.
+
+IllinoisGRMHD conservatively rejects any active `smallbPoynET` at startup,
+including disabled diagnostics and locally modified consumers, until a separately
+owned canonical-Bvec consumer update is integrated and verified. Removing it
+from `ActiveThorns` is the supported route in this checkout; changing import
+normalization or export cadence cannot bypass the restriction. No coupled
+schedule execution or external consumer correctness is established here.
+
+Claim evidence:
+- Claim: The local startup check rejects active smallbPoynET independently of export cadence and legacy import normalization; this is a conservative restriction, not consumer-version detection.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_check_HydroBase_diagnostics`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_check_HydroBase_diagnostics` at `CCTK_WRAGH`; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=unconditional active-thorn restriction; date=10-02-2026`
 
 ### Tmunu handoff
 
@@ -124,6 +150,20 @@ For every local grid point, routine:
 
 This establishes additive local writes, not stress-energy initialization,
 external tensor conventions, or runtime execution.
+
+### Hybrid entropy boundary
+
+Hybrid/Simple recovery uses `IllinoisGRMHD::hybrid_entropy`, not physical
+specific entropy. Its publication sites set HydroBase entropy to NaN to mark
+that diagnostic unavailable; tabulated entropy evolution is rejected at startup.
+
+Claim evidence:
+- Claim: Hybrid/Simple proxy values are kept out of the physical HydroBase entropy field.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/HybridEntropy/prims_to_conservs.c, primitive publication`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

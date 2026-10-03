@@ -6,4 +6,5 @@ SRCS = 1D_tests_hydro_data.c    \
        BetaEquilibrium.c        \
        ComputeEntropy.c         \
        ConstantDensitySphere.c  \
-       IsotropicGas.c
+       IsotropicGas.c          \
+       ParamCheck.c
