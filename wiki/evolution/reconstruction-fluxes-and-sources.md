@@ -1,6 +1,6 @@
 # Reconstruction, Fluxes, and Sources
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -54,14 +54,18 @@ y, and z. For a direction, `*_calculate_flux_dir_rhs`:
    permutation, characteristic-speed function, and family/direction HLLE
    function;
 2. reconstructs all velocity components with six-point PPM stencils, using
-   pressure and normal velocity to compute flattening inputs;
+   pressure and normal velocity to compute flattening inputs; interpolates the
+   face metric and attempts velocity limiting before caching for induction,
+   computing `u0` on success; failed attempts retain the unlimited values
+   without aborting in this wider loop;
 3. interpolates lapse, shift, and metric to the face through
    `IllinoisGRMHD_interpolate_metric_to_face`, whose `COMPUTE_FCVAL` uses
    coefficients `-0.0625, 0.5625, 0.5625, -0.0625`;
 4. reconstructs rho with the steepening form, plus pressure, two transverse
    centered-B components, and family extras; the normal B comes from the
    densitized staggered value divided by face `sqrt_detgamma`;
-5. limits left/right velocity, calls the selected characteristic-speed and
+5. limits left/right velocity again to compute `u0` (with possible roundoff
+   adjustments), checks the returned status, calls the selected characteristic-speed and
    HLLE routines, and writes face fluxes; and
 6. adds `(flux[index] - flux[indp1]) / delta` to rho, tau, momentum, and
    enabled entropy/electron-fraction RHS arrays.
@@ -69,9 +73,19 @@ y, and z. For a direction, `*_calculate_flux_dir_rhs`:
 Hybrid families calculate an effective Gamma locally for density steepening.
 Tabulated families pass `1.0`; reconstruct `Y_e`, and optionally entropy; seed
 face temperature from the current point; enforce rho/`Y_e`/pressure bounds;
-then locally call the matching pressure-to-thermodynamics routine. Entropy
+then locally call the matching pressure-to-thermodynamics routine. Tabulated
+retries a failed inverse with donor rho/`Y_e`/pressure/temperature before
+applying the abort policy; TabulatedEntropy has no donor retry. Entropy
 families carry entropy flux, and tabulated families carry electron-fraction
 flux.
+
+Claim evidence:
+- Claim: All four directional calculators attempt face-velocity limiting before caching; failed wider-loop calls restore original values, hydro calls check their limiter errors, and transverse reconstruction adds no limiter.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/Hybrid/calculate_fluxes_rhs.c`, `IllinoisGRMHD/src/HybridEntropy/calculate_fluxes_rhs.c`, `IllinoisGRMHD/src/Tabulated/calculate_fluxes_rhs.c`, and `IllinoisGRMHD/src/TabulatedEntropy/calculate_fluxes_rhs.c`, first and second loops
+- Corroboration: registered `IllinoisGRMHD/src/reconstruction_loop.c`, IllinoisGRMHD_reconstruction_loop
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ### Shared reconstruction and induction handoff
 
@@ -79,11 +93,35 @@ flux.
 used only for staggered B and already reconstructed velocities. The family
 flux callers reuse it for the second, transverse reconstruction required by
 the A RHS, retain `cmin/cmax`, and invoke `IllinoisGRMHD_A_flux_rhs` between
-directional hydro stages. Details belong to
+directional hydro stages. Successful first-loop limiter calls cache limited
+face velocities; failed calls retain original values. The second, transverse
+reconstruction has no subsequent velocity limiter. Details belong to
 [Induction and Lorenz-Gauge RHS](../magnetics/induction-and-lorenz-gauge-rhs.md).
 
 This page makes no untested claim about convergence, thread safety, numerical
 stability, or external GRHayL algorithms.
+
+### Defined derivative carriers and checked face thermodynamics
+
+`IllinoisGRMHD_compute_metric_derivs` initializes a raw derivative carrier with
+lapse, shift, and symmetric covariant spatial-metric derivatives. It never
+passes that tensor to physical-metric inversion. The Tabulated face kernel
+checks each pressure-to-thermal inverse return status before characteristic
+speed/flux calls; a failed reconstructed-state inversion retries with the
+donor cell's density, `Y_e`, pressure, and temperature and aborts only if that
+also fails. The right donor is the current cell; the left donor is the cell
+one point lower in the flux direction. TabulatedEntropy aborts on its first
+inversion failure.
+Hybrid entropy reconstruction reads the thorn proxy; the compiled tabulated
+entropy kernel remains guarded out at startup.
+
+Claim evidence:
+- Claim: Derivative preparation avoids physical-metric inversion; Tabulated retries a failed face inverse with the matching donor thermal state before aborting, while TabulatedEntropy aborts on its first inverse failure; both check errors before flux evaluation.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/compute_metric_derivs.c`, `IllinoisGRMHD_compute_metric_derivs`; registered `IllinoisGRMHD/src/Tabulated/calculate_fluxes_rhs.c`, `IllinoisGRMHD_tabulated_calculate_flux_dir_rhs`; registered `IllinoisGRMHD/src/TabulatedEntropy/calculate_fluxes_rhs.c`, `IllinoisGRMHD_tabulated_entropy_calculate_flux_dir_rhs`
+- Corroboration: none available for the local status-check policy; the two registered face kernels expose their distinct retry/abort branches, and the derivative helper contains the raw assignments
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

@@ -14,12 +14,27 @@ if (CCTK_Equals(EOS_type, "Tabulated")) {
 }
 
 if (evolve_entropy) {
+  if (!CCTK_Equals(EOS_type, "Tabulated")) {
+    STORAGE: hybrid_entropy
+  }
   STORAGE: ent_star[3], ent_star_rhs, ent_star_flux
 }
 
 #########################################################
 # BASIC SETUP
 #########################################################
+schedule IllinoisGRMHD_check_HydroBase_diagnostics at CCTK_WRAGH
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Reject unsupported smallbPoynET pairing with canonical HydroBase Bvec"
+
+schedule IllinoisGRMHD_check_eos_support at CCTK_WRAGH after (GRHayLib_initialize IllinoisGRMHD_backward_compatible_initialize)
+{
+  LANG: C
+  OPTIONS: GLOBAL
+} "Validate supported entropy contracts and install stable Simple thermodynamics"
+
 # Registration of MoL RHS, symmetries, and boundary conditions (for PreSync)
 schedule IllinoisGRMHD_RegisterVars in MoL_Register
 {
@@ -60,7 +75,7 @@ schedule convert_HydroBase_to_IllinoisGRMHD in IllinoisGRMHD_Prim2Con2Prim
 } "Convert HydroBase initial data (ID) to IllinoisGRMHD variables"
 
 if(perturb_initial_data) {
-  schedule group IllinoisGRMHD_perturb_primitives in IllinoisGRMHD_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHD before IllinoisGRMHD_prims_to_conservs
+  schedule group IllinoisGRMHD_perturb_primitives in IllinoisGRMHD_Prim2Con2Prim after convert_HydroBase_to_IllinoisGRMHD before IllinoisGRMHD_compute_B_and_Bstagger_from_A
   {
   } "perturb initial primitive data"
 }
@@ -86,7 +101,7 @@ schedule group IllinoisGRMHD_conservs_to_prims in IllinoisGRMHD_Prim2Con2Prim af
 {
 } "Compute primitive variables from conservatives"
 
-if(Convert_to_HydroBase_every) {
+if(Convert_to_HydroBase_every && !CCTK_IsThornActive("ID_converter_ILGRMHD")) {
   schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_Prim2Con2Prim after IllinoisGRMHD_conservs_to_prims
   {
     LANG: C
@@ -127,7 +142,7 @@ schedule IllinoisGRMHD_sync in IllinoisGRMHD_Con2Prim as IllinoisGRMHD_sync_cons
   SYNC: grmhd_conservatives, Ye_star, ent_star, Ax, Ay, Az, phitilde
 } "Sync conservative variable ghost zones for c2p routine"
 
-schedule IllinoisGRMHD_A_i_outer_boundaries in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_sync
+schedule IllinoisGRMHD_A_i_outer_boundaries in IllinoisGRMHD_Con2Prim after IllinoisGRMHD_sync_conservatives
 {
   LANG: C
   READS:  phitilde, Ax, Ay, Az
@@ -171,7 +186,10 @@ if(update_Tmunu) {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
             HydroBase::rho, HydroBase::press, HydroBase::eps,
-            grmhd_velocities, u0, grmhd_B_center
+            grmhd_velocities, u0, grmhd_B_center,
+            TmunuBase::stress_energy_scalar(everywhere),
+            TmunuBase::stress_energy_vector(everywhere),
+            TmunuBase::stress_energy_tensor(everywhere)
     WRITES: TmunuBase::stress_energy_scalar(everywhere),
             TmunuBase::stress_energy_vector(everywhere),
             TmunuBase::stress_energy_tensor(everywhere)
@@ -199,9 +217,10 @@ if(CCTK_IsThornActive("NRPyLeakageET"))
   schedule convert_IllinoisGRMHD_to_HydroBase in IllinoisGRMHD_RHS after IllinoisGRMHD_evaluate_fluxes_rhs
   {
     LANG: C
-    READS:  ADMBase::lapse, ADMBase::shift,
-            grmhd_velocities
-    WRITES: HydroBase::vel(everywhere)
+    READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
+            grmhd_velocities, grmhd_B_center
+    WRITES: HydroBase::vel(everywhere), HydroBase::w_lorentz(everywhere),
+            HydroBase::Bvec(everywhere)
   } "Convert needed HydroBase variables for NRPyLeakage"
 }
 
@@ -209,7 +228,7 @@ schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS af
 {
   LANG: C
   READS:  ADMBase::lapse, ADMBase::shift, ADMBase::metric,
-          phitilde, Ax, Ay, Az
+          phitilde, Ax, Ay, Az, EM_rhs(interior)
   WRITES: grmhd_primitives_reconstructed_temps, EM_rhs
 } "Evaluate phitilde RHS and gauge contributions to A_i RHS"
 
@@ -217,8 +236,8 @@ schedule IllinoisGRMHD_evaluate_phitilde_and_A_gauge_rhs in IllinoisGRMHD_RHS af
 # Set HydroBase variables for analysis
 #########################################################
 
-if(Convert_to_HydroBase_every) {
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+if(Convert_to_HydroBase_every && !CCTK_IsThornActive("ID_converter_ILGRMHD")) {
+  schedule IllinoisGRMHD_convert_HydroBase_diagnostics at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
@@ -240,11 +259,11 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press, HydroBase::eps,
-              HydroBase::entropy, grmhd_velocities, grmhd_B_center
-      WRITES: u0(everywhere), grmhd_velocities(everywhere),
+              grmhd_velocities, grmhd_B_center
+      WRITES: HydroBase::entropy(everywhere), u0(everywhere), grmhd_velocities(everywhere),
               grmhd_conservatives(everywhere), ent_star(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
-              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+              HydroBase::eps(everywhere), hybrid_entropy(everywhere)
       SYNC: grmhd_conservatives, ent_star
     } "Entropy+Hybrid version of IllinoisGRMHD_prims_to_conservs"
 
@@ -254,10 +273,11 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               grmhd_conservatives, ent_star, grmhd_B_center
-      WRITES: grmhd_conservatives(everywhere), ent_star(everywhere),
+      READS: HydroBase::rho, HydroBase::press, HydroBase::eps, grmhd_velocities
+      WRITES: HydroBase::entropy(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere),
               u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere),
-              HydroBase::eps(everywhere), HydroBase::entropy(everywhere)
+              HydroBase::eps(everywhere), hybrid_entropy(everywhere)
     } "Entropy+Hybrid version of IllinoisGRMHD_conservs_to_prims"
     
     schedule IllinoisGRMHD_hybrid_entropy_hydro_outer_boundaries in IllinoisGRMHD_hydro_outer_boundaries
@@ -265,20 +285,20 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               HydroBase::rho, HydroBase::press,
-              HydroBase::entropy, grmhd_velocities,
+              hybrid_entropy, grmhd_velocities,
               grmhd_B_center
-      WRITES: u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere),
+      WRITES: HydroBase::entropy(everywhere), u0(everywhere), grmhd_conservatives(everywhere), ent_star(everywhere),
               grmhd_velocities(everywhere), HydroBase::rho(everywhere),
               HydroBase::press(everywhere), HydroBase::eps(everywhere),
-              HydroBase::entropy(everywhere)
-      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, HydroBase::entropy
+              hybrid_entropy(everywhere)
+      SYNC:   grmhd_velocities, HydroBase::rho, HydroBase::press, HydroBase::eps, hybrid_entropy
     } "Entropy+Hybrid version of IllinoisGRMHD_hydro_outer_boundaries"
 
     schedule IllinoisGRMHD_hybrid_entropy_evaluate_sources_rhs in IllinoisGRMHD_evaluate_sources_rhs
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift, ADMBase::curv,
-              HydroBase::rho, HydroBase::press, HydroBase::entropy,
+              HydroBase::rho, HydroBase::press, hybrid_entropy,
               grmhd_velocities, grmhd_B_center
       WRITES: grmhd_conservatives_rhs, ent_star_rhs, EM_rhs
     } "Entropy+Hybrid version of IllinoisGRMHD_evaluate_sources_rhs"
@@ -287,7 +307,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     {
       LANG: C
       READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
-              HydroBase::rho, HydroBase::press, HydroBase::entropy, grmhd_velocities,
+              HydroBase::rho, HydroBase::press, hybrid_entropy, grmhd_velocities,
               grmhd_B_center, grmhd_B_stagger, phitilde, Ax, Ay, Az,
               grmhd_conservatives_rhs(interior), ent_star_rhs(interior), EM_rhs(interior)
       WRITES: grmhd_flux_temps, grmhd_conservatives_rhs, ent_star_flux, ent_star_rhs,
@@ -298,11 +318,12 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
     {
       LANG: C
       READS:  HydroBase::rho, HydroBase::press, HydroBase::eps,
-              HydroBase::entropy, grmhd_velocities,
+              grmhd_velocities,
               phitilde, Ax, Ay, Az
       WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
-              HydroBase::entropy, grmhd_velocities(everywhere),
+              grmhd_velocities(everywhere),
               phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+      SYNC: Ax, Ay, Az, phitilde
     } "Entropy+Hybrid version of IllinoisGRMHD_perturb_primitives"
 
     schedule IllinoisGRMHD_hybrid_entropy_perturb_conservatives in IllinoisGRMHD_perturb_conservatives
@@ -331,6 +352,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               grmhd_conservatives, grmhd_B_center
+      READS: HydroBase::rho, HydroBase::press, HydroBase::eps, grmhd_velocities
       WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
               u0(everywhere), grmhd_velocities(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
@@ -375,6 +397,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
               HydroBase::eps(everywhere), grmhd_velocities(everywhere),
               phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+      SYNC: Ax, Ay, Az, phitilde
     } "Hybrid version of IllinoisGRMHD_perturb_primitives"
 
     schedule IllinoisGRMHD_hybrid_perturb_conservatives in IllinoisGRMHD_perturb_conservatives
@@ -408,6 +431,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               grmhd_conservatives, ent_star, Ye_star, grmhd_B_center
+      READS: HydroBase::rho, HydroBase::press, HydroBase::eps, grmhd_velocities, HydroBase::Y_e, HydroBase::temperature, HydroBase::entropy
       WRITES: grmhd_conservatives(everywhere), ent_star(everywhere), Ye_star(everywhere),
               u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
@@ -463,6 +487,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::entropy, HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
               grmhd_velocities(everywhere), phitilde(everywhere),
               Ax(everywhere), Ay(everywhere), Az(everywhere)
+      SYNC: Ax, Ay, Az, phitilde
     } "Entropy+Tabulated version of IllinoisGRMHD_perturb_primitives"
     
     schedule IllinoisGRMHD_tabulated_entropy_perturb_conservatives in IllinoisGRMHD_perturb_conservatives
@@ -494,6 +519,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
       READS:  GRID::coordinates,
               ADMBase::metric, ADMBase::lapse, ADMBase::shift,
               grmhd_conservatives, Ye_star, grmhd_B_center
+      READS: HydroBase::rho, HydroBase::press, HydroBase::eps, grmhd_velocities, HydroBase::Y_e, HydroBase::temperature
       WRITES: grmhd_conservatives(everywhere), Ye_star(everywhere),
               u0(everywhere), grmhd_velocities(everywhere), failure_checker(everywhere),
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
@@ -546,6 +572,7 @@ if (CCTK_Equals(EOS_type, "Hybrid") || CCTK_Equals(EOS_type, "Simple")) {
               HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere),
               HydroBase::Y_e(everywhere), HydroBase::temperature(everywhere),
               phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+      SYNC: Ax, Ay, Az, phitilde
     } "Tabulated version of IllinoisGRMHD_perturb_primitives"
 
     schedule IllinoisGRMHD_tabulated_perturb_conservatives in IllinoisGRMHD_perturb_conservatives
@@ -598,7 +625,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
             HydroBase::Bvec(everywhere)
   } "Convert IllinoisGRMHD-native variables to HydroBase"
 
-  schedule convert_IllinoisGRMHD_to_HydroBase at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
+  schedule IllinoisGRMHD_convert_HydroBase_diagnostics at CCTK_ANALYSIS before (compute_bi_b2_Poyn_fluxET convert_to_MHD_3velocity particle_tracerET VI_GRMHD_VolumeIntegralGroup) after ML_BSSN_evolCalcGroup
   {
     LANG: C
     OPTIONS: GLOBAL-EARLY,LOOP-LOCAL
@@ -614,7 +641,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
     LANG: C
     READS:  ADMBase::metric, ADMBase::lapse, ADMBase::shift,
             HydroBase::rho, HydroBase::press, HydroBase::eps,
-            grmhd_B_center
+            grmhd_velocities, grmhd_B_center
     WRITES: u0(everywhere), grmhd_velocities(everywhere), grmhd_conservatives(everywhere),
             HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
     SYNC: grmhd_conservatives
@@ -626,6 +653,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
     READS:  GRID::coordinates,
             ADMBase::metric, ADMBase::lapse, ADMBase::shift,
             grmhd_conservatives, grmhd_B_center
+      READS: HydroBase::rho, HydroBase::press, HydroBase::eps, grmhd_velocities
     WRITES: grmhd_conservatives(everywhere), failure_checker(everywhere),
             u0(everywhere), grmhd_velocities(everywhere),
             HydroBase::rho(everywhere), HydroBase::press(everywhere), HydroBase::eps(everywhere)
@@ -670,6 +698,7 @@ if(CCTK_IsThornActive("ID_converter_ILGRMHD")) {
     WRITES: HydroBase::rho(everywhere), HydroBase::press(everywhere),
             HydroBase::eps(everywhere), grmhd_velocities(everywhere),
             phitilde(everywhere), Ax(everywhere), Ay(everywhere), Az(everywhere)
+      SYNC: Ax, Ay, Az, phitilde
   } "Hybrid version of IllinoisGRMHD_perturb_primitives"
 
   schedule IllinoisGRMHD_hybrid_perturb_conservatives in IllinoisGRMHD_perturb_conservatives

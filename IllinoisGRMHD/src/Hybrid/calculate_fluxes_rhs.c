@@ -115,13 +115,47 @@ void IllinoisGRMHD_hybrid_calculate_flux_dir_rhs(
         ghl_ppm_reconstruction(ftilde, vy_data, &vyr, &vyl);
         ghl_ppm_reconstruction(ftilde, vz_data, &vzr, &vzl);
 
-        vel_r[0][index] = vxr;
-        vel_r[1][index] = vyr;
-        vel_r[2][index] = vzr;
+        // Apply the face speed limit here as well, so the velocities cached for the A_i
+        // (induction) reconstruction are admissible. The flux loop below limits its own
+        // copy again to compute u0 and may make roundoff-level velocity adjustments.
+        ghl_metric_quantities ADM_metric_face;
+        IllinoisGRMHD_interpolate_metric_to_face(
+              cctkGH, i, j, k,
+              flux_dir, alp,
+              betax, betay, betaz,
+              gxx, gxy, gxz,
+              gyy, gyz, gzz,
+              &ADM_metric_face);
 
-        vel_l[0][index] = vxl;
-        vel_l[1][index] = vyl;
-        vel_l[2][index] = vzl;
+        ghl_primitive_quantities prims_r = {0}, prims_l = {0};
+        prims_r.vU[0] = vxr;
+        prims_r.vU[1] = vyr;
+        prims_r.vU[2] = vzr;
+        prims_l.vU[0] = vxl;
+        prims_l.vU[1] = vyl;
+        prims_l.vU[2] = vzl;
+
+        // If the limiter reports an error here, keep the unlimited value. The flux loop
+        // below aborts on the same error wherever that point is used, as it did before.
+        bool speed_limited = false;
+        if(ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_r, &speed_limited) != ghl_success) {
+          prims_r.vU[0] = vxr;
+          prims_r.vU[1] = vyr;
+          prims_r.vU[2] = vzr;
+        }
+        if(ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited) != ghl_success) {
+          prims_l.vU[0] = vxl;
+          prims_l.vU[1] = vyl;
+          prims_l.vU[2] = vzl;
+        }
+
+        vel_r[0][index] = prims_r.vU[0];
+        vel_r[1][index] = prims_r.vU[1];
+        vel_r[2][index] = prims_r.vU[2];
+
+        vel_l[0][index] = prims_l.vU[0];
+        vel_l[1][index] = prims_l.vU[1];
+        vel_l[2][index] = prims_l.vU[2];
       }
     }
   }
@@ -147,7 +181,7 @@ void IllinoisGRMHD_hybrid_calculate_flux_dir_rhs(
 
         CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
         CCTK_REAL B1_stencil[6], B2_stencil[6];
-        ghl_primitive_quantities prims_r, prims_l;
+        ghl_primitive_quantities prims_r = {0}, prims_l = {0};
 
         for(int ind=0; ind<6; ind++) {
           // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -186,7 +220,7 @@ void IllinoisGRMHD_hybrid_calculate_flux_dir_rhs(
         error = ghl_limit_v_and_compute_u0(ghl_params, &ADM_metric_face, &prims_l, &speed_limited);
         ghl_abort_if_error(error);
 
-        ghl_conservative_quantities cons_fluxes;
+        ghl_conservative_quantities cons_fluxes = {0};
         calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin[index], &cmax[index]);
         calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin[index], cmax[index], &cons_fluxes);
 

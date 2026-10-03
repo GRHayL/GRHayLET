@@ -1,6 +1,6 @@
 # Matter Boundaries and Perturbations
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -53,7 +53,10 @@ four family functions follows the same guards and face order:
 `copy` copies rho, pressure, all velocity components, and family extras from
 the adjacent inward point. `outflow` begins with the same copy but zeros only
 the face-normal velocity when it points inward: negative at a maximum face,
-positive at a minimum face. This is done independently on each axis.
+positive at a minimum face. After general primitive limiting, a joint
+constraint step enforces all active physical-face signs and the Lorentz bound,
+including corners. It recomputes `u0` before conservative packing and errors
+when no finite state satisfies both constraints.
 
 At every filled point, centered B is taken from the destination point. The
 family helper initializes/enforces the local metric, applies primitive limits
@@ -74,13 +77,28 @@ this file even when a field is unused by the active family.
 ### Perturbation gates and fields
 
 If `perturb_initial_data` is true, the selected family primitive perturbation
-is declared after HydroBase ingress and before Prim2Con. Each full-grid loop
-calls `srand(random_seed)` once and multiplies each selected value by
-`one_plus_pert(random_pert)`, defined locally as
-`1 + random_pert * rand() / RAND_MAX`.
+is declared after HydroBase ingress and before A-to-B reconstruction,
+which then precedes Prim2Con. Every primitive perturbation occurrence
+synchronizes Ax, Ay, Az, and phitilde before the curl. Each full-grid loop multiplies each selected value by
+`IllinoisGRMHD_one_plus_pert(random_pert, random_seed, gi, gj, gk, slot)`,
+defined in `IllinoisGRMHD.h` as `1 + random_pert * u`, where `u` in [0,1)
+is a counter-based hash of `random_seed`, the global grid index
+`cctk_lbnd[d] + local_index[d]`, and the variable slot. For the same tuple on
+a fixed global grid, the factor does not depend on OpenMP scheduling or the
+process-local offset. Refinement-level/map identity is not encoded; this is
+not a full-evolution reproducibility guarantee.
+
+Claim evidence:
+- Claim: Perturbation factors are computed from seed/global-index/slot tuples, independently of OpenMP draw order on a fixed global grid; evolution reproducibility is not established.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/IllinoisGRMHD.h`, IllinoisGRMHD_mix64 and IllinoisGRMHD_one_plus_pert; `IllinoisGRMHD/src/*/perturb_primitives.c` and `IllinoisGRMHD/src/*/perturb_conservatives.c`, index and slot arguments
+- Corroboration: registered `IllinoisGRMHD/param.ccl`, random_seed and random_pert declarations
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 All primitive variants perturb rho, pressure, three velocities, `phitilde`,
-and `Ax/Ay/Az`; HybridEntropy adds entropy, Tabulated adds `Y_e` and
+and `Ax/Ay/Az`; HybridEntropy derives its proxy later from the perturbed
+rho/pressure, Tabulated adds `Y_e` and
 temperature, and TabulatedEntropy adds all three. The code does not directly
 perturb internal energy.
 
@@ -91,7 +109,26 @@ declared after B reconstruction and before Con2Prim. All variants perturb
 both. These routines expose no local perturbation counter or result log.
 File presence and schedule declarations do not prove fixture execution.
 
+### Joint outflow constraint
+
+`IllinoisGRMHD_enforce_outflow` enumerates active coordinate-face sets to find
+the minimum spatial-metric norm of `v+beta` subject to the outflow signs. If
+the requested state exceeds the Lorentz bound, it shortens the segment from
+that feasible state to the sign-clamped target. Boundary helpers call it after
+EOS/primitive limiting and before conservative recomputation. Infeasible
+constraints cause a clear error rather than an inward or superluminal state.
+
+Claim evidence:
+- Claim: Boundary helpers enforce coordinate outflow and the Lorentz constraint together, before final packing; initialization perturbations precede a synchronized magnetic curl.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/enforce_outflow.c, IllinoisGRMHD_enforce_outflow`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
+
 ## Sources
+
+- `IllinoisGRMHD/src/enforce_outflow.c` — joint velocity constraints.
 
 - `IllinoisGRMHD/param.ccl` — `Matter_BC`, `random_seed`, `random_pert`,
   `perturb_initial_data`, and `perturb_every_con2prim` declarations.
@@ -103,7 +140,7 @@ File presence and schedule declarations do not prove fixture execution.
   `illinoisgrmhd-hybrid-entropy`, `illinoisgrmhd-tabulated`, and
   `illinoisgrmhd-tabulated-entropy` — four `*_hydro_outer_boundaries`, four
   `*_perturb_primitives`, and four `*_perturb_conservatives` functions.
-- `IllinoisGRMHD/src/IllinoisGRMHD.h` — `one_plus_pert` macro.
+- `IllinoisGRMHD/src/IllinoisGRMHD.h` — `IllinoisGRMHD_one_plus_pert` function.
 - `IllinoisGRMHD/src/InitSymBound.c` —
   `IllinoisGRMHD_InitSymBound` frozen pairing and PPM ghost-zone checks.
 - `IllinoisGRMHD/src/specify_driver_BCs.c` —

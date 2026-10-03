@@ -1,6 +1,6 @@
 # State and EOS Modes
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -34,7 +34,8 @@ Claim evidence:
 - `grmhd_velocities` holds IllinoisGRMHD's primitive `v^i=u^i/u^0`; `u0`
   supports later consumers. Density, pressure, internal energy, entropy,
   electron fraction, and temperature are inherited HydroBase fields used as
-  applicable to each family.
+  applicable to each family. Hybrid/Simple entropy uses a separate
+  `hybrid_entropy` proxy; HydroBase entropy is marked unavailable with NaN.
 - `ent_star` and `ent_star_rhs` receive scheduled storage only when
   `evolve_entropy` is true; `ent_star_flux` is stored unconditionally and is
   repeated in that conditional storage block. `Ye_star` and `Ye_star_rhs`
@@ -50,9 +51,9 @@ Claim evidence:
 | `EOS_type` selector | `evolve_entropy` | Scheduled/build family | Carried extras |
 | --- | --- | --- | --- |
 | `Hybrid` or `Simple` | false | `src/Hybrid/`; `IllinoisGRMHD_hybrid_*` | no entropy or electron-fraction conservative |
-| `Hybrid` or `Simple` | true | `src/HybridEntropy/`; `IllinoisGRMHD_hybrid_entropy_*` | primitive `entropy`; `ent_star`, entropy RHS, and entropy flux |
+| `Hybrid` or `Simple` | true | `src/HybridEntropy/`; `IllinoisGRMHD_hybrid_entropy_*` | thorn-owned `hybrid_entropy`; `ent_star`, entropy RHS, and entropy flux |
 | `Tabulated` | false | `src/Tabulated/`; `IllinoisGRMHD_tabulated_*` | primitive `Y_e` and `temperature`; `Ye_star`, electron-fraction RHS, and flux |
-| `Tabulated` | true | `src/TabulatedEntropy/`; `IllinoisGRMHD_tabulated_entropy_*` | primitive `entropy`, `Y_e`, and `temperature`; both `ent_star` and `Ye_star` families |
+| `Tabulated` | true | `src/TabulatedEntropy/`; `IllinoisGRMHD_tabulated_entropy_*` | compiled body only; startup rejects this entropy mode |
 
 Each branch schedules its own Prim2Con, Con2Prim, matter-boundary, source,
 flux, initial-perturbation, and conservative-perturbation function. All four
@@ -84,7 +85,32 @@ outside this thorn and are not inferred.
   inversion calls are treated only as call boundaries here. Their external
   implementations are not inferred.
 
+### Supported entropy boundary and Simple thermodynamics
+
+At `CCTK_WRAGH`, `IllinoisGRMHD_check_eos_support` follows modern or legacy
+GRHayL initialization. It rejects tabulated entropy evolution until the shared
+packing/flux/recovery/atmosphere contract is corrected. Hybrid entropy requires
+`neos=1` and `Gamma_th=Gamma_ppoly[0]`. Simple entropy uses the same internal
+proxy machinery. It also rejects `Palenzuela1D` and `Palenzuela1D_entropy`
+as the main or any backup recovery routine when `EOS_type` is `Simple`.
+No claim is made that a rejected mode evolved successfully.
+
+For Simple EOS, the installed callback computes epsilon, h, and sound speed
+directly from pressure/density and Gamma. Other EOS calls delegate to the
+original callback. This avoids auxiliary cold-curve subtraction in the enthalpy and
+sound-speed evaluation only; it does not modify GRHayL recovery internals.
+
+Claim evidence:
+- Claim: Startup rejects unsupported entropy selections and both Palenzuela variants in Simple main/backup recovery, and installs direct Simple thermodynamics while preserving other EOS callbacks.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/check_eos_support.c, IllinoisGRMHD_check_eos_support and IllinoisGRMHD_compute_h_and_cs2`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
+
 ## Sources
+
+- `IllinoisGRMHD/src/check_eos_support.c` — startup guard and EOS callback.
 
 - `IllinoisGRMHD/interface.ccl` — groups `grmhd_conservatives`, `ent_star`,
   `Ye_star`, reconstructed temporaries, RHS groups, and flux groups.

@@ -11,7 +11,7 @@
 
 #include "IllinoisGRMHD.h"
 
-void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims);
+void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, const int i, const int j, const int k, ghl_primitive_quantities *restrict prims);
 
 /*******************************************************
  * Apply outer boundary conditions on {P,rho,vx,vy,vz}
@@ -48,7 +48,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH,imax, j, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH,imax-1, j, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
           prims.vU[0]       = (do_outflow && vx[indm1] < 0.0) ? 0 : vx[indm1];
@@ -60,7 +60,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indm1];
           prims.temperature = temperature[indm1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, imax, j, k, &prims);
         }
       }
     }
@@ -73,7 +73,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, imin, j, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, imin+1, j, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
           prims.vU[0]       = (do_outflow && vx[indp1] > 0.0) ? 0 : vx[indp1];
@@ -85,7 +85,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indp1];
           prims.temperature = temperature[indp1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, imin, j, k, &prims);
         }
       }
     }
@@ -100,7 +100,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmax, k);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, jmax-1, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
           prims.vU[0]       = vx[indm1];
@@ -112,7 +112,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indm1];
           prims.temperature = temperature[indm1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, i, jmax, k, &prims);
         }
       }
     }
@@ -125,7 +125,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, jmin, k);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, jmin+1, k);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
           prims.vU[0]       = vx[indp1];
@@ -137,7 +137,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indp1];
           prims.temperature = temperature[indp1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, i, jmin, k, &prims);
         }
       }
     }
@@ -152,7 +152,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmax);
           const int indm1 = CCTK_GFINDEX3D(cctkGH, i, j, kmax-1);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indm1];
           prims.press       = press[indm1];
           prims.vU[0]       = vx[indm1];
@@ -164,7 +164,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indm1];
           prims.temperature = temperature[indm1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, i, j, kmax, &prims);
         }
       }
     }
@@ -177,7 +177,7 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           const int index = CCTK_GFINDEX3D(cctkGH, i, j, kmin);
           const int indp1 = CCTK_GFINDEX3D(cctkGH, i, j, kmin+1);
 
-          ghl_primitive_quantities prims;
+          ghl_primitive_quantities prims = {0};
           prims.rho         = rho[indp1];
           prims.press       = press[indp1];
           prims.vU[0]       = vx[indp1];
@@ -189,14 +189,14 @@ void IllinoisGRMHD_tabulated_hydro_outer_boundaries(CCTK_ARGUMENTS) {
           prims.Y_e         = Y_e[indp1];
           prims.temperature = temperature[indp1];
 
-          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, &prims);
+          IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(cctkGH, index, i, j, kmin, &prims);
         }
       }
     }
   }
 }
 
-void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, ghl_primitive_quantities *restrict prims) {
+void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const cGH* cctkGH, const int index, const int i, const int j, const int k, ghl_primitive_quantities *restrict prims) {
   // We cheat here by using the argument list of the scheduled function
   // instead of explicitly passing all these grid functions.
   DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_tabulated_hydro_outer_boundaries;
@@ -217,7 +217,20 @@ void IllinoisGRMHD_tabulated_enforce_primitive_limits_and_compute_conservs(const
         ghl_params, ghl_eos, &ADM_metric, prims, &speed_limited);
   ghl_abort_if_error(error);
 
-  ghl_conservative_quantities cons;
+  DECLARE_CCTK_PARAMETERS;
+  if(CCTK_EQUALS(Matter_BC, "outflow")) {
+    const int coord[3] = {i,j,k};
+    int sign[3] = {0};
+    for(int d=0; d<3; d++) {
+      if(cctk_bbox[2*d] && coord[d] < cctk_nghostzones[d] &&
+         (d != 2 || CCTK_EQUALS(Symmetry, "none"))) sign[d] = -1;
+      if(cctk_bbox[2*d+1] && coord[d] >= cctk_lsh[d]-cctk_nghostzones[d]) sign[d] = 1;
+    }
+    if(!IllinoisGRMHD_enforce_outflow(ghl_params, &ADM_metric, sign, prims))
+      CCTK_ERROR("No finite boundary velocity satisfies coordinate outflow and the configured Lorentz bound.");
+  }
+
+  ghl_conservative_quantities cons = {0};
   ghl_compute_conservs(&ADM_metric, &metric_aux, prims, &cons);
 
   rho[index]         = prims->rho;

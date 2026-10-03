@@ -25,7 +25,7 @@ void IllinoisGRMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         ghl_ADM_aux_quantities metric_aux;
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.rho     = rho[index];
         prims.press   = press[index];
         prims.vU[0]   = vx[index];
@@ -34,14 +34,14 @@ void IllinoisGRMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         prims.BU[0]   = Bx_center[index];
         prims.BU[1]   = By_center[index];
         prims.BU[2]   = Bz_center[index];
-        prims.entropy = entropy[index];
+        prims.entropy = ghl_hybrid_compute_entropy_function(ghl_eos, prims.rho, prims.press);
 
         bool speed_limited = false;
         const ghl_error_codes_t error = ghl_enforce_primitive_limits_and_compute_u0(
               ghl_params, ghl_eos, &ADM_metric, &prims, &speed_limited);
         ghl_abort_if_error(error);
 
-        ghl_conservative_quantities cons;
+        ghl_conservative_quantities cons = {0};
         ghl_compute_conservs(&ADM_metric, &metric_aux, &prims, &cons);
 
         rho[index]     = prims.rho;
@@ -51,7 +51,8 @@ void IllinoisGRMHD_hybrid_entropy_prims_to_conservs(CCTK_ARGUMENTS) {
         vx[index]      = prims.vU[0];
         vy[index]      = prims.vU[1];
         vz[index]      = prims.vU[2];
-        entropy[index] = prims.entropy;
+        hybrid_entropy[index] = prims.entropy;
+        entropy[index] = NAN; // Physical entropy units/normalization are unavailable.
 
         rho_star[index] = cons.rho;
         tau[index]      = cons.tau;

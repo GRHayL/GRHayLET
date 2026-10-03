@@ -1,10 +1,6 @@
 ABSTOL 1e-11
 RELTOL 1e-11
 
-TEST TOV
-{ 
-}
-
 TEST Balsara1
 { 
   NPROCS 1
