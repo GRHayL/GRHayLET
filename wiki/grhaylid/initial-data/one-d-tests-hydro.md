@@ -1,56 +1,42 @@
 # One-Dimensional Hydrodynamic Tests
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 > Up: [Initial Data](index.md)
 
 ## Scope and Non-Scope
 
-This page records visible hydrodynamic dispatch, state constants, coordinate
-selection, velocity rotation, pointwise assignments, and EOS-library call
-sites for one-dimensional test data. It does not establish error-macro
-termination, runtime reachability, EOS semantics, physical correctness, or
-numerical validity.
+This page owns the local declarations and visible dataflow described below.
+Only GRHayLID sources are domain evidence. Framework execution, library
+semantics, production-table provenance, and numerical validation remain
+out of scope.
 
 ## Summary
 
-The visible pre-loop dispatch has seven uncommented arms: Balsara1 through
-Balsara5, equilibrium, and shock tube. A sound-wave arm is present only inside
-a block comment. The final invalid-name `else` precedes a point loop that
-contains a sound-wave sine branch. Step data select left or right states at
-`discontinuity_position`, with coordinate and velocity rotation controlled by
-`shock_direction`.
+All eight declared selectors have live pre-loop dispatch arms. The sound
+wave sets a direction-selected sinusoidal velocity on rho=P=1. Simple energy
+uses Gamma_ppoly[0]; Hybrid calls the cold-plus-thermal energy helper and
+rejects pressures below its computed cold pressure. Native tests check an
+identity spatial metric supplied by ADMBase.
 
 ## Mode Applicability
 
-| Applicability | Visible hydrodynamic behavior |
+| Applicability | Local surface |
 | --- | --- |
-| HydroTest1D | Seven uncommented step-state arms plus the separately located, visibly dead sound-wave dispatch arm and later loop-side sine branch. |
+| HydroTest1D | Simple/Hybrid hydro setups with live sound-wave dispatch and direction rotation. |
 
 ## Claim-Evidence
 
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
-| `ID-HYDRO-01` | Visible function order places seven uncommented state arms and a final error arm before rotation and the point loop. | visible-implementation | Function body | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` |
-| `ID-HYDRO-02` | Declared `sound wave` choice has a commented-out pre-loop dispatch arm, while a loop-side sine branch appears after the final error arm. | unresolved | Function body and commented dispatch text | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` |
-| `ID-HYDRO-03` | `initial_data_1D` declares eight choices, including `sound wave`, and defaults to Balsara1. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=initial_data_1D` |
-| `ID-HYDRO-04` | `shock_direction` declares x, y, and z choices and defaults to x. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=shock_direction` |
-| `ID-HYDRO-05` | `discontinuity_position` declares an unrestricted real and defaults to zero. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=discontinuity_position` |
-| `ID-HYDRO-06` | `wave_amplitude` declares a nonnegative real and defaults to `1.0e-3`. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=wave_amplitude` |
-| `ID-HYDRO-07` | Function calls `ghl_hybrid_find_polytropic_index`; its lookup semantics and returned index are external. | out-of-scope | Call site within function | `c:GRHayLID/src/1D_tests_hydro_data.c#call=ghl_hybrid_find_polytropic_index?function=GRHayLID_1D_tests_hydro_data` |
+| `ONE-D-TESTS-HYDRO-01` | The hydro body initializes all dispatch states, rotates step velocities, and selects the sound-wave velocity component. | visible-implementation | Named local source | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` |
+| `ONE-D-TESTS-HYDRO-02` | The local selector admits eight choices, default Balsara1. | declared | Named local source | `ccl:GRHayLID/param.ccl#parameter=initial_data_1D` |
+| `ONE-D-TESTS-HYDRO-03` | Local code requires finite wave amplitude in [0,1). | visible-implementation | Named local source | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` |
+| `ONE-D-TESTS-HYDRO-04` | Hybrid energy helper semantics remain external. | out-of-scope | Named local source | `c:GRHayLID/src/1D_tests_hydro_data.c#call=ghl_hybrid_compute_epsilon?function=GRHayLID_1D_tests_hydro_data` |
+| `ONE-D-TESTS-HYDRO-05` | wave_amplitude defaults to 1e-3 in CCL. | declared | Parameter declaration | `ccl:GRHayLID/param.ccl#parameter=wave_amplitude` |
 
 ## Details
 
-### EOS guard and visible dispatch
-
-The function first compares `EOS_type` with `Tabulated` and calls
-`CCTK_ERROR` when equal. Its message says the data is defined for "hybrid or
-ideal fluid EOS" and calls the ideal-fluid EOS the standard comparison. This
-is narrower local evidence than any general EOS behavior: only one keyword
-comparison and one message are visible, and `CCTK_ERROR` termination semantics
-remain external.
-
-The seven uncommented pre-loop arms assign these left/right constants before
-direction rotation:
+### Step-state inventory
 
 | Arm | Left `(rho, press; vx, vy, vz)` | Right `(rho, press; vx, vy, vz)` |
 | --- | --- | --- |
@@ -62,61 +48,35 @@ direction rotation:
 | `equilibrium` | `(1.0, 1.0; 0, 0, 0)` | `(1.0, 1.0; 0, 0, 0)` |
 | `shock tube` | `(2.0, 2.0; 0, 0, 0)` | `(1.0, 1.0; 0, 0, 0)` |
 
-These are seven live textual arms, not eight dataset branches. The declaration
-has an eighth choice, `sound wave`, whose corresponding pre-loop arm is
-inside `/* ... */`. That comment says the case is handled in the loop. The
-uncommented chain therefore has no sound-wave arm before its final
-`CCTK_VERROR` call.
+For y, velocity rotation maps (vx,vy,vz) to (vz,vx,vy); for z it maps
+to (vy,vz,vx). Left state includes equality at discontinuity_position.
+Sound-wave pre-loop values are fully initialized before rotation. The loop
+sets rho=P=1 and all velocities to zero, then fills the selected component
+with wave_amplitude*sin(pi*step). README describes this as a longitudinal
+velocity perturbation rather than a pure traveling eigenmode. Thermal
+pressure excludes kinetic energy; the former incompleteness comment is removed.
 
-### Direction and pointwise selection
-
-Pre-loop velocity rotation maps an x-oriented state as follows:
-
-- y direction maps `(vx, vy, vz)` to `(vz, vx, vy)`.
-- z direction maps `(vx, vy, vz)` to `(vy, vz, vx)`.
-- x direction leaves assigned components unchanged.
-
-Inside the loop, `step` selects `x`, `y`, or `z` using the same direction
-parameter. Non-sound-wave points use left state when
-`step <= discontinuity_position` and right state otherwise.
-
-The later sound-wave branch instead assigns `rho=1`, `press=1`, x-velocity
-`wave_amplitude * sin(M_PI * step)`, and zero y/z velocity. Its pressure line
-contains `should add kinetic energy here`. This page records only visible
-ordering and text. It does not infer whether control reaches that loop after
-the earlier `CCTK_VERROR` call.
-
-### Internal-energy expression and delegated call
-
-After either pointwise branch, code reads
-`ghl_eos->Gamma_ppoly[ghl_hybrid_find_polytropic_index(ghl_eos,
-rho[index])]` into `Gamma`, then assigns
-`eps = press / (rho * (Gamma - 1))`. Array contents, lookup behavior, valid
-indices, EOS consistency, and arithmetic validity are GRHayLib behavior or
-runtime properties and remain out of scope.
+For Hybrid, a cold-pressure/energy lookup precedes the epsilon helper.
+Pressure below the returned cold pressure is diagnosed. Simple retains
+P/[rho*(Gamma_ppoly[0]-1)]. Nonfinite epsilon is diagnosed after either branch.
+External helper semantics and initialized EOS metadata remain unverified here.
+Historical dispatch, pressure-comment, unsupported-capability, and EOS-name
+issues GID-0003/0005/0006/0013 have local resolution evidence.
 
 ## Caveats
 
-- "Live arm" means uncommented source arm only, not observed runtime
-  execution.
-- Sound-wave control-order mismatch remains open under
-  [GID-0005](../contradictions.md#gid-0005); no termination or reachability
-  conclusion is made.
-- Sound-wave pressure comment records acknowledged incomplete intent under
-  [GID-0006](../contradictions.md#gid-0006), not proof of a numerical defect.
-- Cylindrical explosion documentation mismatch is tracked by
-  [GID-0003](../contradictions.md#gid-0003).
-- README and guard/error wording differ on supported EOS terminology; see
-  [GID-0013](../contradictions.md#gid-0013).
+Storage and schedule declarations do not prove allocation or execution.
+Local guards and calls do not establish external error or interpolation
+semantics. No checked-in GRHayLID test/parfile/oracle validates this path.
 
 ## Sources
 
-- [Hydrodynamic implementation](../../../GRHayLID/src/1D_tests_hydro_data.c)
-- [Parameter declarations](../../../GRHayLID/param.ccl)
+- [1D_tests_hydro_data.c](../../../GRHayLID/src/1D_tests_hydro_data.c)
+- [param.ccl](../../../GRHayLID/param.ccl)
 
 ## Related Pages
 
-- [One-Dimensional Magnetic Tests](one-d-tests-magnetic.md)
+- [Magnetic Tests](one-d-tests-magnetic.md)
 - [GRHayLib Contract](../integration/grhaylib-contract.md)
 - [GID-0003](../contradictions.md#gid-0003)
 - [GID-0005](../contradictions.md#gid-0005)

@@ -2,6 +2,6 @@
 
 implements: GRHayLID
 
-inherits: GRHayLib, Grid, HydroBase
+inherits: GRHayLib, Grid, HydroBase, ADMBase
 
 USES INCLUDE: GRHayLib.h
