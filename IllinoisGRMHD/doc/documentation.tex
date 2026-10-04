@@ -163,12 +163,28 @@ imported \hydrobase{} $A_i$ by $\sqrt{4\pi}$. Set it to no for initial
 potentials that already use the normalized convention. Exported
 \hydrobase{} $B^i$ always uses the canonical normalized convention, regardless
 of this import setting. Consumers must therefore use it as given, without
-another $1/\sqrt{4\pi}$. The smallbPoynET diagnostic does so beginning with
-wvuthorns\_diagnostics revision a8dbe36; earlier revisions divide by
-$\sqrt{4\pi}$ again and, with this export, report $b^\mu$ too small by
-$\sqrt{4\pi}$ and $b^2$ and the Poynting flux too small by $4\pi$.
+another $1/\sqrt{4\pi}$. Every revision of the smallbPoynET diagnostic
+(wvuthorns\_diagnostics) before a8dbe36 divides by $\sqrt{4\pi}$ again, so its
+pairing with IllinoisGRMHD has changed over time:
+\begin{enumerate}
+\item Before GRHayLET pull request \#27 (exporter change in commit 35a3262,
+  merged 2026-10-02), the export was $\sqrt{4\pi}$ times the canonical field
+  with the default rescale\_magnetics = yes, and canonical with no. The
+  pairing was therefore consistent only at the default setting.
+\item Since that change the export is always canonical, so the pairing is
+  inconsistent at every rescale\_magnetics setting: $b^\mu$ is too small by
+  $\sqrt{4\pi}$, and $b^2$ and the Poynting flux are too small by $4\pi$.
+  From 2026-10-02 to 2026-10-04 IllinoisGRMHD also rejected an active
+  smallbPoynET at startup; it no longer does.
+\item Revision a8dbe36 of wvuthorns\_diagnostics (2026-10-02) removes the
+  division. It expects a canonical producer: with an IllinoisGRMHD from before
+  that exporter change at the default rescale\_magnetics, it reports $b^\mu$
+  too large by $\sqrt{4\pi}$, and $b^2$ and the Poynting flux too large by
+  $4\pi$.
+\end{enumerate}
 IllinoisGRMHD cannot detect the installed smallbPoynET revision and does not
-reject any revision, so update smallbPoynET before using it with this thorn.
+reject any revision, so use smallbPoynET revision a8dbe36 or later with this
+thorn.
 
 Diagnostic export uses Convert\_to\_HydroBase\_every: its default, zero,
 disables the export, so exported fields are not refreshed for diagnostics
