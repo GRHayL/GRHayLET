@@ -1,6 +1,6 @@
 # HydroBase Velocity Conversion
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -87,19 +87,14 @@ and `w_lorentz`. The converter body's metric accesses and Lorentz-factor
 assignment corroborate those declarations through visible implementation
 (`INT-VEL-02`). The local RHS declaration requests refresh on each invocation
 after flux evaluation; actual substage execution and external consumer timing
-require a configured Cactus run. The previous cadence and field-set defects are
-resolved at [GRH-0006](../contradictions.md#grh-0006) and
-[GRH-0011](../contradictions.md#grh-0011).
+require a configured Cactus run.
 
 ## Caveats
 
 - Local formulas establish assignments, not equivalence to external
   HydroBase semantics or safe behavior for all metric/velocity values.
-- Static cadence/field-set resolutions are tracked at
-  [GRH-0006](../contradictions.md#grh-0006) and
-  [GRH-0011](../contradictions.md#grh-0011); the corrected paths remain
-  unverified in a coupled framework execution, and no full schedule run is
-  claimed.
+- The cadence and field-set paths remain unverified in a coupled framework
+  execution; no full schedule run is claimed.
 - Schedule declarations establish intent only; they do not prove calls ran.
 
 ## Sources

@@ -1,6 +1,6 @@
 # Purpose and Build Surface
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -81,9 +81,8 @@ boundaries therefore remain outside this KB branch.
   unverified externally.
 - README says GRHayLHD supports "most features" and "all Con2Prim routines";
   these are statements of intent, not an exhaustive local API proof.
-- Variant boundary headers now describe the hydro boundary sequence; the
-  resolved stale magnetic-stage wording is tracked at
-  [GRH-0005](../contradictions.md#grh-0005).
+- Variant boundary headers describe the hydro boundary sequence, not magnetic
+  stages.
 - Static manifests prove checked-in source listing only, not compilation.
 
 ## Sources

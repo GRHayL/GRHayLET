@@ -1,6 +1,6 @@
 # Matter Boundaries and Symmetry
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -83,26 +83,17 @@ with positive Cartesian flags for core state and conditional optional groups,
 and calls an error API when any ghost-zone count is below three. It contains
 an `equatorial` branch that negates z momentum/velocity symmetry and an error
 for any value other than `none`; equatorial cannot be selected through local
-parameter range. That branch now names momentum `Stildez`, matching the
-interface. All four recovery equatorial branches now request the declared
-`grmhd_conservatives` group; the spelling corrections leave them dormant.
+parameter range. That branch names momentum `Stildez`, matching the
+interface. All four recovery equatorial branches request the declared
+`grmhd_conservatives` group and remain dormant.
 
 All four boundary file headers describe recovery before primitive boundary
 copy/outflow clipping, followed by limiting and conservative reprojection.
-The stale magnetic-stage wording is resolved at
-[GRH-0005](../contradictions.md#grh-0005).
 
 ## Caveats
 
 - Only `Symmetry=none` is locally selectable; see
   [GRH-0001](../contradictions.md#grh-0001).
-- Dormant momentum spelling mismatch is resolved; see
-  [GRH-0003](../contradictions.md#grh-0003).
-- Recovery group spelling mismatch is resolved; see
-  [GRH-0002](../contradictions.md#grh-0002).
-- Boundary headers now describe hydro operations; the historical magnetic
-  wording defect is resolved at
-  [GRH-0005](../contradictions.md#grh-0005).
 - External `GetRefinementLevel`, symmetry, ghost-zone, and synchronization
   semantics remain unverified.
 

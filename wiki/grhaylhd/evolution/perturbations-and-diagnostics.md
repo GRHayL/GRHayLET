@@ -1,6 +1,6 @@
 # Perturbations and Diagnostics
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -99,9 +99,8 @@ coverage gap/caveat, not proof of safety, race, failure, or contradiction.
 Conservative perturbations occur before recovery and can therefore feed visible
 recovery diagnostics. Recovery writes `failure_checker` each point and later
 recomputes conservatives. Perturbation code itself does not write diagnostic
-gridfunction. The terminal atmosphere marker now survives the final local
-assignment; its static resolution is owned by
-[GRH-0004](../contradictions.md#grh-0004).
+gridfunction. The terminal atmosphere marker survives the final local
+assignment; see [Conservative Recovery](conservative-recovery.md).
 
 ## Caveats
 

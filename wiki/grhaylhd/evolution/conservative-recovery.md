@@ -1,6 +1,6 @@
 # Conservative Recovery
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -96,17 +96,15 @@ Source comments assign 1 to a nonpositive-density atmosphere reset, 10 to speed
 limiting, 100 to exhaustion of all allowed recovery attempts, 1000 to backup
 use, 10000 to a tau fix, and 100000 to a momentum fix. Every terminal branch
 adds 100 to `local_failure_checker`, and the single final point assignment
-preserves that contribution. Static resolutions are recorded at
-[GRH-0004](../contradictions.md#grh-0004) and
-[GRH-0014](../contradictions.md#grh-0014); this does not establish a current
+preserves that contribution. This static reading does not establish a current
 Cactus runtime diagnostic result.
 
-### Resolved dormant symmetry-name mismatch
+### Dormant symmetry group name
 
-All four variants now visibly request `GRHayLHD::grmhd_conservatives` in their
+All four variants visibly request `GRHayLHD::grmhd_conservatives` in their
 equatorial blocks, matching the interface declaration. Only `Symmetry=none`
-is locally selectable; correcting the group spelling does not establish
-supported equatorial symmetry behavior.
+is locally selectable; the group name does not establish supported equatorial
+symmetry behavior.
 
 ## Caveats
 
@@ -115,9 +113,6 @@ supported equatorial symmetry behavior.
 - Absence of explicit Font1D in tabulated files does not exclude fallback
   inside external multi-method implementation.
 - Comments calling second loop deterministic do not prove thread safety.
-- Resolved group-name mismatch: [GRH-0002](../contradictions.md#grh-0002).
-- Resolved failure-code overwrite: [GRH-0004](../contradictions.md#grh-0004).
-- Resolved code-100 legend: [GRH-0014](../contradictions.md#grh-0014).
 
 ## Sources
 

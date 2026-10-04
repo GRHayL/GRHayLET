@@ -1,6 +1,6 @@
 # ADM, MoL, and Tmunu Contracts
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -17,7 +17,7 @@ indices. Tmunu computation reads ADM fields, base thermodynamics, native
 velocity, and `u0`; zeros `BU`; delegates tensor computation; then adds ten
 components into TmunuBase fields. Setup-conditional registration versus an
 always-steerable parameter remains an open lifecycle issue. All three Tmunu
-registration return values are now accumulated into the local error check.
+registration return values are accumulated into the local error check.
 
 ## Variant Applicability
 
@@ -72,10 +72,9 @@ constrained registration, save-and-restore registration, and uses
 `GetRefinementLevel` in boundary/diagnostic paths; it does not visibly call
 `MoLRegisterEvolved`.
 
-Registration and all four variant recovery symmetry branches now visibly
-request `GRHayLHD::grmhd_conservatives`. The historical group-name mismatch is
-resolved under [GRH-0002](../contradictions.md#grh-0002); equatorial symmetry
-remains locally unselectable, and runtime behavior remains unverified.
+Registration and all four variant recovery symmetry branches visibly
+request `GRHayLHD::grmhd_conservatives`; equatorial symmetry remains locally
+unselectable, and runtime behavior remains unverified.
 
 ### Tmunu dataflow
 
@@ -90,7 +89,7 @@ Ten visible assignments use `+=` for `eTtt`, `eTtx`, `eTty`, `eTtz`, `eTxx`,
 `eTxy`, `eTxz`, `eTyy`, `eTyz`, and `eTzz`. This proves additive local writes,
 not initialization, tensor semantics, or successful contribution ordering.
 
-### Open lifecycle and status handling
+### Lifecycle and status handling
 
 `update_Tmunu` is declared `STEERABLE=ALWAYS`, while Tmunu scheduling and
 registration are both setup-conditional. Whether runtime changes reconfigure
@@ -98,10 +97,8 @@ either boundary is unresolved; see
 [GRH-0007](../contradictions.md#grh-0007).
 
 All registration return values, including the three Tmunu constrained calls,
-are now visibly accumulated into `ierr` and checked. The historical
-unchecked-status inconsistency is resolved under
-[GRH-0008](../contradictions.md#grh-0008). No loss of failure detection was
-demonstrated, and full Cactus execution remains unverified.
+are visibly accumulated into `ierr` and checked; full Cactus execution remains
+unverified.
 
 ## Caveats
 

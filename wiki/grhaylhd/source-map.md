@@ -1,6 +1,6 @@
 # GRHayLHD Source Map
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 
 This is the sole canonical source-to-page edge table. Registry ingest state is
 owned separately and is not promoted merely by adding an edge; governance
@@ -35,7 +35,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_RegisterVars` | declared | Recheck registration phase and options. |
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_InitSymBound` | declared | Recheck symmetry setup phase. |
 | `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=GRHayLHD_compute_Tmunu` | declared | Recheck optional stress-energy phase. |
-| `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Recheck unconditional RHS refresh independently of diagnostic cadence and resolved GRH-0006. |
+| `grhaylhd-ccl` | `grhaylhd.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Recheck unconditional RHS refresh independently of diagnostic cadence. |
 | `grhaylhd-common-c` | `grhaylhd.architecture.schedule-lifecycle` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Reconcile cadence and declared/body field sets. |
 | `grhaylhd-ccl` | `grhaylhd.evolution.eos-entropy-variants` | parameter | `ccl:GRHayLHD/param.ccl#parameter=evolve_entropy` | declared | Preserve unresolved local test entropy choice. |
 | `grhaylhd-ccl` | `grhaylhd.evolution.eos-entropy-variants` | parameter | `ccl:GRHayLHD/param.ccl#parameter=evolve_entropy` | unresolved | Keep authored-input omissions distinct from external selection. |
@@ -101,7 +101,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_HydroBase_to_GRHayLHD` | declared | Recheck initial forward conversion ordering. |
 | `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase_for_diagnostics?context=CCTK_ANALYSIS` | declared | Preserve positive-cadence-or-leakage analysis guard. |
 | `grhaylhd-ccl` | `grhaylhd.integration.hydrobase-velocity-conversion` | schedule-intent | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` | declared | Recheck unconditional RHS refresh independently of diagnostic cadence. |
-| `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Recheck reconciled leakage metric reads and Lorentz-factor write. |
+| `grhaylhd-common-c` | `grhaylhd.integration.hydrobase-velocity-conversion` | visible-dataflow | `c:GRHayLHD/src/convert_GRHayLHD_to_HydroBase.c#symbol=convert_GRHayLHD_to_HydroBase` | visible-implementation | Recheck leakage metric reads and Lorentz-factor write. |
 | `grhaylhd-common-c` | `grhaylhd.integration.grhaylib-contract` | visible-dataflow | `c:GRHayLHD/src/MoL_registration.c#symbol=GRHayLHD_RegisterVars` | visible-implementation | Recheck shared handle branches. |
 | `grhaylhd-variant-c` | `grhaylhd.integration.grhaylib-contract` | visible-call-order | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` | visible-implementation | Recheck recovery delegation and explicit fallback. |
 | `grhaylhd-variant-c` | `grhaylhd.integration.grhaylib-contract` | external-behavior | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` | out-of-scope | Keep GRHayLib internals delegated despite visible local calls. |

@@ -1,6 +1,6 @@
 # Declared Schedule Lifecycle
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -104,9 +104,7 @@ field differences are owned by the canonical EOS and entropy variant matrix.
   external and were not needed to inventory local declarations.
 - Leakage uses an unconditional RHS refresh, while initial and analysis
   conversion is scheduled when leakage is active and its wrapper bypasses the
-  optional cadence for leakage. Diagnostic cadence and field-set defects are
-  statically resolved at [GRH-0006](../contradictions.md#grh-0006) and
-  [GRH-0011](../contradictions.md#grh-0011); coupled execution remains unverified.
+  optional cadence for leakage; coupled execution remains unverified.
 - `update_Tmunu` steering versus setup-conditional registration is documented
   by Integration owner page; this page states only local schedule condition.
 

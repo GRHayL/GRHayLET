@@ -1,6 +1,6 @@
 # Coverage Gaps
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Validation](index.md)
 
 ## Scope and Non-Scope
@@ -71,7 +71,7 @@ a gap; it does not predict a successful result.
 | Rank / operational risk | Proposed smallest configuration | Expected evidence | Dependencies |
 | --- | --- | --- | --- |
 | P0 / state-layout divergence | Add one minimal input for each missing mode: Hybrid+entropy, Tabulated, Tabulated+entropy; request active optional primitives/conservatives and a core baseline | Authored assignments plus mode-specific ASCII fields showing field presence and iteration blocks | EOS tables for tabulated modes; external GRHayLib initialization; output support for internal fields |
-| P0 / leakage refresh execution | Minimal existing case with NRPyLeakageET active at diagnostic intervals zero, one, and greater than one, including MoL substages | Scheduler/runtime record and HydroBase velocity/Lorentz outputs sufficient to distinguish unconditional RHS refresh, leakage-active initial/analysis refresh, and optional diagnostic copying, and establish consumer timing | Configured Cactus/NRPyLeakageET environment; substage and diagnostic capture; local cadence source defect resolved at [GRH-0006](../contradictions.md#grh-0006) |
+| P0 / leakage refresh execution | Minimal existing case with NRPyLeakageET active at diagnostic intervals zero, one, and greater than one, including MoL substages | Scheduler/runtime record and HydroBase velocity/Lorentz outputs sufficient to distinguish unconditional RHS refresh, leakage-active initial/analysis refresh, and optional diagnostic copying, and establish consumer timing | Configured Cactus/NRPyLeakageET environment; substage and diagnostic capture |
 | P0 / recovery fallback and diagnostics | Small grid with controlled conservative states that trigger primary failure, weighted retry, explicit Hybrid fallback, and atmosphere path separately | `failure_checker`, corrected conservatives/primitives, and bounded diagnostic log for each targeted path | Reproducible fault injection or crafted state; external recovery semantics |
 | P0 / Tmunu lifecycle | Minimal matter configuration with `update_Tmunu=no/yes`, plus a supported steering-transition probe | TmunuBase component output, registration status, and contribution timing evidence | MoL/TmunuBase lifecycle semantics; a defined supported steering contract |
 | P1 / boundary distinctions | Small uniform-state grids selecting copy, outflow, and frozen separately; inject normal inflow on one face at a time | Six-face primitive/conservative observations with signed normal-velocity cases | Boundary output including ghost zones; one coarse level first, then AMR gate case |
