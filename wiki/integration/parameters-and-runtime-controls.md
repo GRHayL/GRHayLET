@@ -107,22 +107,6 @@ Claim evidence:
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
 - Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
-
-IllinoisGRMHD conservatively rejects any active `smallbPoynET` at startup,
-including disabled diagnostics and locally modified consumers, until a separately
-owned canonical-Bvec consumer update is integrated and verified. Removing it
-from `ActiveThorns` is the supported route in this checkout; changing import
-normalization or export cadence cannot bypass the restriction. No coupled
-schedule execution or external consumer correctness is established here.
-
-Claim evidence:
-- Claim: The local startup check rejects active smallbPoynET independently of export cadence and legacy import normalization; this is a conservative restriction, not consumer-version detection.
-- Role: public/scientific contract
-- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_check_HydroBase_diagnostics`
-- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_check_HydroBase_diagnostics` at `CCTK_WRAGH`; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
-- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=unconditional active-thorn restriction; date=10-02-2026`
-
 ## Sources
 
 - [`IllinoisGRMHD/param.ccl`](../../IllinoisGRMHD/param.ccl) — complete

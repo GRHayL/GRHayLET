@@ -23,12 +23,6 @@ if (evolve_entropy) {
 #########################################################
 # BASIC SETUP
 #########################################################
-schedule IllinoisGRMHD_check_HydroBase_diagnostics at CCTK_WRAGH
-{
-  LANG: C
-  OPTIONS: GLOBAL
-} "Reject unsupported smallbPoynET pairing with canonical HydroBase Bvec"
-
 schedule IllinoisGRMHD_check_eos_support at CCTK_WRAGH after (GRHayLib_initialize IllinoisGRMHD_backward_compatible_initialize)
 {
   LANG: C

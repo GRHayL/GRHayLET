@@ -480,6 +480,10 @@ Seed_Magnetic_Fields::P_cut                                   = 1.2e-07 * 0.04 #
 Seed_Magnetic_Fields::A_b                                     = 0.0
 
 #----------------------smallbPoynET configuration-----------------------
+# Requires a smallbPoynET revision that uses HydroBase::Bvec as exported by
+# IllinoisGRMHD without another 1/sqrt(4*pi) (IllinoisGRMHD ThornGuide, "Updating
+# Old Parfiles"); IllinoisGRMHD cannot detect the installed revision. Keep
+# IllinoisGRMHD::Convert_to_HydroBase_every a positive divisor of this cadence.
 smallbPoynET::smallbPoynET_compute_every = 256
 
 # Parameters of thorn SpaceMask (implementing SpaceMask)

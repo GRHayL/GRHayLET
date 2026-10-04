@@ -74,21 +74,20 @@ Egress always publishes canonical normalized Bvec, independently of this
 compatibility switch. These are local conversion facts and documented migration intent; no
 claim is made about definitions inside external thorns.
 
-
-IllinoisGRMHD conservatively rejects any active `smallbPoynET` at startup,
-including disabled diagnostics and locally modified consumers, until a separately
-owned canonical-Bvec consumer update is integrated and verified. Removing it
-from `ActiveThorns` is the supported route in this checkout; changing import
-normalization or export cadence cannot bypass the restriction. No coupled
-schedule execution or external consumer correctness is established here.
+ThornGuide also tells consumers to use exported `Bvec` as given, without another
+`1/sqrt(4*pi)`. It says the updated smallbPoynET diagnostic does so and earlier
+revisions do not, and that IllinoisGRMHD cannot detect the installed revision and
+rejects none, so users must update smallbPoynET themselves. The
+[HydroBase boundary](hydrobase-grhaylib-and-tmunu.md) page owns the local export
+facts; consumer behavior is not established here.
 
 Claim evidence:
-- Claim: The local startup check rejects active smallbPoynET independently of export cadence and legacy import normalization; this is a conservative restriction, not consumer-version detection.
+- Claim: ThornGuide documents that consumers must use exported `Bvec` without another `1/sqrt(4*pi)`, that the updated smallbPoynET does so and earlier revisions do not, and that IllinoisGRMHD does not reject smallbPoynET; this is documented migration guidance, not locally verified consumer behavior.
 - Role: public/scientific contract
-- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_check_HydroBase_diagnostics`
-- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_check_HydroBase_diagnostics` at `CCTK_WRAGH`; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
+- Deciding authority: registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
+- Corroboration: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` writes `Bvec` with a unit factor and the file defines no check on smallbPoynET
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=unconditional active-thorn restriction; date=10-02-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-applicable; options=documentation and local source inspection; date=10-02-2026`
 
 ### Compatibility retained in current tree
 
