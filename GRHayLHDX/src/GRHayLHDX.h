@@ -7,6 +7,11 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+/* GRHayL's API is double precision. */
+#ifndef CCTK_REAL_PRECISION_8
+#error "GRHayLHDX requires Cactus REAL_PRECISION=8 (double)"
+#endif
+
 // This is used to perturb data for testing
 #define one_plus_pert(perturb) (1 + (perturb*(double)rand() / RAND_MAX))
 

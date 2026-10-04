@@ -56,6 +56,8 @@ fallback is used only for Hybrid EOS. Simple and Tabulated EOS instead reset
 to their configured atmosphere. All final primitives are limited and projected
 back to conservative variables. Tabulated face pressure-inversion errors abort
 before characteristic speeds or fluxes are evaluated.
+This thorn requires Cactus \texttt{REAL\_PRECISION=8}; its header rejects
+other builds at compile time.
 
 \section{Parameters}
 
