@@ -1,6 +1,6 @@
 # IllinoisGRMHD Source Map
 
-> Authority and reverse-dependency map. · Status: confirmed · Last reconciled: 10-02-2026
+> Authority and reverse-dependency map. · Status: confirmed · Last reconciled: 10-04-2026
 
 ## Scope
 

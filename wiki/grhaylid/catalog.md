@@ -1,6 +1,6 @@
 # GRHayLID Page Catalog
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 
 Catalog lists the exact complete namespaced target. Publication state and root
 routing are owned by the branch index and root router.
@@ -10,7 +10,7 @@ routing are owned by the branch index and root router.
 | `grhaylid.index` | [GRHayLID](index.md) | router | router | n/a | branch; root; router; scope |
 | `grhaylid.schema` | [Schema](SCHEMA.md) | governance | reviewed | 07-19-2026 | schema; authority; locator; mode applicability |
 | `grhaylid.lint` | [Lint Checks](lint/CHECKS.md) | governance | reviewed | 07-19-2026 | lint; checker; validation; GID checks |
-| `grhaylid.catalog` | [Catalog](catalog.md) | governance | reviewed | 10-02-2026 | pages; aliases; routes |
+| `grhaylid.catalog` | [Catalog](catalog.md) | governance | reviewed | 10-04-2026 | pages; aliases; routes |
 | `grhaylid.glossary` | [Glossary](glossary.md) | governance | reviewed | 10-02-2026 | terms; owners; routing meaning |
 | `grhaylid.source-map` | [Source Map](source-map.md) | governance | reviewed | 10-02-2026 | evidence edges; reverse dependencies |
 | `grhaylid.contradictions` | [Issues](contradictions.md) | governance | reviewed | 10-02-2026 | contradictions; mismatches; hazards; ambiguities |
