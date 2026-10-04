@@ -162,19 +162,43 @@ old initial data thorns, rescale\_magnetics defaults to yes and divides
 imported \hydrobase{} $A_i$ by $\sqrt{4\pi}$. Set it to no for initial
 potentials that already use the normalized convention. Exported
 \hydrobase{} $B^i$ always uses the canonical normalized convention, regardless
-of this import setting. The retained smallbPoynET diagnostic applies an
-additional magnetic normalization and is incompatible with this output.
-IllinoisGRMHD rejects active smallbPoynET at startup, even if diagnostic export
-is disabled. Remove it from ActiveThorns. This conservative restriction also
-applies to locally modified copies until a separately owned canonical-Bvec
-consumer update is integrated and verified, including scheduled flat-space
-checks of $b^2=1$ for normalized $B=(1,0,0)$ and stationary fluid, and
-$b^2=0.91$, $S^y=0.3$ for transverse Valencia $v^y=0.3$.
-Neither export cadence nor rescale\_magnetics changes this restriction.
+of this import setting. Consumers must therefore use it as given, without
+another $1/\sqrt{4\pi}$. Every revision of the smallbPoynET diagnostic
+(wvuthorns\_diagnostics) before a8dbe36 divides by $\sqrt{4\pi}$ again, so its
+pairing with IllinoisGRMHD has changed over time:
+\begin{enumerate}
+\item Before GRHayLET pull request \#27 (exporter change in commit 35a3262,
+  merged 2026-10-02), the export was $\sqrt{4\pi}$ times the canonical field
+  with the default rescale\_magnetics = yes, and canonical with no. The
+  pairing was therefore consistent only at the default setting.
+\item Since that change the export is always canonical, so the pairing is
+  inconsistent at every rescale\_magnetics setting: $b^\mu$ is too small by
+  $\sqrt{4\pi}$, and $b^2$ and the Poynting flux are too small by $4\pi$.
+  From 2026-10-02 to 2026-10-04 IllinoisGRMHD also rejected an active
+  smallbPoynET at startup; it no longer does.
+\item Revision a8dbe36 of wvuthorns\_diagnostics (2026-10-02) removes the
+  division. It expects a canonical producer: with an IllinoisGRMHD from before
+  that exporter change at the default rescale\_magnetics, it reports $b^\mu$
+  too large by $\sqrt{4\pi}$, and $b^2$ and the Poynting flux too large by
+  $4\pi$.
+\end{enumerate}
+IllinoisGRMHD cannot detect the installed smallbPoynET revision and does not
+reject any revision, so use smallbPoynET revision a8dbe36 or later with this
+thorn.
 
-Diagnostic export uses Convert\_to\_HydroBase\_every: zero disables it and
-positive values select divisible iterations. Mandatory conversion for leakage
-RHS consumers and compatibility initialization updates every scheduled call.
+Diagnostic export uses Convert\_to\_HydroBase\_every: its default, zero,
+disables the export, so exported fields are not refreshed for diagnostics
+(apart from the mandatory conversions described next), and positive values
+select divisible iterations. When the legacy Convert\_to\_HydroBase thorn is
+active, the scheduled diagnostic export instead uses
+Convert\_to\_HydroBase::Convert\_to\_HydroBase\_every, with the same zero and
+divisibility rules; unless ID\_converter\_ILGRMHD is active, the export is
+scheduled only if the IllinoisGRMHD parameter is also nonzero. Mandatory
+conversion for leakage RHS consumers and
+compatibility initialization updates every scheduled call. A diagnostic such
+as smallbPoynET reads the exported fields only at iterations selected by its
+own cadence, so the Convert\_to\_HydroBase\_every that governs the export
+should be a positive divisor of that cadence.
 
 \subsection{Supported entropy and recovery contracts}
 Tabulated entropy evolution is rejected at startup until the shared \grhayl{}

@@ -117,20 +117,32 @@ Claim evidence:
 - Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=nonpositive cadence guard inspected-not-run; options=leakage-active bypass and leakage-inactive local/legacy cadence; date=10-02-2026`
 
 
-IllinoisGRMHD conservatively rejects any active `smallbPoynET` at startup,
-including disabled diagnostics and locally modified consumers, until a separately
-owned canonical-Bvec consumer update is integrated and verified. Removing it
-from `ActiveThorns` is the supported route in this checkout; changing import
-normalization or export cadence cannot bypass the restriction. No coupled
-schedule execution or external consumer correctness is established here.
+IllinoisGRMHD installs no startup check that rejects smallbPoynET and cannot
+identify a consumer's revision. A consumer reads the exported `Bvec` as
+the canonical normalized field and must not divide it by `sqrt(4*pi)` again.
+The ThornGuide documents that the updated smallbPoynET diagnostic follows this
+convention, that earlier smallbPoynET revisions do not, and that a diagnostic
+reads the exported fields only at its own cadence, so the governing
+`Convert_to_HydroBase_every` should be a positive divisor of that cadence.
+
+Locally, the default `Convert_to_HydroBase_every=0` disables the diagnostic
+export, so IllinoisGRMHD does not refresh `Bvec` for a diagnostic consumer; the
+mandatory leakage and compatibility conversions write only on their own
+schedules. A positive value exports on divisible iterations. When the legacy
+`Convert_to_HydroBase` thorn is active, the scheduled diagnostic wrapper applies
+that thorn's `Convert_to_HydroBase::Convert_to_HydroBase_every` instead, with the
+same zero guard and modulo test; unless `ID_converter_ILGRMHD` is active, the
+wrapper is scheduled only if `IllinoisGRMHD::Convert_to_HydroBase_every` is also
+nonzero. Consumer behavior and coupled schedule execution are not established by
+this tree.
 
 Claim evidence:
-- Claim: The local startup check rejects active smallbPoynET independently of export cadence and legacy import normalization; this is a conservative restriction, not consumer-version detection.
+- Claim: The local exporter writes `Bvec` with a unit factor independently of import normalization and export cadence. The default `Convert_to_HydroBase_every=0` disables the diagnostic export, so IllinoisGRMHD does not refresh `Bvec` for a diagnostic consumer; a positive value exports on divisible iterations; and, when the legacy `Convert_to_HydroBase` thorn is active, the scheduled diagnostic wrapper uses that thorn's `Convert_to_HydroBase::Convert_to_HydroBase_every` instead, being scheduled without `ID_converter_ILGRMHD` only if the IllinoisGRMHD parameter is also nonzero. No local startup check rejects smallbPoynET or identifies a consumer's revision. Documented intent, not locally verified consumer behavior: the updated smallbPoynET consumes this convention, and a diagnostic reads exported fields only at its own cadence, so the governing `Convert_to_HydroBase_every` should be a positive divisor of that cadence.
 - Role: public/scientific contract
-- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_check_HydroBase_diagnostics`
-- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, `IllinoisGRMHD_check_HydroBase_diagnostics` at `CCTK_WRAGH`; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` (`mag_factor` and `Bvec` writes) and `IllinoisGRMHD_convert_HydroBase_diagnostics` (zero guard, modulo test, and legacy parameter lookup) for the local facts; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph and the export-cadence paragraph that follows it, for the documented consumer convention and cadence guidance
+- Corroboration: registered `IllinoisGRMHD/param.ccl`, `Convert_to_HydroBase_every` (range `0:*`, default `0`); registered `IllinoisGRMHD/schedule.ccl`, `CCTK_WRAGH` and `CCTK_ANALYSIS` occurrences, which declare no smallbPoynET check and gate the modern `CCTK_ANALYSIS` diagnostic export on nonzero `Convert_to_HydroBase_every`; the documented consumer convention and cadence guidance have no local corroboration because the consumer is external
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=unconditional active-thorn restriction; date=10-02-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-applicable; options=local source and documentation inspection; date=10-04-2026`
 
 ### Tmunu handoff
 
@@ -185,7 +197,8 @@ Claim evidence:
 - [`IllinoisGRMHD/param.ccl`](../../IllinoisGRMHD/param.ccl) — cadence,
   rescaling, and Tmunu controls.
 - [`IllinoisGRMHD/doc/documentation.tex`](../../IllinoisGRMHD/doc/documentation.tex) —
-  `Parameters` cadence guidance.
+  `Parameters` cadence guidance and `Updating Old Parfiles` magnetic migration
+  and export-cadence paragraphs.
 
 ## See Also
 
