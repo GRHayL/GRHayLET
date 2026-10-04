@@ -29,7 +29,8 @@ Illinois Numerical Relativity group's GRMHD  code.
 
 This thorn supports most  of GRHayL's features including all Con2Prim
 routines, piecewise parabolic reconstruction, HLLE Riemann solver, and
-both hybrid polytropic and tabulated equations of state.
+both hybrid polytropic and tabulated equations of state. IllinoisGRMHD and its
+GRHayLib interface require REAL_PRECISION=8.
 
 IllinoisGRMHD evolves the vector potential A_{\mu} (on staggered grids) 
 instead of the magnetic fields (B^i) directly, to guarantee that the 

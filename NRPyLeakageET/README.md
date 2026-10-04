@@ -60,7 +60,8 @@ semantics and gradual underflow. Do not build with `-ffast-math`, `-Ofast`,
 an Intel fast floating-point model. For Intel LLVM, keep `-fp-model=precise
 -no-ftz`, including when linking the executable that contains `main`. GRHayL's
 standalone `configure` enforces this; the Cactus build of GRHayLib does not
-check these flags, so the Cactus option list must satisfy them.
+check these flags, so the Cactus option list must satisfy them. The thorn also
+requires Cactus `REAL_PRECISION=8`; its header rejects other builds at compile time.
 
 Entropy-controlled recovery. NRPyLeakageET adds its sources only to `Ye_star`,
 `tau`, and `S_tilde_i`; it adds nothing to the evolved entropy. A Con2Prim

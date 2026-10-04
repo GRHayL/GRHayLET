@@ -30,7 +30,7 @@ void GRHayLID_IsotropicGas(CCTK_ARGUMENTS) {
 
   CCTK_INFO("Beginning IsotropicGas initial data");
 
-  double IsotropicGas_press, IsotropicGas_eps;
+  CCTK_REAL IsotropicGas_press, IsotropicGas_eps;
   GRHayLID_check_table_state(IsotropicGas_rho, IsotropicGas_Y_e, IsotropicGas_temperature, "gas");
   ghl_error_codes_t eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,

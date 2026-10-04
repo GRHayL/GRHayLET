@@ -34,7 +34,7 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
   CCTK_INFO("Beginning ConstantDensitySphere initial data");
 
   // Compute hydro quantities inside and outside the sphere
-  double P_interior, eps_interior;
+  CCTK_REAL P_interior, eps_interior;
   GRHayLID_check_table_state(ConstantDensitySphere_rho_interior, ConstantDensitySphere_Y_e_interior, ConstantDensitySphere_T_interior, "sphere interior");
   ghl_error_codes_t eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
@@ -47,7 +47,7 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
     CCTK_VERROR("sphere interior EOS failed for rho=%g, Ye=%g, T=%g (status %d)",
                 ConstantDensitySphere_rho_interior, ConstantDensitySphere_Y_e_interior, ConstantDensitySphere_T_interior, (int)eos_error);
 
-  double P_exterior, eps_exterior;
+  CCTK_REAL P_exterior, eps_exterior;
   GRHayLID_check_table_state(ConstantDensitySphere_rho_exterior, ConstantDensitySphere_Y_e_exterior, ConstantDensitySphere_T_exterior, "sphere exterior");
   eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,

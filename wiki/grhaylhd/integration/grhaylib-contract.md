@@ -1,6 +1,6 @@
 # GRHayLib Contract
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -15,7 +15,8 @@ remain externally unverified.
 Local routines read `ghl_params` and `ghl_eos`, then delegate metric setup,
 primitive limits, EOS work, conversion/recovery, reconstruction, wave speeds,
 HLLE fluxes, sources, atmosphere handling, diagnostics, and stress-energy
-calculation to GRHayLib APIs. Local CCL dispatches on shared `EOS_type` and
+calculation to GRHayLib APIs. The local header requires an eight-byte Cactus
+real. Local CCL dispatches on shared `EOS_type` and
 `evolve_entropy`; equivalence between those CCL values and library objects is
 not established locally.
 
@@ -42,12 +43,16 @@ not established locally.
 | `INT-GHL-07` | Parameter CCL uses shared `EOS_type`. | declared | Shared parameter declaration | `ccl:GRHayLHD/param.ccl#parameter=EOS_type` |
 | `INT-GHL-08` | Parameter CCL uses shared `evolve_entropy`. | declared | Shared parameter declaration | `ccl:GRHayLHD/param.ccl#parameter=evolve_entropy` |
 | `INT-GHL-09` | Local header visibly includes `GRHayLib.h`. | visible-implementation | Include directive | `macro:GRHayLHD/src/GRHayLHD.h#include=GRHayLib.h` |
+| `INT-GHL-10` | Local header rejects builds without `CCTK_REAL_PRECISION_8` by preprocessor error. | visible-implementation | Preprocessor guard after the include | `macro:GRHayLHD/src/GRHayLHD.h#include=GRHayLib.h` |
 
 ## Details
 
 ### Shared handles and selection boundary
 
-`GRHayLHD.h` includes `GRHayLib.h`. Local C uses global `ghl_params` for
+`GRHayLHD.h` includes `GRHayLib.h` and stops compilation unless Cactus defines
+`CCTK_REAL_PRECISION_8`; its comment cites GRHayL's double-precision API. The
+guard is a preprocessor check, not build or library-compatibility evidence.
+Local C uses global `ghl_params` for
 entropy selection, primitive/reconstruction limits, atmosphere thresholds,
 and recovery configuration; it uses `ghl_eos` for EOS-family selection and
 EOS-dependent calls. Parameter CCL only `USES` shared `EOS_type` and

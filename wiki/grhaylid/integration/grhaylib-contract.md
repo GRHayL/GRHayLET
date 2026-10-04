@@ -1,6 +1,6 @@
 # GRHayLib Contract
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -14,7 +14,9 @@ out of scope.
 
 Local CCL shares EOS_type from GRHayLib, includes GRHayLib.h, and requires
 HDF5. The header rejects non-eight-byte Cactus real configurations. All
-output-pointer EOS calls now use double temporaries. Beta uses interpolated
+output-pointer EOS calls use local scalar temporaries, typed CCTK_REAL in the
+gas and sphere initializers and double in the one-dimensional hydro, beta, and
+entropy code. Beta uses interpolated
 base potentials at each actual rho/T rather than the cached-root APIs.
 
 ## Mode Applicability
@@ -49,9 +51,11 @@ base potentials at each actual rho/T rather than the cached-root APIs.
 | Effective bounds | ghl_tabulated_enforce_bounds_rho_Ye_T |
 
 Local code checks statuses against ghl_success and stages all EOS output
-pointers through doubles. The explicit precision requirement also bounds the
-GRHayLib parameter-array interface; it does not establish a complete Cactus
-build. No pointer cast is used as a representation bridge.
+pointers through local scalar temporaries typed CCTK_REAL or double. The
+header requires `CCTK_REAL` to be Cactus's eight-byte real (`double`); that
+requirement also bounds the GRHayLib parameter-array interface and does not
+establish a complete Cactus build. No pointer cast is used as a representation
+bridge.
 
 The local beta solver reads effective rho/Ye/T bounds, atmosphere metadata,
 N_Ye, and table_Y_e. It no longer calls the cached-root builder or its density
