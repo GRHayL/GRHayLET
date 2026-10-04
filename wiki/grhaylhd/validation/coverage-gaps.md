@@ -1,6 +1,6 @@
 # Coverage Gaps
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Validation](index.md)
 
 ## Scope and Non-Scope
@@ -36,7 +36,7 @@ dispatch, cadence/leakage, recovery diagnostics, and Tmunu lifecycle.
 | `VAL-GAP-01` | Authored inputs visibly select Simple and Hybrid but do not explicitly select Tabulated or entropy evolution. | coverage-gap | Both authored EOS assignments plus shared declaration | `par:GRHayLHD/test/Balsara0.par#parameter=GRHayLib::EOS_type` |
 | `VAL-GAP-02` | Eleven checked-in oracles omit direct ownership for optional evolved state and internal conservative/RHS/flux/diagnostic fields. | coverage-gap | Complete oracle inventory | `oracle:GRHayLHD/test/Balsara0/rho.x.asc#file` |
 | `VAL-GAP-03` | Copy matter boundary is explicit in Balsara inputs; no authored input explicitly selects frozen boundary. | coverage-gap | Balsara boundary assignment | `par:GRHayLHD/test/Balsara0.par#parameter=GRHayLHD::Matter_BC` |
-| `VAL-GAP-04` | Local checked-in evidence does not own cadence-independent leakage refresh behavior. | coverage-gap | Leakage schedule boundary | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` |
+| `VAL-GAP-04` | Local checked-in evidence does not establish configured diagnostic cadence, leakage substage refresh, or consumer timing. | coverage-gap | Leakage schedule boundary | `ccl:GRHayLHD/schedule.ccl#schedule=convert_GRHayLHD_to_HydroBase?context=GRHayLHD_RHS` |
 | `VAL-GAP-05` | Local evidence does not establish serial/parallel RNG behavior or reproducibility. | coverage-gap | RNG macro and perturbation call pattern | `macro:GRHayLHD/src/GRHayLHD.h#name=one_plus_pert` |
 | `VAL-GAP-06` | Two single-tolerance case declarations provide no local multi-resolution convergence or conservation evidence. | coverage-gap | Balsara0 declaration | `test:GRHayLHD/test/test.ccl#case=Balsara0` |
 | `VAL-GAP-07` | Companion and oracle assertions do not establish current-input identity, production, chronology, or a shared provenance chain. | unresolved | Balsara companion/oracle issue | `par:GRHayLHD/test/Balsara0/Balsara0.par#file` |
@@ -51,7 +51,7 @@ dispatch, cadence/leakage, recovery diagnostics, and Tmunu lifecycle.
 | Internal hydrodynamic state | HydroBase density/pressure and native velocity oracle files | Core conservatives, optional conservatives, every RHS group, flux temporaries, and `failure_checker` |
 | Matter boundaries and symmetry | Copy explicitly selected in Balsara; only `none` locally selectable for symmetry | Explicit frozen/outflow distinction, inflow clipping, six-face behavior, AMR/coarsest-level gates, dormant equatorial branches |
 | Perturbations and RNG | Disabled local defaults and visible perturbation source | Initial/per-recovery perturbation outputs, seed repeatability, serial/parallel RNG behavior, field-by-field magnitude evidence |
-| HydroBase conversion and leakage | Conversion formulas and schedule declarations | Cadence-independent RHS/analysis freshness with leakage active, `w_lorentz` warning path, leakage integration |
+| HydroBase conversion and leakage | Conversion formulas and schedule declarations | Configured diagnostic cadence, unconditional leakage RHS refresh and leakage-active analysis freshness at zero/positive diagnostic intervals, `w_lorentz` warning path, leakage integration |
 | Tmunu | TOV configuration supplies TmunuBase settings; local function visibly adds components | Direct stress-energy observation, contribution ordering, steering transition, registration-error handling |
 | Recovery | TOV config names external Font1D backup; recovery code has diagnostic paths | Forced primary failure/fallback, averaging retries, atmosphere terminal path, NaN screen, `failure_checker` legend/writeback distinction |
 | Flux/source helpers | Visible interpolation/derivative formulas and directional calls | Face-helper focused observation, x/y/z directional consistency, source-before-flux runtime ordering |
@@ -71,7 +71,7 @@ a gap; it does not predict a successful result.
 | Rank / operational risk | Proposed smallest configuration | Expected evidence | Dependencies |
 | --- | --- | --- | --- |
 | P0 / state-layout divergence | Add one minimal input for each missing mode: Hybrid+entropy, Tabulated, Tabulated+entropy; request active optional primitives/conservatives and a core baseline | Authored assignments plus mode-specific ASCII fields showing field presence and iteration blocks | EOS tables for tabulated modes; external GRHayLib initialization; output support for internal fields |
-| P0 / leakage refresh lifecycle | Minimal existing case with NRPyLeakageET active at cadences 0, 1, and greater than one | Scheduler/runtime record and HydroBase velocity/Lorentz outputs sufficient to distinguish each call path | NRPyLeakageET availability; current-stage diagnostic capture; no coupled runtime result exists |
+| P0 / leakage refresh execution | Minimal existing case with NRPyLeakageET active at diagnostic intervals zero, one, and greater than one, including MoL substages | Scheduler/runtime record and HydroBase velocity/Lorentz outputs sufficient to distinguish unconditional RHS refresh, leakage-active initial/analysis refresh, and optional diagnostic copying, and establish consumer timing | Configured Cactus/NRPyLeakageET environment; substage and diagnostic capture |
 | P0 / recovery fallback and diagnostics | Small grid with controlled conservative states that trigger primary failure, weighted retry, explicit Hybrid fallback, and atmosphere path separately | `failure_checker`, corrected conservatives/primitives, and bounded diagnostic log for each targeted path | Reproducible fault injection or crafted state; external recovery semantics |
 | P0 / Tmunu lifecycle | Minimal matter configuration with `update_Tmunu=no/yes`, plus a supported steering-transition probe | TmunuBase component output, registration status, and contribution timing evidence | MoL/TmunuBase lifecycle semantics; a defined supported steering contract |
 | P1 / boundary distinctions | Small uniform-state grids selecting copy, outflow, and frozen separately; inject normal inflow on one face at a time | Six-face primitive/conservative observations with signed normal-velocity cases | Boundary output including ghost zones; one coarse level first, then AMR gate case |

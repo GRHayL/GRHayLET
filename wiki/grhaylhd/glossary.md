@@ -1,6 +1,6 @@
 # GRHayLHD Glossary
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 
 Each recurring term has one canonical owner. Meanings route queries; they do
 not add claims beyond owner-page evidence.
@@ -20,8 +20,8 @@ not add claims beyond owner-page evidence.
 | Prim2Con | Primitive-to-conservative construction path. | [Primitive-Conservative Conversion](evolution/primitive-conservative-conversion.md) |
 | Con2Prim | Conservative-to-primitive recovery path. | [Conservative Recovery](evolution/conservative-recovery.md) |
 | atmosphere | Non-positive-density or terminal-recovery fallback primitive state. | [Conservative Recovery](evolution/conservative-recovery.md) |
-| Font1D | Explicit Hybrid-family post-retry recovery call; external semantics remain delegated. | [Conservative Recovery](evolution/conservative-recovery.md) |
-| failure_checker | Per-point recovery diagnostic with open legend/writeback mismatch. | [Conservative Recovery](evolution/conservative-recovery.md) |
+| Font1D | Explicit post-retry recovery call for Hybrid EOS; external semantics remain delegated. | [Conservative Recovery](evolution/conservative-recovery.md) |
+| failure_checker | Per-point recovery diagnostic preserving the terminal atmosphere marker. | [Conservative Recovery](evolution/conservative-recovery.md) |
 | PPM | External reconstruction call family used by local flux routines. | [RHS Fluxes and Sources](evolution/rhs-fluxes-and-sources.md) |
 | HLLE | External directional flux call family used by local flux routines. | [RHS Fluxes and Sources](evolution/rhs-fluxes-and-sources.md) |
 | Matter_BC | Local selector for copy, outflow, or frozen matter boundaries. | [Matter Boundaries and Symmetry](evolution/matter-boundaries-and-symmetry.md) |

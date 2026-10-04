@@ -1,6 +1,6 @@
 # GRHayLHD KB Workflows
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 
 ## Register Sources
 
@@ -25,6 +25,9 @@
    [issues](contradictions.md); every live affected page links its exact anchor.
 5. Promote to `reviewed` only after static claim, locator, edge, link, and issue
    review. This never records build, run, or test success.
+6. When an issue closes, delete its row, detail section, affected-page
+   backlinks, and resolved-state prose in the same change; record the issue ID
+   and resolution locator in the commit message. Never reuse a retired ID.
 
 ## Verify Safely
 

@@ -1,6 +1,6 @@
 # Parameters and Configurations
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -53,7 +53,7 @@ no external default semantics are inferred.
 
 | Parameter | Local declaration, domain, default | Steerability | Schedule guards and visible C consumers | Mode interaction | Assignments across five parfiles / caveat |
 | --- | --- | --- | --- | --- | --- |
-| `Convert_to_HydroBase_every` | `INT`; `0:*`; default `0` | Not marked | Controls optional diagnostics; leakage-active initial/analysis/RHS calls bypass cadence; other calls guard nonpositive values before modulo | Common | No explicit assignment; local default disables optional conversion only when leakage is inactive; static cadence hazard is resolved in [GRH-0006](../contradictions.md#grh-0006). |
+| `Convert_to_HydroBase_every` | `INT`; `0:*`; default `0` | Not marked | Controls optional diagnostic conversion at initial and analysis phases; the diagnostic wrapper bypasses cadence when leakage is active and otherwise checks nonpositive values before modulo; leakage RHS conversion runs independently | Common | No explicit assignment; local default disables optional diagnostic conversion only when leakage is inactive. |
 | `update_Tmunu` | `CCTK_BOOLEAN`; default `yes` | `ALWAYS` | Guards `AddToTmunu` schedule and Tmunu constrained registration | Common | Authored and companion Balsara0 set `no`; other three omit it. Steering lifecycle is [GRH-0007](../contradictions.md#grh-0007). |
 | `Symmetry` | `KEYWORD`; permitted `none`; default `none` | Not marked | Read by symmetry initialization, all recovery symmetry branches, and all outer-boundary routines | Common | No explicit assignment. Equatorial source branches are not locally selectable; see [GRH-0001](../contradictions.md#grh-0001). |
 | `Matter_BC` | `KEYWORD`; `copy`, `outflow`, `frozen`; default `outflow` | Not marked | Read by all four outer-boundary routines; outer-boundary group itself is not parameter-guarded | Common | Example, authored Balsara0, and Balsara0 companion set `copy`; TOV files omit it. |

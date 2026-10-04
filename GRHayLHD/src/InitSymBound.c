@@ -27,7 +27,7 @@ void GRHayLHD_InitSymBound(CCTK_ARGUMENTS) {
 
     if(CCTK_EQUALS(Symmetry, "equatorial")) {
       sym[2] = -1;
-      SetCartSymVN(cctkGH, sym, "GRHayLHD::Stilde_z");
+      SetCartSymVN(cctkGH, sym, "GRHayLHD::Stildez");
       SetCartSymVN(cctkGH, sym, "GRHayLHD::vz");
     } else if (!CCTK_EQUALS(Symmetry, "none")) {
       CCTK_ERROR("GRHayLHD_initsymbound: Should not be here; picked an impossible symmetry.");

@@ -24,7 +24,7 @@ void GRHayLHD_compute_Tmunu(CCTK_ARGUMENTS) {
         ghl_compute_ADM_auxiliaries(&ADM_metric, &metric_aux);
 
         // Read in primitive variables from gridfunctions
-        ghl_primitive_quantities prims;
+        ghl_primitive_quantities prims = {0};
         prims.BU[0] = prims.BU[1] = prims.BU[2] = 0.0;
         prims.rho   = rho[index];
         prims.press = press[index];

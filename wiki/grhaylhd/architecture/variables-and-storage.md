@@ -1,6 +1,6 @@
 # Variables and Storage
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Architecture](index.md)
 
 ## Scope and Non-Scope
@@ -55,7 +55,7 @@ GRHayLHD; TmunuBase owns stress-energy outputs. `ent_star` storage follows
 | Optional RHS | `ent_star_rhs`, `Ye_star_rhs` | no prolongation, no checkpoint | Conditional source/flux writers; MoL RHS |
 | Core flux temporary | `grmhd_flux_temps` | no prolongation, no checkpoint | Variant flux routines |
 | Optional flux | `ent_star_flux`, `Ye_star_flux` | no prolongation, no checkpoint | Conditional variant flux routines |
-| `failure_checker` | scalar diagnostic GF | no prolongation/checkpoint; one interpolation timelevel | Recovery writers; interpretation has open mismatch |
+| `failure_checker` | scalar diagnostic GF | no prolongation/checkpoint; one interpolation timelevel | Recovery writers |
 
 `HydroBase::rho`, `press`, and `eps` indices are visibly passed to constrained-
 group registration APIs. Entropy adds `HydroBase::entropy`; tabulated modes add
@@ -73,12 +73,12 @@ EOS condition adds `Ye_star[3]`, its RHS, and flux. `evolve_entropy` adds
 objects `ghl_eos` and `ghl_params`; equivalence between CCL conditions and
 external object initialization is not proved locally.
 
-### Interface mismatches
+### Interface name agreement
 
-`InitSymBound.c` asks for `GRHayLHD::Stilde_z` in a dormant equatorial branch,
-while interface state spells the variable `Stildez`. Three recovery variants
-also contain `grhd_conservatives` where interface declares
-`grmhd_conservatives`. These strings are recorded without a runtime claim.
+`InitSymBound.c` asks for `GRHayLHD::Stildez` in its dormant equatorial
+branch, matching interface state. All four recovery variants request
+`grmhd_conservatives`, matching the declared group. Matching names do not
+enable equatorial symmetry or establish a runtime result.
 
 ## Caveats
 
@@ -86,10 +86,6 @@ also contain `grhd_conservatives` where interface declares
   not allocation or registration success.
 - Generated Cactus argument macros and external group semantics are not local
   evidence.
-- See [GRH-0003](../contradictions.md#grh-0003) for momentum spelling and
-  [GRH-0002](../contradictions.md#grh-0002) for conservative-group spelling,
-  and [GRH-0004](../contradictions.md#grh-0004) for diagnostic overwrite
-  context.
 
 ## Sources
 

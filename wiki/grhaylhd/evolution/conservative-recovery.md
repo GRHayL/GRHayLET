@@ -1,6 +1,6 @@
 # Conservative Recovery
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -15,7 +15,7 @@ All variants route non-positive conserved density to atmosphere, otherwise
 undensitize and call `ghl_con2prim_multi_method`, screen recovered fields for
 NaN, retry failures with bounded-neighborhood weighted conservative inputs,
 and use atmosphere after terminal failure. Hybrid families alone visibly call
-an explicit Font1D fallback. After recovery, all variants limit primitives,
+an explicit Font1D fallback restricted to Hybrid EOS. After recovery, all variants limit primitives,
 write them, then use a separate loop to recompute and overwrite conservatives
 while accumulating change diagnostics.
 
@@ -24,8 +24,8 @@ while accumulating change diagnostics.
 | Applicability | Recovered extras | Visible pre-solver conservative limits | Explicit post-retry fallback | Recomputed extras |
 | --- | --- | --- | --- | --- |
 | Common | Base thermodynamics and velocity | Mode-dependent | Atmosphere after terminal error | Five core conservatives |
-| Hybrid/Simple | None | Yes | `ghl_hybrid_Font1D`, then atmosphere | None |
-| Hybrid/Simple+Entropy | Entropy | Yes | `ghl_hybrid_Font1D`, then atmosphere | `ent_star` |
+| Hybrid/Simple | None | Yes | Hybrid-only `ghl_hybrid_Font1D`, then atmosphere; Simple goes directly to atmosphere | None |
+| Hybrid/Simple+Entropy | Entropy | Yes | Hybrid-only `ghl_hybrid_Font1D`, then atmosphere; Simple goes directly to atmosphere | `ent_star` |
 | Tabulated | `Y_e`, temperature | No local `ghl_apply_conservative_limits` call | Atmosphere; no explicit Font1D call | `Ye_star` |
 | Tabulated+Entropy | Entropy, `Y_e`, temperature | No local `ghl_apply_conservative_limits` call | Atmosphere; no explicit Font1D call | `ent_star`, `Ye_star` |
 
@@ -33,7 +33,7 @@ while accumulating change diagnostics.
 
 | Claim ID | Claim | Status | Evidence | Typed locator |
 | --- | --- | --- | --- | --- |
-| `EV-C2P-01` | Hybrid recovery visibly applies conservative limits, retries weighted neighborhoods, calls Font1D, writes primitives, and recomputes core conservatives. | visible-implementation | Full variant function | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` |
+| `EV-C2P-01` | Hybrid recovery visibly applies conservative limits, retries weighted neighborhoods, calls Font1D only for Hybrid EOS, writes primitives, and recomputes core conservatives. | visible-implementation | Full variant function | `c:GRHayLHD/src/Hybrid/conservs_to_prims.c#symbol=GRHayLHD_hybrid_conservs_to_prims` |
 | `EV-C2P-02` | HybridEntropy follows Hybrid fallback structure and includes entropy in recovery and recomputation. | visible-implementation | Full variant function | `c:GRHayLHD/src/HybridEntropy/conservs_to_prims.c#symbol=GRHayLHD_hybrid_entropy_conservs_to_prims` |
 | `EV-C2P-03` | Tabulated recovery includes electron fraction and temperature, but no explicit Font1D call. | visible-implementation | Full variant function | `c:GRHayLHD/src/Tabulated/conservs_to_prims.c#symbol=GRHayLHD_tabulated_conservs_to_prims` |
 | `EV-C2P-04` | TabulatedEntropy includes both optional state sets and no explicit Font1D call. | visible-implementation | Full variant function | `c:GRHayLHD/src/TabulatedEntropy/conservs_to_prims.c#symbol=GRHayLHD_tabulated_entropy_conservs_to_prims` |
@@ -43,12 +43,12 @@ while accumulating change diagnostics.
 
 ### Primary path and atmosphere path
 
-Each function initializes diagnostics, metric, auxiliaries, zero magnetic
-primitive components, and mode conservatives. Condition `cons.rho > 0.0`
+Each function rejects `ghl_params->calc_prim_guess == false` before recovery.
+It initializes complete primitive/conservative objects to zero, then loads
+active mode conservatives, diagnostics, metric, and auxiliaries. Active
+guesses are delegated to GRHayL; the guard does not implement previous-state guesses. Condition `cons.rho > 0.0`
 enters solver path; its complement sets constant atmosphere, adds one to local
-failure code, increments density-fix count, and marks success. Thus visible
-atmosphere gate is non-positive density, although nearby decoder comment says
-`rho_star < 0`.
+failure code, increments density-fix count, and marks success. The visible atmosphere gate and decoder both use non-positive density.
 
 Positive-density Hybrid paths call `ghl_apply_conservative_limits` before
 undensitization. Tabulated paths visibly skip that helper. All call
@@ -62,16 +62,18 @@ local singular-error code.
 On error, code bounds each coordinate to local grid and scans clipped
 `i-1..i+1`, `j-1..j+1`, `k-1..k+1` neighborhood, excluding center. It sums
 every active conservative field. A loop with `avg_weight` values 1 through 4
-constructs weighted neighbor/center combinations, divides by adjusted
-`n_avg`, undensitizes, retries multi-method recovery, and repeats NaN screen.
+constructs `w*(neighbor_sum/n_avg) + (1-w)*center` for each active field,
+with fixed neighbor count and `w = avg_weight/4`. With no neighbors it skips
+these retries. It undensitizes, retries multi-method recovery, and repeats the NaN screen.
 This is visible algorithmic structure; no numerical-quality or race-free claim
 is inferred from comments.
 
-Hybrid and HybridEntropy then reload/apply conservative limits, undensitize,
-and call `ghl_hybrid_Font1D`. If that or its NaN screen fails, they set
-atmosphere. Tabulated and TabulatedEntropy proceed directly from exhausted
-weighted retries to atmosphere. All terminal paths update aggregate failure
-and horizon counters based on visible conditions.
+For Hybrid EOS only, Hybrid and HybridEntropy reload/apply conservative
+limits, undensitize, and call `ghl_hybrid_Font1D`. Simple skips this cold
+fallback. Remaining errors or a failed NaN screen lead to atmosphere. Tabulated and TabulatedEntropy proceed directly from exhausted
+weighted retries to atmosphere. All terminal paths update aggregate failures and the failure count above
+`psi6threshold`. The regional denominator counts every grid point above that
+threshold, including successful recoveries, and is labelled `AbovePsi6Threshold`.
 
 ### Post-recovery writes and recomputation
 
@@ -90,26 +92,19 @@ follow mode.
 
 ### `failure_checker` legend versus write order
 
-Source comments assign 1 to a density-atmosphere reset, 10 to speed limiting,
-100 to "Both C2P and Font Fix failed", 1000 to backup use, 10000 to a tau
-fix, and 100000 to a momentum fix. Tabulated and TabulatedEntropy repeat the
-Font-Fix wording although neither file contains an explicit local Font1D call;
-only Hybrid families visibly call `ghl_hybrid_Font1D`. This variant/legend
-mismatch is tracked under [GRH-0014](../contradictions.md#grh-0014).
+Source comments assign 1 to a nonpositive-density atmosphere reset, 10 to speed
+limiting, 100 to exhaustion of all allowed recovery attempts, 1000 to backup
+use, 10000 to a tau fix, and 100000 to a momentum fix. Every terminal branch
+adds 100 to `local_failure_checker`, and the single final point assignment
+preserves that contribution. This static reading does not establish a current
+Cactus runtime diagnostic result.
 
-Separately, all four terminal branches execute
-`failure_checker[index] += 100`, but later each point assigns
-`failure_checker[index] = local_failure_checker + ...` without that terminal
-100 contribution; this overwrite mismatch remains tracked under
-[GRH-0004](../contradictions.md#grh-0004). No runtime diagnostic value is
-asserted for either mismatch.
+### Dormant symmetry group name
 
-### Dormant symmetry-name mismatch
-
-Hybrid uses `GRHayLHD::grmhd_conservatives` in its equatorial block. The other
-three variants visibly request `GRHayLHD::grhd_conservatives`, which differs
-from interface declaration. Only `Symmetry=none` is locally selectable, so
-this remains dormant mismatch rather than supported symmetry behavior.
+All four variants visibly request `GRHayLHD::grmhd_conservatives` in their
+equatorial blocks, matching the interface declaration. Only `Symmetry=none`
+is locally selectable; the group name does not establish supported equatorial
+symmetry behavior.
 
 ## Caveats
 
@@ -118,9 +113,6 @@ this remains dormant mismatch rather than supported symmetry behavior.
 - Absence of explicit Font1D in tabulated files does not exclude fallback
   inside external multi-method implementation.
 - Comments calling second loop deterministic do not prove thread safety.
-- Group-name mismatch: [GRH-0002](../contradictions.md#grh-0002).
-- Failure-code overwrite mismatch: [GRH-0004](../contradictions.md#grh-0004).
-- Code-100 legend mismatch: [GRH-0014](../contradictions.md#grh-0014).
 
 ## Sources
 

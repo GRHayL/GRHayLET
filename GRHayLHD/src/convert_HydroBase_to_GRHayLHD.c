@@ -28,7 +28,7 @@ void convert_HydroBase_to_GRHayLHD(CCTK_ARGUMENTS) {
         // n_a = {-\alpha,0,0,0}, and U^a is the purely spatial part, which
         // is defined in HydroBase as the vel[] vector gridfunction.
         // Then u^a n_a = - \alpha u^0 = G n^a n_a = -G, and
-        // of course \alpha u^0 = 1/sqrt(1+γ^ij u_i u_j) = \Gamma,
+        // of course \alpha u^0 = sqrt(1+γ^ij u_i u_j) = \Gamma,
         // the standard Lorentz factor.
 
         // Note that n^i = - \beta^i / \alpha, so

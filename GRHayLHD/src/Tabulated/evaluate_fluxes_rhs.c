@@ -16,15 +16,15 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        CCTK_REAL *cmin, CCTK_REAL *cmax);
+        double *cmin, double *cmax);
 
   void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        const CCTK_REAL cmin,
-        const CCTK_REAL cmax,
+        const double cmin,
+        const double cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
@@ -71,10 +71,10 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_face);
 
-          CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
-          CCTK_REAL vx_stencil[6], vy_stencil[6], vz_stencil[6];
-          CCTK_REAL Ye_stencil[6];
-          ghl_primitive_quantities prims_r, prims_l;
+          double rho_stencil[6], press_stencil[6], v_flux[6];
+          double vx_stencil[6], vy_stencil[6], vz_stencil[6];
+          double Ye_stencil[6];
+          ghl_primitive_quantities prims_r = {0}, prims_l = {0};
 
           for(int ind=0; ind<6; ind++) {
             // Stencil from -3 to +2 reconstructs to e.g. i-1/2
@@ -88,7 +88,7 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
             Ye_stencil[ind]    = Y_e[stencil];
           }
 
-          CCTK_REAL ftilde[2];
+          double ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
           ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
@@ -113,15 +113,17 @@ void GRHayLHD_tabulated_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
 
           // We must now compute eps and T
           ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_r.rho, &prims_r.Y_e, &prims_r.press);
-          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
+          error = ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_r.rho, prims_r.Y_e, prims_r.press,
                                              &prims_r.eps, &prims_r.temperature);
+          ghl_abort_if_error(error);
   
           ghl_tabulated_enforce_bounds_rho_Ye_P(ghl_eos, &prims_l.rho, &prims_l.Y_e, &prims_l.press);
-          ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
+          error = ghl_tabulated_compute_eps_T_from_P(ghl_eos, prims_l.rho, prims_l.Y_e, prims_l.press,
                                              &prims_l.eps, &prims_l.temperature);
+          ghl_abort_if_error(error);
 
-          CCTK_REAL cmin, cmax;
-          ghl_conservative_quantities cons_fluxes;
+          double cmin, cmax;
+          ghl_conservative_quantities cons_fluxes = {0};
           calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);
 

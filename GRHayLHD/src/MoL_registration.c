@@ -38,9 +38,9 @@ void GRHayLHD_RegisterVars(CCTK_ARGUMENTS) {
   }
 
   if(update_Tmunu) {
-    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_scalar"));
-    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_vector"));
-    MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_tensor"));
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_scalar"));
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_vector"));
+    ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("TmunuBase::stress_energy_tensor"));
   }
 
   if (ierr) CCTK_ERROR("Problems registering with MoL");

@@ -1,6 +1,6 @@
 # ADM, MoL, and Tmunu Contracts
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Integration](index.md)
 
 ## Scope and Non-Scope
@@ -16,8 +16,8 @@ indices, HydroBase and optional TmunuBase group indices, and four ADMBase group
 indices. Tmunu computation reads ADM fields, base thermodynamics, native
 velocity, and `u0`; zeros `BU`; delegates tensor computation; then adds ten
 components into TmunuBase fields. Setup-conditional registration versus an
-always-steerable parameter and three unchecked registration results remain
-open static issues.
+always-steerable parameter remains an open lifecycle issue. All three Tmunu
+registration return values are accumulated into the local error check.
 
 ## Variant Applicability
 
@@ -72,15 +72,16 @@ constrained registration, save-and-restore registration, and uses
 `GetRefinementLevel` in boundary/diagnostic paths; it does not visibly call
 `MoLRegisterEvolved`.
 
-Registration uses `GRHayLHD::grmhd_conservatives`. Three variant recovery
-symmetry branches visibly request `GRHayLHD::grhd_conservatives`; runtime
-effect remains unverified under [GRH-0002](../contradictions.md#grh-0002).
+Registration and all four variant recovery symmetry branches visibly
+request `GRHayLHD::grmhd_conservatives`; equatorial symmetry remains locally
+unselectable, and runtime behavior remains unverified.
 
 ### Tmunu dataflow
 
 When `update_Tmunu` condition is met, CCL schedules function in `AddToTmunu`
 and declares reads of ADM metric/lapse/shift, HydroBase `rho`/`press`/`eps`,
-native velocity, and `u0`. Function initializes metric and auxiliary objects,
+native velocity, `u0`, and all three stress-energy groups that the function
+updates additively. Function initializes metric and auxiliary objects,
 loads those primitive fields, explicitly assigns all `prims.BU` components
 zero, and calls `ghl_compute_TDNmunu`.
 
@@ -88,17 +89,16 @@ Ten visible assignments use `+=` for `eTtt`, `eTtx`, `eTty`, `eTtz`, `eTxx`,
 `eTxy`, `eTxz`, `eTyy`, `eTyz`, and `eTzz`. This proves additive local writes,
 not initialization, tensor semantics, or successful contribution ordering.
 
-### Open lifecycle and status handling
+### Lifecycle and status handling
 
 `update_Tmunu` is declared `STEERABLE=ALWAYS`, while Tmunu scheduling and
 registration are both setup-conditional. Whether runtime changes reconfigure
 either boundary is unresolved; see
 [GRH-0007](../contradictions.md#grh-0007).
 
-Most registration return values are accumulated into `ierr` and checked.
-Three Tmunu constrained-registration calls visibly omit that accumulation;
-they remain unchecked-status review candidates under
-[GRH-0008](../contradictions.md#grh-0008), not observed failures.
+All registration return values, including the three Tmunu constrained calls,
+are visibly accumulated into `ierr` and checked; full Cactus execution remains
+unverified.
 
 ## Caveats
 

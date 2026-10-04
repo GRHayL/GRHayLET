@@ -1,6 +1,6 @@
 # GRHayLHD KB Schema
 
-> Page status: reviewed · Last reviewed: 07-17-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 
 ## Scope
 
@@ -35,6 +35,12 @@ Active issues use `-`. A resolved issue uses either an admitted typed
 `GRHayLHD/**` source locator or
 `kb:wiki/grhaylhd/path#section=Heading` pointing to a checked local
 documentation-only disposition.
+
+A resolved issue is deleted in the same change that resolves it: its table row,
+detail section, affected-page backlinks, and resolved-state prose all go, and
+the commit message records the issue ID and resolution locator. The KB keeps no
+historical-defect narrative, because version control holds that record. Retired
+IDs are never reused.
 
 Branch stays `unpublished` until every target page exists, every routed leaf
 is `reviewed`, routes/catalog/edges agree, and all checks pass. Structural
