@@ -28,6 +28,7 @@ tabulated EOS. It can also compute the entropy from the other quantities for
 any EOS. These features do not require that GRHayLIDX be used as the ID source
 and can be used with any ID thorn so long as GRHayLib is properly initialized
 and the ID schedules its routines in the expected HydroBaseX_InitialData bin.
+GRHayLIDX and its GRHayLib interface require REAL_PRECISION=8.
 
 Currently, this thorn can only run on the host and not on the GPU device because
 of limitations in the GRHayLib thorn.

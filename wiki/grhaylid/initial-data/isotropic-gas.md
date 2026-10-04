@@ -1,6 +1,6 @@
 # Isotropic Gas Initial Data
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Initial Data](index.md)
 
 ## Scope and Non-Scope
@@ -14,7 +14,7 @@ out of scope.
 
 IsotropicGas requires Tabulated EOS and both GRHayLID Ye/T selectors.
 The body checks active Ye/T/metric storage and finite effective-bounds input
-triples. EOS outputs use double temporaries, return codes and output finiteness
+triples. EOS outputs use CCTK_REAL temporaries, return codes and output finiteness
 are checked before the grid loop, and each point's metric is checked.
 
 ## Mode Applicability

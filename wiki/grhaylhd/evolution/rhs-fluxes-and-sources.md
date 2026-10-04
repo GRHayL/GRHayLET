@@ -1,6 +1,6 @@
 # RHS Fluxes and Sources
 
-> Page status: reviewed · Last reviewed: 10-02-2026
+> Page status: reviewed · Last reviewed: 10-04-2026
 > Up: [Evolution](index.md)
 
 ## Scope and Non-Scope
@@ -93,8 +93,9 @@ zeros left/right `BU`. Hybrid families obtain effective Gamma from a local
 helper; tabulated families pass `1.0` to density steepening and visibly invoke
 tabulated bound and pressure-to-energy/temperature helpers. Both tabulated
 families pass each inversion status to `ghl_abort_if_error` before characteristic
-speeds or HLLE fluxes. API-facing stencil buffers, callback signatures, and
-wave-speed outputs use `double`, with scalar conversion at grid reads/writes.
+speeds or HLLE fluxes. Stencil buffers, callback signatures, and wave-speed
+outputs use `CCTK_REAL`, which the thorn header requires to be Cactus's
+eight-byte real (`double`).
 Every primitive/conservative API object is initialized, and speed-limit flags
 start at false before their first accumulation call.
 

@@ -23,12 +23,12 @@ routing are owned by the branch index and root router.
 | `grhaylhd.evolution.eos-entropy-variants` | [EOS and Entropy Variants](evolution/eos-entropy-variants.md) | leaf | reviewed | 10-02-2026 | Hybrid; Simple; Tabulated; entropy; mode matrix |
 | `grhaylhd.evolution.primitive-conservative-conversion` | [Primitive-Conservative Conversion](evolution/primitive-conservative-conversion.md) | leaf | reviewed | 07-17-2026 | Prim2Con; zero BU; limits; u0; writeback |
 | `grhaylhd.evolution.conservative-recovery` | [Conservative Recovery](evolution/conservative-recovery.md) | leaf | reviewed | 10-04-2026 | Con2Prim; atmosphere; averaging; Font1D; diagnostics |
-| `grhaylhd.evolution.rhs-fluxes-and-sources` | [RHS Fluxes and Sources](evolution/rhs-fluxes-and-sources.md) | leaf | reviewed | 10-02-2026 | source RHS; flux RHS; PPM; HLLE; interpolation |
+| `grhaylhd.evolution.rhs-fluxes-and-sources` | [RHS Fluxes and Sources](evolution/rhs-fluxes-and-sources.md) | leaf | reviewed | 10-04-2026 | source RHS; flux RHS; PPM; HLLE; interpolation |
 | `grhaylhd.evolution.matter-boundaries-and-symmetry` | [Matter Boundaries and Symmetry](evolution/matter-boundaries-and-symmetry.md) | leaf | reviewed | 10-04-2026 | copy; outflow; frozen; faces; inflow; symmetry |
 | `grhaylhd.evolution.perturbations-and-diagnostics` | [Perturbations and Diagnostics](evolution/perturbations-and-diagnostics.md) | leaf | reviewed | 10-04-2026 | perturbation; random seed; OpenMP; failure checker |
 | `grhaylhd.integration` | [Integration](integration/index.md) | router | router | n/a | HydroBase; GRHayLib; ADMBase; MoL; TmunuBase; parameters |
 | `grhaylhd.integration.hydrobase-velocity-conversion` | [HydroBase Velocity Conversion](integration/hydrobase-velocity-conversion.md) | leaf | reviewed | 10-04-2026 | native velocity; Valencia; Lorentz factor; cadence |
-| `grhaylhd.integration.grhaylib-contract` | [GRHayLib Contract](integration/grhaylib-contract.md) | leaf | reviewed | 10-02-2026 | GRHayLib; API calls; EOS handle; delegation |
+| `grhaylhd.integration.grhaylib-contract` | [GRHayLib Contract](integration/grhaylib-contract.md) | leaf | reviewed | 10-04-2026 | GRHayLib; API calls; EOS handle; delegation; REAL_PRECISION |
 | `grhaylhd.integration.adm-mol-tmunu-contracts` | [ADM, MoL, and Tmunu Contracts](integration/adm-mol-tmunu-contracts.md) | leaf | reviewed | 10-04-2026 | ADMBase; MoL; TmunuBase; registration; u0 |
 | `grhaylhd.integration.parameters-and-configurations` | [Parameters and Configurations](integration/parameters-and-configurations.md) | leaf | reviewed | 10-04-2026 | local parameters; shared selections; parfiles; provenance |
 | `grhaylhd.validation` | [Validation](validation/index.md) | router | router | n/a | tests; tolerances; oracles; coverage; provenance |

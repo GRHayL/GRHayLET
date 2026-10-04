@@ -6,6 +6,12 @@
 #include "cctk_Arguments.h"
 #include "GRHayLib.h"
 
+/* GRHayL's API is double precision, and this thorn stores grid-function
+   pointers in arrays of double *. */
+#ifndef CCTK_REAL_PRECISION_8
+#error "IllinoisGRMHD requires Cactus REAL_PRECISION=8 (double)"
+#endif
+
 bool IllinoisGRMHD_enforce_outflow(
       const ghl_parameters *params, const ghl_metric_quantities *metric,
       const int sign[3], ghl_primitive_quantities *prims);

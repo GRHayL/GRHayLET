@@ -10,6 +10,11 @@
 #include "cctk_Parameters.h"
 #include "GRHayLib.h"
 
+/* GRHayL's API is double precision. */
+#ifndef CCTK_REAL_PRECISION_8
+#error "NRPyLeakageET requires Cactus REAL_PRECISION=8 (double)"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

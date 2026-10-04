@@ -16,15 +16,15 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        double *cmin, double *cmax);
+        CCTK_REAL *cmin, CCTK_REAL *cmax);
 
   void (*calculate_HLLE_fluxes)(
         ghl_primitive_quantities *restrict prims_r,
         ghl_primitive_quantities *restrict prims_l,
         const ghl_eos_parameters *restrict eos,
         const ghl_metric_quantities *restrict ADM_metric_face,
-        const double cmin,
-        const double cmax,
+        const CCTK_REAL cmin,
+        const CCTK_REAL cmax,
         ghl_conservative_quantities *restrict cons_fluxes);
 
   for(int flux_dir=0; flux_dir<3; flux_dir++) {
@@ -71,9 +71,9 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
                 gyy, gyz, gzz,
                 &ADM_metric_face);
 
-          double rho_stencil[6], press_stencil[6], v_flux[6];
-          double vx_stencil[6], vy_stencil[6], vz_stencil[6];
-          double ent_stencil[6], Ye_stencil[6];
+          CCTK_REAL rho_stencil[6], press_stencil[6], v_flux[6];
+          CCTK_REAL vx_stencil[6], vy_stencil[6], vz_stencil[6];
+          CCTK_REAL ent_stencil[6], Ye_stencil[6];
           ghl_primitive_quantities prims_r = {0}, prims_l = {0};
 
           for(int ind=0; ind<6; ind++) {
@@ -89,7 +89,7 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
             Ye_stencil[ind]    = Y_e[stencil];
           }
 
-          double ftilde[2];
+          CCTK_REAL ftilde[2];
           ghl_compute_ftilde(ghl_params, press_stencil, v_flux, ftilde);
 
           ghl_ppm_reconstruction_with_steepening(ghl_params, press_stencil, 1.0, ftilde, rho_stencil, &prims_r.rho, &prims_l.rho);
@@ -124,7 +124,7 @@ void GRHayLHD_tabulated_entropy_evaluate_fluxes_rhs(CCTK_ARGUMENTS) {
                                              &prims_l.eps, &prims_l.temperature);
           ghl_abort_if_error(error);
 
-          double cmin, cmax;
+          CCTK_REAL cmin, cmax;
           ghl_conservative_quantities cons_fluxes = {0};
           calculate_characteristic_speed(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, &cmin, &cmax);
           calculate_HLLE_fluxes(&prims_r, &prims_l, ghl_eos, &ADM_metric_face, cmin, cmax, &cons_fluxes);

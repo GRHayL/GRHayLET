@@ -1,6 +1,6 @@
 # Cactus Surface and Build
 
-> Status: confirmed · Last reconciled: 10-02-2026
+> Status: confirmed · Last reconciled: 10-04-2026
 > Up: [Architecture](index.md)
 
 ## Summary
@@ -99,16 +99,19 @@ A-flux RHS, and joint outflow/Lorentz enforcement.
 `IllinoisGRMHD_enforce_outflow` takes GRHayL parameters and metric, three
 coordinate-face signs, and an in/out primitive carrier; its boolean result
 reports whether a velocity satisfying all active face constraints and the
-Lorentz limit was found. These declarations establish local helper interfaces, not CCTK-
-generated symbol availability or external implementation semantics.
+Lorentz limit was found. The header also stops compilation unless Cactus defines
+`CCTK_REAL_PRECISION_8`; its comment cites GRHayL's double-precision API and
+arrays of `double *` that hold grid-function pointers. These declarations establish
+local helper interfaces, not CCTK-generated symbol availability or external
+implementation semantics.
 
 Claim evidence:
-- Claim: The interface declares a noncheckpointed hybrid_entropy scalar, the common manifest includes both new helpers, and the header exposes joint outflow enforcement; these are static declarations, not successful Cactus setup.
+- Claim: The interface declares a noncheckpointed hybrid_entropy scalar, the common manifest includes both new helpers, and the header exposes joint outflow enforcement and rejects builds without CCTK_REAL_PRECISION_8 by preprocessor error; these are static declarations, not successful Cactus setup.
 - Role: public/scientific contract
-- Deciding authority: registered `IllinoisGRMHD/interface.ccl`, `hybrid_entropy`; registered `IllinoisGRMHD/src/make.code.defn`, `SRCS`; registered `IllinoisGRMHD/src/IllinoisGRMHD.h`, `IllinoisGRMHD_enforce_outflow`
-- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, conditional `hybrid_entropy` storage; registered `IllinoisGRMHD/src/enforce_outflow.c`, `IllinoisGRMHD_enforce_outflow`
+- Deciding authority: registered `IllinoisGRMHD/interface.ccl`, `hybrid_entropy`; registered `IllinoisGRMHD/src/make.code.defn`, `SRCS`; registered `IllinoisGRMHD/src/IllinoisGRMHD.h`, `IllinoisGRMHD_enforce_outflow` and the `CCTK_REAL_PRECISION_8` guard
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl`, conditional `hybrid_entropy` storage; registered `IllinoisGRMHD/src/enforce_outflow.c`, `IllinoisGRMHD_enforce_outflow`; registered `IllinoisGRMHD/src/Hybrid/evaluate_fluxes_rhs.c`, `IllinoisGRMHD_hybrid_evaluate_fluxes_rhs`, arrays of `double *` holding grid-function pointers
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=interface, common manifest, local prototype; date=10-02-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-run; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=interface, common manifest, local prototype, precision guard; date=10-04-2026`
 
 ## Sources
 

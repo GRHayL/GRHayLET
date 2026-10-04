@@ -144,8 +144,8 @@ void GRHayLHD_tabulated_conservs_to_prims(CCTK_ARGUMENTS) {
           int avg_weight = 1;
           // No neighbors (a one-point local grid) means no averaging retries.
           while(error && n_avg > 0 && avg_weight < 5) {
-            const double wfac = (avg_weight/4.0)/n_avg;
-            const double cfac = 1.0 - avg_weight/4.0;
+            const CCTK_REAL wfac = (avg_weight/4.0)/n_avg;
+            const CCTK_REAL cfac = 1.0 - avg_weight/4.0;
             cons_avg.rho   = wfac*cons_neigh_avg.rho     + cfac*cons.rho;
             cons_avg.tau   = wfac*cons_neigh_avg.tau     + cfac*cons.tau;
             cons_avg.SD[0] = wfac*cons_neigh_avg.SD[0]   + cfac*cons.SD[0];
