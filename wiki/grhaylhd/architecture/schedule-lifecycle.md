@@ -50,7 +50,7 @@ source then flux RHS groups in `MoL_CalcRHS`, and optional HydroBase output at
    `convert_HydroBase_to_GRHayLHD`; optional primitive perturbation after that
    converter and before Prim2Con; Prim2Con after the converter; Con2Prim after
    Prim2Con; optional reverse conversion after Con2Prim when
-   `Convert_to_HydroBase_every` is nonzero.
+   `Convert_to_HydroBase_every` is positive or NRPyLeakageET is active.
 3. `HydroBase_Con2Prim` declares `GRHayLHD_Con2Prim`: sync group for
    core, plus `Ye_star` only for Tabulated and `ent_star` only with entropy; optional conservative perturbation after
    sync and before recovery; recovery after sync; primitive outer boundaries
@@ -60,8 +60,9 @@ source then flux RHS groups in `MoL_CalcRHS`, and optional HydroBase output at
 5. `MoL_CalcRHS` declares `GRHayLHD_RHS`: source group first, flux group
    explicitly `after` sources, then an NRPyLeakageET-active conversion after
    fluxes.
-6. `CCTK_ANALYSIS` optionally schedules reverse conversion under nonzero
-   `Convert_to_HydroBase_every`, before named diagnostic groups and after
+6. `CCTK_ANALYSIS` schedules reverse conversion when
+   `Convert_to_HydroBase_every` is positive or leakage is active, before leakage
+   luminosities and named diagnostic groups and after
    `ML_BSSN_evolCalcGroup`, with `GLOBAL-EARLY,LOOP-LOCAL` options.
 
 ### Declared data movement
@@ -101,9 +102,11 @@ field differences are owned by the canonical EOS and entropy variant matrix.
   makes no observed-execution claim.
 - Generic Cactus schedule-bin ordering and MoL time-integration semantics are
   external and were not needed to inventory local declarations.
-- Leakage uses an unconditional RHS refresh; diagnostic cadence and field-set
-  defects are statically resolved at [GRH-0006](../contradictions.md#grh-0006)
-  and [GRH-0011](../contradictions.md#grh-0011).
+- Leakage uses an unconditional RHS refresh, while initial and analysis
+  conversion is scheduled when leakage is active and its wrapper bypasses the
+  optional cadence for leakage. Diagnostic cadence and field-set defects are
+  statically resolved at [GRH-0006](../contradictions.md#grh-0006) and
+  [GRH-0011](../contradictions.md#grh-0011); coupled execution remains unverified.
 - `update_Tmunu` steering versus setup-conditional registration is documented
   by Integration owner page; this page states only local schedule condition.
 

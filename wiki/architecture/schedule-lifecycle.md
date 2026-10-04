@@ -67,16 +67,27 @@ Claim evidence:
 4. **Optional coupling:** `IllinoisGRMHD_compute_Tmunu` is in `AddToTmunu` when
    `update_Tmunu` is true.
 5. **RHS:** `IllinoisGRMHD_RHS` is in `MoL_CalcRHS`; sources precede fluxes;
-   an active `NRPyLeakageET` condition adds a HydroBase velocity conversion;
-   EM gauge RHS is after flux evaluation.
-6. **Analysis:** positive `Convert_to_HydroBase_every` declares egress at
-   `CCTK_ANALYSIS` with named before/after constraints.
+   an active `NRPyLeakageET` condition adds HydroBase egress with metric,
+   lapse, shift, native velocity, and centered B reads, plus velocity,
+   Lorentz-factor, and magnetic writes; EM gauge RHS is after flux evaluation.
+6. **Analysis:** positive `Convert_to_HydroBase_every` or active leakage declares
+   egress at `CCTK_ANALYSIS`, before leakage luminosities and named diagnostics,
+   with named before/after constraints.
 7. **Variants and compatibility:** EOS/entropy conditions schedule one family
    into each Prim2Con, Con2Prim, hydro-boundary, source, flux, and perturbation
    handoff. Exact selection and state extras belong to
    [State and EOS Modes](../evolution/state-and-eos-modes.md). An active
    `ID_converter_ILGRMHD` condition declares compatibility storage,
    initialization/data copies, forced conversions, and Hybrid-family handoffs.
+
+Claim evidence:
+
+- Claim: With NRPyLeakageET active, the RHS conversion declares lapse, shift, spatial metric, native velocity and centered magnetic reads with HydroBase velocity, Lorentz-factor and magnetic writes. Analysis conversion is declared when cadence is positive or leakage is active, before leakage luminosities and named diagnostics. These are declarations, not observed stage freshness or execution.
+- Role: descriptive behavior
+- Deciding authority: registered `IllinoisGRMHD/schedule.ccl`, `convert_IllinoisGRMHD_to_HydroBase` in `IllinoisGRMHD_RHS` and `IllinoisGRMHD_convert_HydroBase_diagnostics` at `CCTK_ANALYSIS`
+- Corroboration: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` input accesses and output assignments, and the `IllinoisGRMHD_convert_HydroBase_diagnostics` leakage-active bypass
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-applicable; options=leakage-active RHS and positive-cadence-or-leakage analysis branches; date=10-02-2026`
 
 The compatibility branch is subject to
 [`CONTR-0001`](../contradictions.md#contr-0001); current-tree scheduling does

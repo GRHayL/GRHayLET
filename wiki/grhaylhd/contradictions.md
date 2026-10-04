@@ -46,7 +46,10 @@ Boundary header scope versus local hydrodynamic state.
 
 ### GRH-0006
 
-Conversion cadence precondition.
+Conversion cadence precondition. Resolved 10-02-2026: the diagnostic wrapper
+bypasses optional cadence with leakage active and otherwise guards nonpositive
+cadence before modulo; the RHS converter has no cadence gate. Initial/analysis
+hooks also admit leakage at cadence zero.
 
 ### GRH-0007
 

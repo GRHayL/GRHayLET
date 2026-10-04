@@ -45,12 +45,11 @@ void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS) {
           const CCTK_REAL gyyL  = gyy[index];
           const CCTK_REAL gyzL  = gyz[index];
           const CCTK_REAL gzzL  = gzz[index];
-          const CCTK_REAL gdet  = fabs(gxxL * gyyL * gzzL
-                                     + gxyL * gyzL * gxzL
-                                     + gxzL * gxyL * gyzL
-                                     - gxzL * gyyL * gxzL
-                                     - gxyL * gxyL * gzzL
-                                     - gxxL * gyzL * gyzL);
+          CCTK_REAL gdet;
+          if(!NRPyLeakageET_spatial_metric_valid(gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,&gdet)) {
+            CCTK_VERROR("Invalid spatial metric at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+            continue;
+          }
           const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
           const CCTK_REAL psiL  = exp(phiL);
           const CCTK_REAL psi2L = psiL *psiL;
@@ -75,8 +74,19 @@ void NRPyLeakageET_compute_neutrino_opacities(CCTK_ARGUMENTS) {
             tau.nux [1]                  = tau_1_nux [index];
 
             // Step 3.b.ii: Compute opacities
-            NRPyLeakage_compute_neutrino_opacities(ghl_eos, rhoL, Y_eL, temperatureL, &tau, &kappa);
+            const ghl_error_codes_t status = NRPyLeakage_compute_neutrino_opacities(ghl_eos, rhoL, Y_eL, temperatureL, &tau, &kappa);
+            if(status != ghl_success) {
+              CCTK_VERROR("NRPyLeakage_compute_neutrino_opacities failed (status %d) at (%d,%d,%d), level %d: rho=%g Ye=%g T=%g",
+                          (int)status, i,j,k,GetRefinementLevel(cctkGH),rhoL,Y_eL,temperatureL);
+              continue;
+            }
+
           }
+        }
+
+        if(!NRPyLeakageET_opacities_finite(&kappa)) {
+          CCTK_VERROR("Nonfinite opacity at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+          continue;
         }
 
         // Step 4: Write to main memory

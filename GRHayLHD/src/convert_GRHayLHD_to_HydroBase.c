@@ -84,10 +84,11 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
 }
 
 // Optional initial/analysis copying has a separate diagnostic cadence.
+// Leakage needs current HydroBase data at each analysis call, so it overrides the cadence.
 void convert_GRHayLHD_to_HydroBase_for_diagnostics(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_GRHayLHD_to_HydroBase_for_diagnostics;
   DECLARE_CCTK_PARAMETERS;
-  if(Convert_to_HydroBase_every <= 0) return;
-  if(cctk_iteration % Convert_to_HydroBase_every != 0) return;
+  if(!CCTK_IsThornActive("NRPyLeakageET") &&
+     (Convert_to_HydroBase_every <= 0 || cctk_iteration % Convert_to_HydroBase_every != 0)) return;
   convert_GRHayLHD_to_HydroBase(cctkGH);
 }
