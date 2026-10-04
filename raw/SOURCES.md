@@ -80,3 +80,5 @@ be covered, and untracked matches do not become registered automatically.
 | `illinoisgrmhd-fixture-balsara3` | `IllinoisGRMHD/test/Balsara3/Balsara3.par` | living | ingested |
 | `illinoisgrmhd-fixture-balsara5` | `IllinoisGRMHD/test/Balsara5/Balsara5.par` | living | ingested |
 | `illinoisgrmhd-fixture-magnetized-tov` | `IllinoisGRMHD/test/magnetizedTOV/magnetizedTOV.par` | living | ingested |
+| `illinoisgrmhd-eos-support` | `IllinoisGRMHD/src/check_eos_support.c` | living | ingested |
+| `illinoisgrmhd-outflow` | `IllinoisGRMHD/src/enforce_outflow.c` | living | ingested |

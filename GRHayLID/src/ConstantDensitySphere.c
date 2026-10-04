@@ -27,32 +27,54 @@ void GRHayLID_ConstantDensitySphere(CCTK_ARGUMENTS) {
   CHECK_PARAMETER(ConstantDensitySphere_Y_e_exterior);
   CHECK_PARAMETER(ConstantDensitySphere_T_exterior);
 
+  GRHayLID_require_storage(cctkGH, "HydroBase::Y_e");
+  GRHayLID_require_storage(cctkGH, "HydroBase::temperature");
+  GRHayLID_require_storage(cctkGH, "ADMBase::metric");
+
   CCTK_INFO("Beginning ConstantDensitySphere initial data");
 
   // Compute hydro quantities inside and outside the sphere
-  CCTK_REAL P_interior, eps_interior;
-  ghl_tabulated_compute_P_eps_from_T(
+  double P_interior, eps_interior;
+  GRHayLID_check_table_state(ConstantDensitySphere_rho_interior, ConstantDensitySphere_Y_e_interior, ConstantDensitySphere_T_interior, "sphere interior");
+  ghl_error_codes_t eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         ConstantDensitySphere_rho_interior,
         ConstantDensitySphere_Y_e_interior,
         ConstantDensitySphere_T_interior,
         &P_interior,
         &eps_interior);
+  if(eos_error != ghl_success || !isfinite(P_interior) || !isfinite(eps_interior))
+    CCTK_VERROR("sphere interior EOS failed for rho=%g, Ye=%g, T=%g (status %d)",
+                ConstantDensitySphere_rho_interior, ConstantDensitySphere_Y_e_interior, ConstantDensitySphere_T_interior, (int)eos_error);
 
-  CCTK_REAL P_exterior, eps_exterior;
-  ghl_tabulated_compute_P_eps_from_T(
+  double P_exterior, eps_exterior;
+  GRHayLID_check_table_state(ConstantDensitySphere_rho_exterior, ConstantDensitySphere_Y_e_exterior, ConstantDensitySphere_T_exterior, "sphere exterior");
+  eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         ConstantDensitySphere_rho_exterior,
         ConstantDensitySphere_Y_e_exterior,
         ConstantDensitySphere_T_exterior,
         &P_exterior,
         &eps_exterior);
+  if(eos_error != ghl_success || !isfinite(P_exterior) || !isfinite(eps_exterior))
+    CCTK_VERROR("sphere exterior EOS failed for rho=%g, Ye=%g, T=%g (status %d)",
+                ConstantDensitySphere_rho_exterior, ConstantDensitySphere_Y_e_exterior,
+                ConstantDensitySphere_T_exterior, (int)eos_error);
+
+  const double vx = ConstantDensitySphere_vx_interior;
+  const double vy = ConstantDensitySphere_vy_interior;
+  const double vz = ConstantDensitySphere_vz_interior;
+  if(!isfinite(vx) || !isfinite(vy) || !isfinite(vz) || vx*vx+vy*vy+vz*vz >= 1.0)
+    CCTK_ERROR("Sphere interior Cartesian velocity must be finite and strictly subluminal");
+  if(!isfinite(ConstantDensitySphere_sphere_radius) || ConstantDensitySphere_sphere_radius < 0.0)
+    CCTK_ERROR("Sphere radius must be finite and nonnegative");
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        GRHayLID_check_flat_metric(gxx[index], gxy[index], gxz[index], gyy[index], gyz[index], gzz[index]);
         const int ind4x = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
         const int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);

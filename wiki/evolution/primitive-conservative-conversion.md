@@ -1,6 +1,6 @@
 # Primitive-Conservative Conversion
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Evolution](index.md)
 
 ## Summary
@@ -79,6 +79,23 @@ general thread-safety guarantee.
   [Matter Boundaries and Perturbations](matter-boundaries-and-perturbations.md).
 - `ghl_*` calls above describe only inputs, outputs, and error handling visible
   at IllinoisGRMHD call sites.
+
+### Defined carriers and entropy publication
+
+All local primitive/conservative structs start with zero inactive placeholders.
+HybridEntropy Prim2Con derives its recovery proxy from rho/pressure, stores it
+in thorn-owned `hybrid_entropy`, and writes NaN to HydroBase entropy because
+physical entropy normalization/units are unavailable. Subsequent recovery and
+boundary publication follow the same separation. Tabulated entropy selection
+is rejected at startup; its compiled conversion kernel is not a supported run.
+
+Claim evidence:
+- Claim: The HybridEntropy proxy is thorn-owned and physical HydroBase entropy is explicitly unavailable; generic helper inputs include deterministic inactive fields.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/HybridEntropy/prims_to_conservs.c, IllinoisGRMHD_hybrid_entropy_prims_to_conservs`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 

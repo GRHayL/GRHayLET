@@ -1,6 +1,6 @@
 # GRHayLID Source Map
 
-> Page status: reviewed · Last reviewed: 07-19-2026
+> Page status: reviewed · Last reviewed: 10-02-2026
 
 This is the sole canonical source-to-page edge table. Registry ingest state is
 owned separately and is not promoted merely by adding an edge; governance
@@ -16,7 +16,7 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylid-thornguide` | `grhaylid.architecture.purpose-and-build-surface` | stated-purpose | `doc:GRHayLID/doc/documentation.tex#section=Introduction` | declared | Keep setup enumeration source-limited. |
 | `grhaylid-ccl` | `grhaylid.architecture.purpose-and-build-surface` | cactus-interface | `ccl:GRHayLID/interface.ccl#implementation=GRHayLID` | declared | Reconcile interface boundaries on declaration changes. |
 | `grhaylid-ccl` | `grhaylid.architecture.purpose-and-build-surface` | cactus-interface | `ccl:GRHayLID/configuration.ccl#requirement=HDF5` | declared | Keep requirement distinct from build or discovery success. |
-| `grhaylid-build` | `grhaylid.architecture.purpose-and-build-surface` | build-surface | `build:GRHayLID/src/make.code.defn#field=SRCS` | declared | Reconcile six source units on manifest changes. |
+| `grhaylid-build` | `grhaylid.architecture.purpose-and-build-surface` | build-surface | `build:GRHayLID/src/make.code.defn#field=SRCS` | declared | Reconcile seven source units on manifest changes. |
 | `grhaylid-header` | `grhaylid.architecture.purpose-and-build-surface` | visible-formula | `macro:GRHayLID/src/GRHayLID.h#name=CHECK_PARAMETER` | visible-implementation | Keep macro semantics limited to visible expansion. |
 | `grhaylid-ccl` | `grhaylid.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_1D_tests_hydro_data` | declared | Reconcile guard, ordering, and field declarations on schedule changes. |
 | `grhaylid-ccl` | `grhaylid.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_1D_tests_magnetic_data` | declared | Reconcile guard, ordering, and field declarations on schedule changes. |
@@ -27,16 +27,15 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylid-ccl` | `grhaylid.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_compute_entropy_tabulated` | declared | Reconcile guard, ordering, and field declarations on schedule changes. |
 | `grhaylid-ccl` | `grhaylid.architecture.schedule-lifecycle` | parameter | `ccl:GRHayLID/param.ccl#parameter=initialize_magnetic_quantities` | declared | Reconcile nested magnetic guard on parameter changes. |
 | `grhaylid-c` | `grhaylid.initial-data.one-d-tests-hydro` | visible-call-order | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` | visible-implementation | Recheck live dispatch arms and loop ordering on source changes. |
-| `grhaylid-c` | `grhaylid.initial-data.one-d-tests-hydro` | visible-call-order | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` | unresolved | Track the commented sound-wave dispatch arm in GID-0005. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-hydro` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_data_1D` | declared | Reconcile selector meaning and visible consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-hydro` | parameter | `ccl:GRHayLID/param.ccl#parameter=shock_direction` | declared | Reconcile selector meaning and visible consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-hydro` | parameter | `ccl:GRHayLID/param.ccl#parameter=discontinuity_position` | declared | Reconcile selector meaning and visible consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-hydro` | parameter | `ccl:GRHayLID/param.ccl#parameter=wave_amplitude` | declared | Reconcile selector meaning and visible consumer. |
-| `grhaylid-c` | `grhaylid.initial-data.one-d-tests-hydro` | external-behavior | `c:GRHayLID/src/1D_tests_hydro_data.c#call=ghl_hybrid_find_polytropic_index?function=GRHayLID_1D_tests_hydro_data` | out-of-scope | Keep external call semantics delegated. |
+| `grhaylid-c` | `grhaylid.initial-data.one-d-tests-hydro` | external-behavior | `c:GRHayLID/src/1D_tests_hydro_data.c#call=ghl_hybrid_compute_epsilon?function=GRHayLID_1D_tests_hydro_data` | out-of-scope | Keep external call semantics delegated. |
 | `grhaylid-c` | `grhaylid.initial-data.one-d-tests-magnetic` | visible-dataflow | `c:GRHayLID/src/1D_tests_magnetic_data.c#symbol=GRHayLID_1D_tests_magnetic_data` | visible-implementation | Recheck coordinates, rotations, and writes on source changes. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-magnetic` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_Avec` | declared | Reconcile selector guard and write surface. |
 | `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-magnetic` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_Bvec` | declared | Reconcile selector guard and write surface. |
-| `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-magnetic` | parameter | `ccl:GRHayLID/param.ccl#parameter=stagger_A_fields` | unresolved | Track absent visible consumer in GID-0004. |
+| `grhaylid-ccl` | `grhaylid.initial-data.one-d-tests-magnetic` | parameter | `ccl:GRHayLID/param.ccl#parameter=stagger_A_fields` | declared | Recheck the resolved local contract when its source changes. |
 | `grhaylid-c` | `grhaylid.initial-data.isotropic-gas` | visible-dataflow | `c:GRHayLID/src/IsotropicGas.c#symbol=GRHayLID_IsotropicGas` | visible-implementation | Recheck uniform state and writes on source changes. |
 | `grhaylid-ccl` | `grhaylid.initial-data.isotropic-gas` | parameter | `ccl:GRHayLID/param.ccl#parameter=IsotropicGas_rho` | declared | Reconcile parameter and visible sentinel consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.isotropic-gas` | parameter | `ccl:GRHayLID/param.ccl#parameter=IsotropicGas_Y_e` | declared | Reconcile parameter and visible sentinel consumer. |
@@ -58,14 +57,13 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylid-ccl` | `grhaylid.initial-data.beta-equilibrium` | parameter | `ccl:GRHayLID/param.ccl#parameter=impose_beta_equilibrium` | declared | Reconcile parameter and schedule/body consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.beta-equilibrium` | parameter | `ccl:GRHayLID/param.ccl#parameter=beq_temperature` | declared | Reconcile parameter and schedule/body consumer. |
 | `grhaylid-ccl` | `grhaylid.initial-data.beta-equilibrium` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_BetaEquilibrium` | declared | Reconcile schedule description and declared writes. |
-| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | external-behavior | `c:GRHayLID/src/BetaEquilibrium.c#call=ghl_tabulated_compute_Ye_of_rho_beq_constant_T?function=GRHayLID_BetaEquilibrium` | out-of-scope | Keep external table-call semantics delegated. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | external-behavior | `c:GRHayLID/src/BetaEquilibrium.c#call=ghl_tabulated_compute_P_eps_muhat_mue_mup_mun_from_T?function=GRHayLID_beta_residual` | out-of-scope | Keep external table-call semantics delegated. |
 | `grhaylid-readme` | `grhaylid.initial-data.beta-equilibrium` | stated-purpose | `doc:GRHayLID/README#section=1. Purpose` | declared | Keep standalone-use wording source-limited. |
 | `grhaylid-c` | `grhaylid.initial-data.entropy-computation` | visible-dataflow | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_hybrid` | visible-implementation | Recheck visible inputs, in-place writes, and outputs. |
 | `grhaylid-c` | `grhaylid.initial-data.entropy-computation` | visible-dataflow | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_tabulated` | visible-implementation | Recheck visible inputs, in-place writes, and outputs. |
 | `grhaylid-ccl` | `grhaylid.initial-data.entropy-computation` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_entropy` | declared | Reconcile keyword extension and schedule guard. |
 | `grhaylid-ccl` | `grhaylid.initial-data.entropy-computation` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_compute_entropy_hybrid` | declared | Reconcile EOS dispatch and declared writes. |
 | `grhaylid-ccl` | `grhaylid.initial-data.entropy-computation` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_compute_entropy_tabulated` | declared | Reconcile EOS dispatch and declared writes. |
-| `grhaylid-readme` | `grhaylid.initial-data.entropy-computation` | stated-purpose | `doc:GRHayLID/README#section=1. Purpose` | unresolved | Track any-EOS wording in GID-0009. |
 | `grhaylid-ccl` | `grhaylid.integration.hydrobase-keyword-extensions` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_hydro` | declared | Reconcile extension value and local consumer. |
 | `grhaylid-ccl` | `grhaylid.integration.hydrobase-keyword-extensions` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_Y_e` | declared | Reconcile extension value and local consumer. |
 | `grhaylid-ccl` | `grhaylid.integration.hydrobase-keyword-extensions` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_temperature` | declared | Reconcile extension value and local consumer. |
@@ -103,7 +101,6 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=ConstantDensitySphere_T_exterior` | declared | Reconcile declaration, default, meaning, and visible consumer. |
 | `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=impose_beta_equilibrium` | declared | Reconcile declaration, default, meaning, and visible consumer. |
 | `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=beq_temperature` | declared | Reconcile declaration, default, meaning, and visible consumer. |
-| `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=stagger_A_fields` | unresolved | Track absent visible consumer in GID-0004. |
 | `grhaylid-header` | `grhaylid.integration.parameters-and-configurations` | visible-formula | `macro:GRHayLID/src/GRHayLID.h#name=CHECK_PARAMETER` | visible-implementation | Recheck sentinel macro and call sites. |
 | `grhaylid-ccl` | `grhaylid.validation.coverage-gaps` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_data_1D` | coverage-gap | Add checked regression evidence across declared selections. |
 | `grhaylid-ccl` | `grhaylid.validation.coverage-gaps` | parameter | `ccl:GRHayLID/param.ccl#parameter=stagger_A_fields` | coverage-gap | Add checked staggering evidence. |
@@ -111,3 +108,27 @@ those edges; they do not create independent domain-evidence relationships.
 | `grhaylid-c` | `grhaylid.validation.coverage-gaps` | visible-dataflow | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` | coverage-gap | Add checked dispatch evidence, including sound-wave selection. |
 | `grhaylid-build` | `grhaylid.validation.coverage-gaps` | build-surface | `build:GRHayLID/src/make.code.defn#field=SRCS` | coverage-gap | Re-audit when checked-in test artifacts appear. |
 | `grhaylid-ccl` | `grhaylid.validation.coverage-gaps` | parameter | `ccl:GRHayLID/param.ccl#parameter=initial_entropy` | coverage-gap | Add checked entropy-dispatch configuration evidence. |
+| `grhaylid-c` | `grhaylid.architecture.schedule-lifecycle` | visible-dataflow | `c:GRHayLID/src/ParamCheck.c#symbol=GRHayLID_ParamCheck` | visible-implementation | Reconcile producer and representation checks on changes. |
+| `grhaylid-c` | `grhaylid.integration.hydrobase-keyword-extensions` | visible-dataflow | `c:GRHayLID/src/ParamCheck.c#symbol=GRHayLID_ParamCheck` | visible-implementation | Reconcile producer and representation checks on changes. |
+| `grhaylid-c` | `grhaylid.integration.parameters-and-configurations` | visible-dataflow | `c:GRHayLID/src/ParamCheck.c#symbol=GRHayLID_ParamCheck` | visible-implementation | Reconcile producer and representation checks on changes. |
+| `grhaylid-c` | `grhaylid.initial-data.entropy-computation` | visible-dataflow | `c:GRHayLID/src/ParamCheck.c#symbol=GRHayLID_ParamCheck` | visible-implementation | Reconcile producer and representation checks on changes. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | visible-formula | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_root` | visible-implementation | Recheck final-state root and residual policy on changes. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | visible-formula | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_residual` | visible-implementation | Recheck final-state root and residual policy on changes. |
+| `grhaylid-readme` | `grhaylid.validation.coverage-gaps` | stated-purpose | `doc:GRHayLID/README#section=1. Purpose` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.integration.grhaylib-contract` | visible-dataflow | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_residual` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.integration.grhaylib-contract` | visible-dataflow | `c:GRHayLID/src/ComputeEntropy.c#symbol=GRHayLID_compute_entropy_tabulated` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=allow_native_entropy_proxy` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.integration.parameters-and-configurations` | parameter | `ccl:GRHayLID/param.ccl#parameter=beq_residual_tolerance` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.initial-data.isotropic-gas` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_IsotropicGas` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.initial-data.constant-density-sphere` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_ConstantDensitySphere` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-readme` | `grhaylid.initial-data.one-d-tests-magnetic` | stated-purpose | `doc:GRHayLID/README#section=1. Purpose` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | visible-dataflow | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_BetaEquilibrium` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | visible-dataflow | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_residual` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.initial-data.beta-equilibrium` | visible-dataflow | `c:GRHayLID/src/BetaEquilibrium.c#symbol=GRHayLID_beta_root` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.initial-data.beta-equilibrium` | parameter | `ccl:GRHayLID/param.ccl#parameter=beq_residual_tolerance` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-c` | `grhaylid.initial-data.one-d-tests-hydro` | visible-dataflow | `c:GRHayLID/src/1D_tests_hydro_data.c#symbol=GRHayLID_1D_tests_hydro_data` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-readme` | `grhaylid.initial-data.entropy-computation` | stated-purpose | `doc:GRHayLID/README#section=1. Purpose` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.initial-data.entropy-computation` | parameter | `ccl:GRHayLID/param.ccl#parameter=allow_native_entropy_proxy` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-header` | `grhaylid.architecture.purpose-and-build-surface` | visible-dataflow | `macro:GRHayLID/src/GRHayLID.h#include=GRHayLib.h` | visible-implementation | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.architecture.purpose-and-build-surface` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_BetaEquilibrium` | declared | Reconcile local claim and reverse dependents on source changes. |
+| `grhaylid-ccl` | `grhaylid.architecture.schedule-lifecycle` | schedule-intent | `ccl:GRHayLID/schedule.ccl#schedule=GRHayLID_ParamCheck` | declared | Reconcile local claim and reverse dependents on source changes. |

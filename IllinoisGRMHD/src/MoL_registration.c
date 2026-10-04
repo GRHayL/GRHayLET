@@ -49,6 +49,8 @@ void IllinoisGRMHD_RegisterVars(CCTK_ARGUMENTS) {
     rhs = CCTK_GroupIndex("IllinoisGRMHD::ent_star_rhs");
     ierr += MoLRegisterEvolvedGroup(group, rhs);
     ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("HydroBase::entropy"));
+    if(ghl_eos->eos_type != ghl_eos_tabulated)
+      ierr += MoLRegisterConstrainedGroup(CCTK_GroupIndex("IllinoisGRMHD::hybrid_entropy"));
   }
 
   if(ghl_eos->eos_type == ghl_eos_tabulated) {

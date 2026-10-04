@@ -26,10 +26,11 @@
 Provides simple magnetohydrodynamic (MHD) initial data for testing,
 as well as functionality for imposing beta equilibrium on initial
 hydrodynamic data and computing the initial entropy. The test data
-includes the Balsara tests, a cylindrical explosion, etc. While
+includes all five Balsara tests, equilibrium, sound-wave perturbations,
+and a shock tube. While
 some initial data requires EOS information provided by \glib,
-the data can then be used by any evolution thorn so long as their EOS
-framework is set up to match \glib.
+the primitive data can be consumed with matching EOS and normalization
+conventions. Entropy representation requires the explicit agreement below.
 \end{abstract}
 
 \section{Introduction}
@@ -44,8 +45,12 @@ to impose beta-equilibrium on provided initial data.
 The initial data is separated into magnetic and hydrodynamic
 parts, so the magnetic initial data can be turned off if desired.
 All settings use the \hbase{} variables for compatibility with
-other thorns, but only Avec is set. The Aphi or B variables are
-not set by this thorn.
+other thorns. Magnetic initialization writes both Avec and Bvec; Aphi is
+not set. Both magnetic selectors must name GRHayLID when this operation is
+enabled. Native tests require Cartesian coordinates and an identity spatial
+metric supplied by ADMBase. Curved metrics are rejected. For the normalized
+Balsara data imported into IllinoisGRMHD, set
+\texttt{IllinoisGRMHD::rescale\_magnetics=no}.
 
 \section{Parameters}
 
@@ -60,8 +65,11 @@ Note that neither beta equilibrium nor entropy calculation are
 tied to \textbf{initial\_hydro}, so they can be used even if
 the actual initial data is set by another thorn. Beta equilibrium
 is controlled by the \textbf{impose\_beta\_equilibrium} parameter,
-and entropy calculation controlled by the \textbf{compute\_entropy}
-parameter.
+and entropy calculation is controlled by
+\texttt{HydroBase::initial\_entropy=GRHayLID}. External producers must initialize
+the required fields in \texttt{HydroBase\_Initial}; allocation alone is insufficient.
+Beta allocates Ye and temperature even when their selectors are none and
+intentionally replaces them after that group.
 
 Some initial data is only valid for tabulated or hybrid EOS, and
 these check the EOS parameter from \glib. If it is set incorrectly,
@@ -78,7 +86,11 @@ specific test and defaults to the Balsara1 test. For shocks and
 waves, the \textbf{shock\_direction} parameter changes the
 direction of the shock, and the \textbf{discontinuity\_position}
 parameter changes the location of the shock front. For the sound
-wave test, the amplitude can be set with \textbf{wave\_amplitude}.
+wave test, the amplitude can be set with \textbf{wave\_amplitude}. It must
+be finite and in $[0,1)$. This setup perturbs the longitudinal velocity
+sinusoidally on $\rho=P=1$; it is not a pure traveling acoustic eigenmode.
+Hybrid internal energy uses the cold-plus-thermal relation, and pressures
+below the cold curve are rejected.
 
 \subsection{IsotropicGas}
 
@@ -92,7 +104,7 @@ with an error message if the core parameters are misconfigured.
 Specifically, the thorn checks the following parameters:
 \begin{tabular}{l|l}
 Thorn \& Parameter & Correct Setting \\\hline
-\texttt{GRHayLib::EOS\_type} & "tabulated" \\
+\texttt{GRHayLib::EOS\_type} & "Tabulated" \\
 \texttt{HydroBase::initial\_Y\_e} & "GRHayLID" \\
 \texttt{HydroBase::initial\_temperature} & "GRHayLID"
 \end{tabular}
@@ -109,10 +121,41 @@ with an error message if the core parameters are misconfigured.
 Specifically, the thorn checks the following parameters:
 \begin{tabular}{l|l}
 Thorn \& Parameter & Correct Setting \\\hline
-\texttt{GRHayLib::EOS\_type} & "tabulated" \\
+\texttt{GRHayLib::EOS\_type} & "Tabulated" \\
 \texttt{HydroBase::initial\_Y\_e} & "GRHayLID" \\
 \texttt{HydroBase::initial\_temperature} & "GRHayLID"
 \end{tabular}
+
+\subsection{Standalone beta equilibrium and entropy}
+
+Beta equilibrium solves $\mu_e-\mu_n+\mu_p=0$ at the final density and
+requested temperature using base chemical potentials. The residual must
+satisfy \texttt{beq\_residual\_tolerance} in MeV (default $10^{-8}$).
+The search includes exact node roots and rejects missing brackets. It selects
+the first root in increasing Ye within the effective EOS bounds. This avoids
+reliance on a potentially shifted table \texttt{munu} field; table conventions
+and physical provenance still require separate validation. Atmosphere points
+($\rho\leq1.01\rho_{\rm atm}$) receive a complete atmosphere reset including
+density, and are deliberately exempt from equilibrium.
+
+Tabulated entropy replaces pressure and specific internal energy as well as
+entropy. Without beta, it also clamps density, Ye, and temperature to effective
+bounds. With beta enabled, these three inputs are preserved and incompatible
+states are rejected. Every EOS return and output is checked before publication.
+
+Simple and Hybrid entropy uses the native GRHayL proxy
+$P/\rho^{\Gamma_{\rm piece}-1}$, not physical specific entropy in
+$k_b$/baryon. Set \texttt{allow\_native\_entropy\_proxy=yes} only when every
+entropy consumer agrees with that representation. The default rejects that
+route; use Tabulated EOS for physical table entropy. Native proxy inputs
+require positive finite density and nonnegative finite pressure. Vacuum and
+nonfinite states are rejected before evaluation.
+
+The sphere checks finite, strictly subluminal Cartesian velocity. Native tests
+check the identity spatial metric. The thorn requires Cactus
+\texttt{REAL\_PRECISION=8}, and does not produce
+\texttt{HydroBase::w\_lorentz}; consumers must provide and order their own
+metric-consistent Lorentz-factor initializer.
 
 % Do not delete next line
 % END CACTUS THORNGUIDE

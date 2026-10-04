@@ -32,6 +32,11 @@ void IllinoisGRMHD_specify_driver_BCs(CCTK_ARGUMENTS) {
 
 
 
+  if(evolve_entropy && !CCTK_EQUALS(EOS_type, "Tabulated")) {
+    ierr = Driver_SelectVarForBC(cctkGH, CCTK_ALL_FACES, 1, -1, "IllinoisGRMHD::hybrid_entropy", "none");
+    if(ierr < 0) CCTK_ERROR("Failed to register BC for IllinoisGRMHD::hybrid_entropy!");
+  }
+
   ierr = Driver_SelectVarForBC(cctkGH, CCTK_ALL_FACES, 1, -1, "HydroBase::entropy", "none");
   if (ierr < 0) CCTK_ERROR("Failed to register BC with Driver for HydroBase::entropy!");
 

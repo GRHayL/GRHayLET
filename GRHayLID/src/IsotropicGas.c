@@ -24,22 +24,31 @@ void GRHayLID_IsotropicGas(CCTK_ARGUMENTS) {
   CHECK_PARAMETER(IsotropicGas_Y_e);
   CHECK_PARAMETER(IsotropicGas_temperature);
 
+  GRHayLID_require_storage(cctkGH, "HydroBase::Y_e");
+  GRHayLID_require_storage(cctkGH, "HydroBase::temperature");
+  GRHayLID_require_storage(cctkGH, "ADMBase::metric");
+
   CCTK_INFO("Beginning IsotropicGas initial data");
 
-  CCTK_REAL IsotropicGas_press, IsotropicGas_eps;
-  ghl_tabulated_compute_P_eps_from_T(
+  double IsotropicGas_press, IsotropicGas_eps;
+  GRHayLID_check_table_state(IsotropicGas_rho, IsotropicGas_Y_e, IsotropicGas_temperature, "gas");
+  ghl_error_codes_t eos_error = ghl_tabulated_compute_P_eps_from_T(
         ghl_eos,
         IsotropicGas_rho,
         IsotropicGas_Y_e,
         IsotropicGas_temperature,
         &IsotropicGas_press,
         &IsotropicGas_eps);
+  if(eos_error != ghl_success || !isfinite(IsotropicGas_press) || !isfinite(IsotropicGas_eps))
+    CCTK_VERROR("gas EOS failed for rho=%g, Ye=%g, T=%g (status %d)",
+                IsotropicGas_rho, IsotropicGas_Y_e, IsotropicGas_temperature, (int)eos_error);
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
     for(int j=0; j<cctk_lsh[1]; j++) {
       for(int i=0; i<cctk_lsh[0]; i++) {
         const int index = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        GRHayLID_check_flat_metric(gxx[index], gxy[index], gxz[index], gyy[index], gyz[index], gzz[index]);
         const int ind4x = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,0);
         const int ind4y = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,1);
         const int ind4z = CCTK_VECTGFINDEX3D(cctkGH,i,j,k,2);

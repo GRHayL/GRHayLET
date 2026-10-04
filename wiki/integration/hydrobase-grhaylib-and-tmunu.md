@@ -1,6 +1,6 @@
 # HydroBase, GRHayLib, and Tmunu Boundary
 
-> Status: confirmed · Last reconciled: 07-17-2026
+> Status: confirmed · Last reconciled: 10-02-2026
 > Up: [Integration](index.md)
 
 ## Summary
@@ -58,7 +58,7 @@ conversion routine: `interface.ccl` supplies semantic declaration
 quantity to copy. Centered and staggered B are built later from A by
 `IllinoisGRMHD_compute_B_and_Bstagger_from_A`.
 
-HydroBase density, pressure, internal energy, entropy, electron fraction, and
+HydroBase density, pressure, internal energy, tabulated entropy, electron fraction, and
 temperature are used directly by scheduled evolution variants; this ingress
 routine does not duplicate them.
 
@@ -70,46 +70,57 @@ routine does not duplicate them.
 vel_HydroBase^i = (v_Illinois^i + shift^i) / lapse
 ```
 
-It computes `w_lorentz` from ADM spatial metric and converted velocity. It
-also writes centered B to `HydroBase::Bvec`, multiplying by `(4*pi)^(1/2)`
-when `rescale_magnetics=yes`, or by one otherwise.
+It computes `w_lorentz` from ADM metric and converted velocity and copies
+canonical normalized centered B to `HydroBase::Bvec`. The import compatibility
+switch does not multiply exported B by `sqrt(4*pi)`.
 
-Locally declared call sites are:
+The mandatory converter performs no cadence arithmetic. Leakage RHS and legacy
+initialization call it directly. `IllinoisGRMHD_convert_HydroBase_diagnostics`
+handles analysis cadence, including the retained old-thorn parameter lookup,
+and guards zero before modulo. Modern initial conversion remains conditional
+on requesting export. Modern guarded occurrences are excluded when the legacy
+initializer owns the corresponding call, avoiding duplicate scheduling.
 
-- initial conversion after `IllinoisGRMHD_conservs_to_prims`, present when
-  local `Convert_to_HydroBase_every` is nonzero;
-- `CCTK_ANALYSIS`, with declared ordering before named diagnostics, also
-  present when local cadence is nonzero;
-- after flux RHS evaluation when thorn `NRPyLeakageET` is active;
-- two equivalent initial/analysis sites inside retained
-  `ID_converter_ILGRMHD` compatibility gate.
-
-If thorn `Convert_to_HydroBase` is active, the routine reads that thorn's
-cadence, returns when it is zero, and otherwise runs only on divisible
-iterations. When that thorn is inactive, it evaluates
-`cctk_iteration % IllinoisGRMHD::Convert_to_HydroBase_every` without first
-guarding zero.
-
-Leakage schedule declaration names only `HydroBase::vel` as written, although
-the routine also assigns `w_lorentz` and `Bvec`. This schedule site is not
-gated by IllinoisGRMHD cadence. Therefore, with NRPyLeakageET active,
-`Convert_to_HydroBase` inactive, and local cadence at its default zero, local
-code evaluates integer remainder by zero: undefined C behavior that may trap.
-A positive cadence or code-level zero guard is required. No NRPyLeakageET
-internals or observed run are inferred.
+Every converter occurrence declares metric, lapse, shift, velocity, and B reads
+and velocity, Lorentz-factor, and Bvec writes. Tmunu's additive destination arrays
+are also declared as reads at its own occurrence. These declarations do not
+prove communication/validity behavior in any driver.
 
 Claim evidence:
-
-- Claim: The leakage-gated call can evaluate integer remainder by zero when `Convert_to_HydroBase` is inactive and local cadence is zero; this is a local undefined-behavior path, not an observed run result.
-- Role: descriptive behavior
-- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::convert_IllinoisGRMHD_to_HydroBase`, unguarded local-cadence remainder
-- Corroboration: `IllinoisGRMHD/param.ccl::Convert_to_HydroBase_every` default zero and `IllinoisGRMHD/schedule.ccl::NRPyLeakageET` call site
+- Claim: Mandatory and diagnostic conversion are separate, canonical B export is independent of legacy import, and schedule access includes actual fields.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c, both entry points`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
-- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=NRPyLeakageET active, Convert_to_HydroBase inactive, local cadence zero; date=07-17-2026`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
-ThornGuide recommends matching conversion cadence to diagnostics and says
-more frequent copying slows a simulation. This is attributed design advice,
-not a performance measurement made by this KB.
+
+IllinoisGRMHD installs no startup check that rejects smallbPoynET and cannot
+identify a consumer's revision. A consumer reads the exported `Bvec` as
+the canonical normalized field and must not divide it by `sqrt(4*pi)` again.
+The ThornGuide documents that the updated smallbPoynET diagnostic follows this
+convention, that earlier smallbPoynET revisions do not, and that a diagnostic
+reads the exported fields only at its own cadence, so the governing
+`Convert_to_HydroBase_every` should be a positive divisor of that cadence.
+
+Locally, the default `Convert_to_HydroBase_every=0` disables the diagnostic
+export, so IllinoisGRMHD does not refresh `Bvec` for a diagnostic consumer; the
+mandatory leakage and compatibility conversions write only on their own
+schedules. A positive value exports on divisible iterations. When the legacy
+`Convert_to_HydroBase` thorn is active, the scheduled diagnostic wrapper applies
+that thorn's `Convert_to_HydroBase::Convert_to_HydroBase_every` instead, with the
+same zero guard and modulo test; unless `ID_converter_ILGRMHD` is active, the
+wrapper is scheduled only if `IllinoisGRMHD::Convert_to_HydroBase_every` is also
+nonzero. Consumer behavior and coupled schedule execution are not established by
+this tree.
+
+Claim evidence:
+- Claim: The local exporter writes `Bvec` with a unit factor independently of import normalization and export cadence. The default `Convert_to_HydroBase_every=0` disables the diagnostic export, so IllinoisGRMHD does not refresh `Bvec` for a diagnostic consumer; a positive value exports on divisible iterations; and, when the legacy `Convert_to_HydroBase` thorn is active, the scheduled diagnostic wrapper uses that thorn's `Convert_to_HydroBase::Convert_to_HydroBase_every` instead, being scheduled without `ID_converter_ILGRMHD` only if the IllinoisGRMHD parameter is also nonzero. No local startup check rejects smallbPoynET or identifies a consumer's revision. Documented intent, not locally verified consumer behavior: the updated smallbPoynET consumes this convention, and a diagnostic reads exported fields only at its own cadence, so the governing `Convert_to_HydroBase_every` should be a positive divisor of that cadence.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `convert_IllinoisGRMHD_to_HydroBase` (`mag_factor` and `Bvec` writes) and `IllinoisGRMHD_convert_HydroBase_diagnostics` (zero guard, modulo test, and legacy parameter lookup) for the local facts; registered `IllinoisGRMHD/doc/documentation.tex`, `Updating Old Parfiles` magnetic migration paragraph and the export-cadence paragraph that follows it, for the documented consumer convention and cadence guidance
+- Corroboration: registered `IllinoisGRMHD/param.ccl`, `Convert_to_HydroBase_every` (range `0:*`, default `0`); registered `IllinoisGRMHD/schedule.ccl`, `CCTK_WRAGH` and `CCTK_ANALYSIS` occurrences, which declare no smallbPoynET check and gate the modern `CCTK_ANALYSIS` diagnostic export on nonzero `Convert_to_HydroBase_every`; the documented consumer convention and cadence guidance have no local corroboration because the consumer is external
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=not-applicable; options=local source and documentation inspection; date=10-04-2026`
 
 ### Tmunu handoff
 
@@ -129,6 +140,20 @@ For every local grid point, routine:
 
 This establishes additive local writes, not stress-energy initialization,
 external tensor conventions, or runtime execution.
+
+### Hybrid entropy boundary
+
+Hybrid/Simple recovery uses `IllinoisGRMHD::hybrid_entropy`, not physical
+specific entropy. Its publication sites set HydroBase entropy to NaN to mark
+that diagnostic unavailable; tabulated entropy evolution is rejected at startup.
+
+Claim evidence:
+- Claim: Hybrid/Simple proxy values are kept out of the physical HydroBase entropy field.
+- Role: public/scientific contract
+- Deciding authority: registered `IllinoisGRMHD/src/HybridEntropy/prims_to_conservs.c, primitive publication`
+- Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
 
 ## Sources
 
@@ -150,7 +175,8 @@ external tensor conventions, or runtime execution.
 - [`IllinoisGRMHD/param.ccl`](../../IllinoisGRMHD/param.ccl) — cadence,
   rescaling, and Tmunu controls.
 - [`IllinoisGRMHD/doc/documentation.tex`](../../IllinoisGRMHD/doc/documentation.tex) —
-  `Parameters` cadence guidance.
+  `Parameters` cadence guidance and `Updating Old Parfiles` magnetic migration
+  and export-cadence paragraphs.
 
 ## See Also
 
