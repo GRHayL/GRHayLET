@@ -77,14 +77,28 @@ switch does not multiply exported B by `sqrt(4*pi)`.
 The mandatory converter performs no cadence arithmetic. Leakage RHS and legacy
 initialization call it directly. `IllinoisGRMHD_convert_HydroBase_diagnostics`
 handles analysis cadence, including the retained old-thorn parameter lookup,
-and guards zero before modulo. Modern initial conversion remains conditional
-on requesting export. Modern guarded occurrences are excluded when the legacy
-initializer owns the corresponding call, avoiding duplicate scheduling.
+and guards nonpositive cadence and an unreadable old-thorn parameter before
+modulo. With `NRPyLeakageET` active it bypasses cadence and converts at every
+analysis call. Modern initial conversion remains conditional on a positive
+local cadence or active leakage. Modern guarded occurrences are excluded when
+the legacy initializer owns the corresponding call, avoiding duplicate
+scheduling.
+
+- initial conversion after `IllinoisGRMHD_conservs_to_prims`, present when
+  local `Convert_to_HydroBase_every` is positive or leakage is active;
+- `CCTK_ANALYSIS` through the diagnostic wrapper, with declared ordering before
+  leakage luminosities and the named diagnostics, present under the same
+  condition;
+- after flux RHS evaluation when thorn `NRPyLeakageET` is active;
+- two sites inside retained `ID_converter_ILGRMHD` compatibility gate: initial
+  conversion calls the mandatory converter and analysis calls the wrapper,
+  ordered before leakage luminosities.
 
 Every converter occurrence declares metric, lapse, shift, velocity, and B reads
 and velocity, Lorentz-factor, and Bvec writes. Tmunu's additive destination arrays
 are also declared as reads at its own occurrence. These declarations do not
-prove communication/validity behavior in any driver.
+prove communication/validity behavior in any driver. Coupled stage freshness
+and leakage internals remain unverified here.
 
 Claim evidence:
 - Claim: Mandatory and diagnostic conversion are separate, canonical B export is independent of legacy import, and schedule access includes actual fields.
@@ -93,6 +107,14 @@ Claim evidence:
 - Corroboration: registered `IllinoisGRMHD/schedule.ccl, affected declarations`
 - Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
 - Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=inspected-not-run; options=local source and declaration inspection; date=10-02-2026`
+
+Claim evidence:
+- Claim: With leakage active, the diagnostic wrapper bypasses local and legacy diagnostic cadence; otherwise it guards an unreadable legacy parameter and nonpositive cadence before integer remainder. This closes the inspected modulo-zero path without establishing coupled execution or stage freshness.
+- Role: descriptive behavior
+- Deciding authority: `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c::IllinoisGRMHD_convert_HydroBase_diagnostics`, leakage-active bypass and guarded cadence branch
+- Corroboration: `IllinoisGRMHD/param.ccl::Convert_to_HydroBase_every` default zero and `IllinoisGRMHD/schedule.ccl::NRPyLeakageET` RHS/analysis call sites
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=nonpositive cadence guard inspected-not-run; options=leakage-active bypass and leakage-inactive local/legacy cadence; date=10-02-2026`
 
 
 IllinoisGRMHD installs no startup check that rejects smallbPoynET and cannot

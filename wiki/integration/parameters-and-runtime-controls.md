@@ -30,7 +30,7 @@ uses “boolean” for standard CCL boolean values rather than inventing entries
 
 | Parameter | Type | Legal values/range | Default | Steerability | Local role |
 | --- | --- | --- | --- | --- | --- |
-| `Convert_to_HydroBase_every` | `INT` | `0:*` | `0` | `RECOVER` | Zero disables diagnostic export; positive N exports on divisible iterations. Mandatory consumers update independently. |
+| `Convert_to_HydroBase_every` | `INT` | `0:*` | `0` | `RECOVER` | Zero disables diagnostic export with leakage inactive; positive N exports on divisible iterations; leakage-active analysis calls bypass cadence. Mandatory consumers update independently. |
 | `update_Tmunu` | `CCTK_BOOLEAN` | boolean | `yes` | `RECOVER` | Gates `AddToTmunu` routine and MoL constrained-group registration. |
 | `rescale_magnetics` | `CCTK_BOOLEAN` | boolean | `yes` | not declared | Selects legacy Avec division by `sqrt(4*pi)` on ingress; Bvec egress is always canonical. |
 | `Symmetry` | `KEYWORD` | `none` | `none` | not declared | Only public keyword is `none`; description says equatorial support is in progress. |
@@ -43,15 +43,25 @@ uses “boolean” for standard CCL boolean values rather than inventing entries
 | `perturb_initial_data` | `CCTK_BOOLEAN` | boolean | `no` | not declared | Gates synchronized primitive/potential perturbation after ingress and before the magnetic curl. |
 | `perturb_every_con2prim` | `CCTK_BOOLEAN` | boolean | `no` | `ALWAYS` | Gates conservative perturbation before every scheduled Con2Prim. |
 
+Claim evidence:
+
+- Claim: Local cadence zero disables optional conversion with leakage inactive. Leakage-active conversion bypasses local/legacy diagnostic cadence; initial and analysis hooks remain declared with leakage active. Other calls guard nonpositive cadence before modulo. These are local declarations and control flow, not coupled runtime results.
+- Role: descriptive behavior
+- Deciding authority: registered `IllinoisGRMHD/src/convert_IllinoisGRMHD_to_HydroBase.c`, `IllinoisGRMHD_convert_HydroBase_diagnostics` leakage bypass and guarded cadence branch; registered `IllinoisGRMHD/schedule.ccl`, initial and `CCTK_ANALYSIS` conversion conditions
+- Corroboration: registered `IllinoisGRMHD/param.ccl`, `Convert_to_HydroBase_every` range and default
+- Validation: `inspected=pass; generated=not-run; built=not-run; run=not-run; result_checked=not-run`
+- Dimensions: `platform=not-applicable; tool_version=not-applicable; backend=not-run; precision=not-applicable; GPU=not-applicable; restart=not-run; distributed=not-run; error_path=nonpositive cadence guard inspected-not-run; options=leakage-active bypass and leakage-inactive diagnostic cadence; date=10-02-2026`
+
 Frozen matter and EM modes must be selected together; `IllinoisGRMHD_InitSymBound`
 errors if exactly one is `frozen`. Detailed algorithms belong to
 [Matter Boundaries and Perturbations](../evolution/matter-boundaries-and-perturbations.md)
 and [Electromagnetic Boundaries and Symmetry](../magnetics/electromagnetic-boundaries-and-symmetry.md).
 
-`Convert_to_HydroBase_every=0` disables diagnostic export. The mandatory
-converter has no cadence arithmetic; NRPyLeakageET and compatibility
-initialization always refresh consumer fields. The diagnostic wrapper guards
-zero before modulo; see
+`Convert_to_HydroBase_every=0` disables diagnostic export unless
+NRPyLeakageET is active, in which case the diagnostic wrapper bypasses cadence.
+The mandatory converter has no cadence arithmetic; NRPyLeakageET and
+compatibility initialization always refresh consumer fields. The diagnostic
+wrapper guards nonpositive cadence before modulo; see
 [HydroBase, GRHayLib, and Tmunu](hydrobase-grhaylib-and-tmunu.md).
 
 ### Deprecated IllinoisGRMHD controls

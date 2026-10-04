@@ -62,8 +62,11 @@ void NRPyLeakageET_compute_optical_depth_change(CCTK_ARGUMENTS, const int it) {
           const CCTK_REAL gyyL = gyy[index];
           const CCTK_REAL gyzL = gyz[index];
           const CCTK_REAL gzzL = gzz[index];
-          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                    - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          CCTK_REAL gdet;
+          if(!NRPyLeakageET_spatial_metric_valid(gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,&gdet)) {
+            CCTK_VERROR("Invalid spatial metric at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+            continue;
+          }
           const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
           const CCTK_REAL psiL  = exp(phiL);
           const CCTK_REAL psi2L = psiL *psiL;

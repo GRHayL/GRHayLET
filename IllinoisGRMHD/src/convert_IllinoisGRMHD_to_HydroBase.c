@@ -93,16 +93,19 @@ void convert_IllinoisGRMHD_to_HydroBase(CCTK_ARGUMENTS) {
 void IllinoisGRMHD_convert_HydroBase_diagnostics(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_IllinoisGRMHD_convert_HydroBase_diagnostics;
   DECLARE_CCTK_PARAMETERS;
-  // if/else for backward compatibility
-  if(CCTK_IsThornActive("Convert_to_HydroBase")) {
-    int partype;
-    void const *const parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
-    const int old_Convert_to_HydroBase_every = *(CCTK_INT const *)parptr;
-    if(old_Convert_to_HydroBase_every==0) return;
-    if(cctk_iteration%old_Convert_to_HydroBase_every!=0) return;
-  } else {
+
+  // Leakage needs current HydroBase data at each analysis call.
+  if(!CCTK_IsThornActive("NRPyLeakageET")) {
     // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-    if(Convert_to_HydroBase_every <= 0 || cctk_iteration%Convert_to_HydroBase_every!=0) return;
+    int cadence = Convert_to_HydroBase_every;
+    // if/else for backward compatibility
+    if(CCTK_IsThornActive("Convert_to_HydroBase")) {
+      int partype;
+      const void *parptr = CCTK_ParameterGet("Convert_to_HydroBase_every", "Convert_to_HydroBase", &partype);
+      if(!parptr) CCTK_ERROR("Could not read legacy HydroBase conversion cadence");
+      cadence = *(const CCTK_INT *)parptr;
+    }
+    if(cadence <= 0 || cctk_iteration%cadence != 0) return;
   }
 
   convert_IllinoisGRMHD_to_HydroBase(CCTK_PASS_CTOC);

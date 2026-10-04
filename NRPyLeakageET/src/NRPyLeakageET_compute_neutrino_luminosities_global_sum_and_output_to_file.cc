@@ -3,6 +3,7 @@
 #include "cctk_Parameters.h"
 
 #include "carpet.hh"
+#include <string>
 #include "NRPyLeakageET.h"
 
 extern "C"
@@ -11,7 +12,7 @@ void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(C
   DECLARE_CCTK_ARGUMENTS_NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file;
   DECLARE_CCTK_PARAMETERS;
 
-  if( cctk_iteration%compute_luminosities_every ) return;
+  if(compute_luminosities_every <= 0 || cctk_iteration%compute_luminosities_every) return;
 
   if( verbosity_level > 1 ) CCTK_INFO("Computing luminosities on all refinement levels");
   // Step 1: Compute the neutrino luminosities
@@ -65,25 +66,30 @@ void NRPyLeakageET_compute_neutrino_luminosities_global_sum_and_output_to_file(C
 
   // Step 3: Now output the luminosities to file
   if( CCTK_MyProc(cctkGH) == 0 ) {
-    char filename[512];
-    sprintf(filename,"%s/%s",out_dir,luminosities_outfile);
-    if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename,cctk_iteration);
-    FILE *fp = fopen(filename,"a+");
-    if( !fp ) CCTK_VERROR("Could not open file %s",filename);
+    const std::string filename = std::string(out_dir) + "/" + luminosities_outfile;
+    if( verbosity_level > 0 ) CCTK_VINFO("Outputting luminosities to file %s at iteration %d",filename.c_str(),cctk_iteration);
+    FILE *fp = fopen(filename.c_str(),"a+");
+    if( !fp ) CCTK_VERROR("Could not open file %s",filename.c_str());
 
+    // Buffered stdio can report a failed write only at fclose, so every fprintf
+    // result, the stream error flag, and the fclose result are all checked.
+    bool write_ok = true;
     if( cctk_iteration == 0 ) {
-      fprintf(fp,"# NRPyLeakageET output: Neutrino luminosities integrated over entire grid\n");
-      fprintf(fp,"# Luminosities are given in geometrized units. Convert to\n");
-      fprintf(fp,"# cgs units [erg/s] by multiplying by c^5 / G.\n");
-      fprintf(fp,"# Column 1: cctk_iteration\n");
-      fprintf(fp,"# Column 2: cctk_time\n");
-      fprintf(fp,"# Column 3: Electron neutrino luminosity\n");
-      fprintf(fp,"# Column 4: Electron antineutrino luminosity\n");
-      fprintf(fp,"# Column 5: Heavy lepton neutrino (single species) luminosity (mult. by 4 to obtain total)\n");
+      write_ok = write_ok && fprintf(fp,"# NRPyLeakageET output: Neutrino luminosities integrated over entire grid\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Luminosities are given in geometrized units. Convert to\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# cgs units [erg/s] by multiplying by c^5 / G.\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Column 1: cctk_iteration\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Column 2: cctk_time\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Column 3: Electron neutrino luminosity\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Column 4: Electron antineutrino luminosity\n") >= 0;
+      write_ok = write_ok && fprintf(fp,"# Column 5: Heavy lepton neutrino (single species) luminosity (mult. by 4 to obtain total)\n") >= 0;
     }
 
-    fprintf(fp,"%d %.15e %.15e %.15e %.15e\n",cctk_iteration,cctk_time,global_luminosities[0],global_luminosities[1],global_luminosities[2]);
-    fclose(fp);
+    write_ok = write_ok && fprintf(fp,"%d %.15e %.15e %.15e %.15e\n",cctk_iteration,cctk_time,global_luminosities[0],global_luminosities[1],global_luminosities[2]) >= 0;
+    write_ok = write_ok && ferror(fp) == 0;
+    const int close_status = fclose(fp);
+    if( !write_ok || close_status != 0 )
+      CCTK_VERROR("Failed to write or close luminosity output file %s",filename.c_str());
     if( verbosity_level > 1 ) CCTK_INFO("Completed luminosities output");
   }
 }

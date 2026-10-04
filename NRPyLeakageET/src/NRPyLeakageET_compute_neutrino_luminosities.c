@@ -35,8 +35,11 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
           const CCTK_REAL gyyL = gyy[index];
           const CCTK_REAL gyzL = gyz[index];
           const CCTK_REAL gzzL = gzz[index];
-          const CCTK_REAL gdet = fabs(gxxL * gyyL * gzzL + gxyL * gyzL * gxzL + gxzL * gxyL * gyzL
-                                      - gxzL * gyyL * gxzL - gxyL * gxyL * gzzL - gxxL * gyzL * gyzL);
+          CCTK_REAL gdet;
+          if(!NRPyLeakageET_spatial_metric_valid(gxxL,gxyL,gxzL,gyyL,gyzL,gzzL,&gdet)) {
+            CCTK_VERROR("Invalid spatial metric in luminosity analysis at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+            continue;
+          }
           const CCTK_REAL phiL  = (1.0/12.0) * log(gdet);
           const CCTK_REAL psiL  = exp(phiL);
           const CCTK_REAL psi2L = psiL *psiL;
@@ -51,6 +54,10 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
             const CCTK_REAL Y_eL         = Y_e[index];
             const CCTK_REAL temperatureL = temperature[index];
             const CCTK_REAL wL           = w_lorentz[index];
+            if(!robust_isfinite(alpL) || !(alpL > 0.0) || !robust_isfinite(wL) || !(wL > 0.0)) {
+              CCTK_VERROR("Invalid lapse or Lorentz factor in luminosity analysis at (%d,%d,%d), level %d: alpha=%g W=%g",i,j,k,GetRefinementLevel(cctkGH),alpL,wL);
+              continue;
+            }
             ghl_neutrino_optical_depths tauL;
             tauL.nue [0] = tau_0_nue [index];
             tauL.nue [1] = tau_1_nue [index];
@@ -61,10 +68,21 @@ void NRPyLeakageET_compute_neutrino_luminosities(CCTK_ARGUMENTS) {
 
             // Step 3: Compute neutrino luminosities
             ghl_neutrino_luminosities lumL;
-            NRPyLeakage_compute_neutrino_luminosities(ghl_eos,
+            const ghl_error_codes_t status = NRPyLeakage_compute_neutrino_luminosities(ghl_eos,
                                                       alpL, gxxL, gxyL, gxzL, gyyL, gyzL, gzzL,
                                                       rhoL, Y_eL, temperatureL, wL,
                                                       &tauL, &lumL);
+            if(status != ghl_success) {
+              CCTK_VERROR("NRPyLeakage_compute_neutrino_luminosities failed (status %d) at (%d,%d,%d), level %d: rho=%g Ye=%g T=%g",
+                          (int)status, i,j,k,GetRefinementLevel(cctkGH),rhoL,Y_eL,temperatureL);
+              continue;
+            }
+
+
+            if(!robust_isfinite(lumL.nue) || !robust_isfinite(lumL.anue) || !robust_isfinite(lumL.nux)) {
+              CCTK_VERROR("Nonfinite luminosity at (%d,%d,%d), level %d",i,j,k,GetRefinementLevel(cctkGH));
+              continue;
+            }
 
             // Step 4: Write to main memory
             lum_nue [index] = lumL.nue;

@@ -4,8 +4,9 @@ void convert_GRHayLHD_to_HydroBase(CCTK_ARGUMENTS) {
   DECLARE_CCTK_ARGUMENTS_convert_GRHayLHD_to_HydroBase;
   DECLARE_CCTK_PARAMETERS;
 
-  // Generally, we only need the HydroBase variables for diagnostic purposes, so we run the below loop only at iterations in which diagnostics are run.
-  if(cctk_iteration%Convert_to_HydroBase_every!=0) return;
+  // Leakage needs current HydroBase data at each RHS and analysis call.
+  if(!CCTK_IsThornActive("NRPyLeakageET") &&
+     (Convert_to_HydroBase_every <= 0 || cctk_iteration%Convert_to_HydroBase_every != 0)) return;
 
 #pragma omp parallel for
   for(int k=0; k<cctk_lsh[2]; k++) {
